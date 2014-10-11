@@ -1,0 +1,112 @@
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <cfloat>
+#include <cmath>
+#include <cstdio>
+#include <cwchar>
+//#include <iostream>
+#include <string>
+
+#include "Magic.h"
+
+using namespace cv;
+using namespace std;
+
+const string leftImgs[] = { "left01.jpg", "left02.jpg",
+		"left03.jpg", "left04.jpg", "left05.jpg", "left06.jpg", "left07.jpg",
+		"left08.jpg", "left09.jpg", "left10.jpg", "left11.jpg", "left12.jpg",
+		"left13.jpg", "left14.jpg" };
+
+const string rightImgs[] = { "right01.jpg", "right02.jpg",
+		"right03.jpg", "right04.jpg", "right05.jpg", "right06.jpg",
+		"right07.jpg", "right08.jpg", "right09.jpg", "right10.jpg",
+		"right11.jpg", "right12.jpg", "right13.jpg", "right14.jpg" };
+
+void writePLY(const Mat& xyz, const Mat& img) {
+	const double max_z = 2.5;
+	FILE* fp = fopen("magic.ply", "wt");
+	fprintf(fp, "%s", "ply\n");
+	fprintf(fp, "%s", "format ascii 1.0\n");
+
+	int count = 0;
+	for (int y = 0; y < xyz.rows; y++) {
+		for (int x = 0; x < xyz.cols; x++) {
+			Vec3f point = xyz.at<Vec3f>(y, x);
+			if (fabs(point[2] - max_z) < FLT_EPSILON || fabs(point[2]) > max_z)
+				continue;
+			count++;
+		}
+	}
+
+	fprintf(fp, "element vertex %d\n", count);
+	fprintf(fp, "%s", "property float x\n");
+	fprintf(fp, "%s", "property float y\n");
+	fprintf(fp, "%s", "property float z\n");
+	fprintf(fp, "%s", "property uchar b\n");
+	fprintf(fp, "%s", "property uchar g\n");
+	fprintf(fp, "%s", "property uchar r\n");
+	fprintf(fp, "%s", "end_header\n");
+
+	std::cout << xyz.rows << " -- " << xyz.cols << "\n";
+	std::cout << img.rows << " -- " << img.cols << "\n";
+	std::cout.flush();
+
+	for (int y = 0; y < xyz.rows; y++) {
+		for (int x = 0; x < xyz.cols; x++) {
+			Vec3f point = xyz.at<Vec3f>(y, x);
+			if (fabs(point[2] - max_z) < FLT_EPSILON || fabs(point[2]) > max_z)
+				continue;
+			Vec3b s = img.at<Vec3b>(y, x);
+			fprintf(fp, "%f %f %f %d %d %d\n", point[0], point[1], point[2], s[0], s[1], s[2]);
+		}
+	}
+
+	fclose(fp);
+}
+
+int main(int argc, char** argv) {
+	Magic magic(640, 480);
+	Mat canvas = magic.createCanvas();
+
+//	VideoCapture cam1;
+//	cam1.open("output1.avi");
+//	VideoCapture cam2;
+//	cam2.open("output2.avi");
+
+	int picIdx = 0;
+	bool drawEpi = false;
+
+	while (true) {
+		Mat imgLeftRM, imgRightRM;
+
+		// ---------------------------
+		// BAL és JOBB OLDAL + RAJZOLÁS
+		// ---------------------------
+		Mat imgLeft = imread(leftImgs[picIdx]);
+		magic.remap(imgLeft, imgLeftRM, LEFT);
+		magic.putOnCanvas(imgLeftRM, canvas, LEFT);
+
+		Mat imgRight = imread(rightImgs[picIdx]);
+		magic.remap(imgRight, imgRightRM, RIGHT);
+		magic.putOnCanvas(imgRightRM, canvas, RIGHT);
+
+		Mat xyz;
+		magic.reprojectTo3D(imgLeftRM, imgRightRM, xyz);
+
+		if (drawEpi)
+			magic.drawEpipolarLines(canvas);
+
+		imshow("rectified", canvas);
+		char c = (char) waitKey();
+		if (c == ' ') {
+			picIdx = ((picIdx + 1) % 8);
+		} else if (c == 'f') {
+			writePLY(xyz, imgLeftRM);
+		} else if (c == 'e') {
+			drawEpi = !drawEpi;
+		} else if (c == 27 || c == 'q' || c == 'Q')
+			break;
+	}
+
+	return 0;
+}

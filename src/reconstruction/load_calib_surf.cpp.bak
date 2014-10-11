@@ -1,0 +1,410 @@
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/stitching/stitcher.hpp>
+#include <opencv2/features2d/features2d.hpp>
+#include <opencv2/calib3d/calib3d.hpp>
+#include <opencv2/nonfree/nonfree.hpp>
+
+#include <opencv2/core/opengl_interop.hpp>
+
+#include <cfloat>
+#include <cmath>
+#include <cstdio>
+#include <cwchar>
+#include <string>
+
+#include "Magic.h"
+#include "Canvas.h"
+#include "OpenGLRenderer.h"
+
+using namespace cv;
+using namespace std;
+
+void writePLY(const Mat& xyz, const Mat& img) {
+	FILE* fp = fopen("magic.ply", "wt");
+	fprintf(fp, "%s", "ply\n");
+	fprintf(fp, "%s", "format ascii 1.0\n");
+
+	int count = 0;
+	for (int y = 0; y < xyz.rows; y++) {
+		for (int x = 0; x < xyz.cols; x++) {
+			Vec3f point = xyz.at<Vec3f>(y, x);
+			if (point[2] == -1.0f)
+				continue;
+			count++;
+		}
+	}
+
+	fprintf(fp, "element vertex %d\n", count);
+	fprintf(fp, "%s", "property float x\n");
+	fprintf(fp, "%s", "property float y\n");
+	fprintf(fp, "%s", "property float z\n");
+	fprintf(fp, "%s", "property uchar b\n");
+	fprintf(fp, "%s", "property uchar g\n");
+	fprintf(fp, "%s", "property uchar r\n");
+	fprintf(fp, "%s", "end_header\n");
+
+	for (int y = 0; y < xyz.rows; y++) {
+		for (int x = 0; x < xyz.cols; x++) {
+			Vec3f point = xyz.at<Vec3f>(y, x);
+			if (point[2] == -1.0f)
+				continue;
+			Vec3b s = img.at<Vec3b>(y, x);
+			fprintf(fp, "%f %f %f %d %d %d\n", point[0], point[1], point[2],
+					s[0], s[1], s[2]);
+		}
+	}
+
+	std::cout << xyz.rows << " -- " << xyz.cols << "\n";
+	std::cout.flush();
+
+	fclose(fp);
+}
+
+void writePLY4D(const Mat& xyzw, const std::vector<Point2f> imgPoints,
+		const Mat& img) {
+	FILE* fp = fopen("magic4.ply", "wt");
+	fprintf(fp, "%s", "ply\n");
+	fprintf(fp, "%s", "format ascii 1.0\n");
+
+	int count = 0;
+
+	std::vector<Vec4f> points;
+	std::vector<Vec3b> colors;
+	for (int i = 0; i < xyzw.cols; i++) {
+		Vec4f point = xyzw.col(i);
+		Vec4f point3 = point / point.val[3];
+
+		if (point3.val[2] > 0.0f) {
+			points.push_back(point3);
+			colors.push_back(img.at<Vec3b>(imgPoints[i]));
+			// std::cout << point3.val[2] << std::endl;
+		}
+	}
+
+	double avg = 0.0;
+	for (int i = 0; i < points.size(); i++) {
+		avg += points[i].val[2];
+	}
+	avg /= points.size();
+	std::cout << avg << std::endl;
+
+	std::vector<Vec4f> good_points;
+	std::vector<Vec3b> good_colors;
+	for (int i = 0; i < points.size(); i++) {
+		if (abs(points[i].val[2] - avg) < avg / 4) {
+			good_points.push_back(points[i]);
+			good_colors.push_back(colors[i]);
+		}
+	}
+
+	fprintf(fp, "element vertex %d\n", good_points.size());
+	fprintf(fp, "%s", "property float x\n");
+	fprintf(fp, "%s", "property float y\n");
+	fprintf(fp, "%s", "property float z\n");
+	fprintf(fp, "%s", "property uchar b\n");
+	fprintf(fp, "%s", "property uchar g\n");
+	fprintf(fp, "%s", "property uchar r\n");
+	fprintf(fp, "%s", "end_header\n");
+
+	for (int i = 0; i < good_points.size(); i++) {
+		fprintf(fp, "%f %f %f %d %d %d\n", good_points[i].val[0],
+				good_points[i].val[1], good_points[i].val[2],
+				good_colors[i].val[0], good_colors[i].val[1],
+				good_colors[i].val[2]);
+	}
+
+	fclose(fp);
+}
+
+void doMagic(Magic& magic, const Mat& imgLeftRM, const Camera& camera,
+		const Mat& xyz, Mat& test, Mat& warped) {
+	// ---------------------------
+	magic.drawTest(test, imgLeftRM, camera);
+
+	// ---------------------------
+	// TRAFÓ!
+	// ---------------------------
+	// Random pont sorsolás
+	vector<Point3f> objectPoints;
+	vector<Point2f> imagePoints;
+	magic.getPointsForTransformation(objectPoints, imagePoints, camera);
+	std::cout << imagePoints.size() << "\n";
+	std::cout.flush();
+
+	// 1. pontok vetítése
+	vector<Point2f> output;
+	magic.projectPoints(objectPoints, camera, output);
+
+	// 2. trafó
+	Mat homographyMat = findHomography(imagePoints, output, CV_RANSAC);
+	warpPerspective(imgLeftRM, warped, homographyMat, imgLeftRM.size());
+}
+
+void doPointCloud(Magic& magic, Point p, const Mat& imgDisparity16S, Mat& xyz) {
+	vector<Point> pc;
+
+	PointCloudSegmenter pcs;
+	Mat magicMat = pcs.segment(magic.normalizeDisparity(imgDisparity16S), p,
+			pc);
+
+	// imshow("magic", magicMat);
+	Mat only(imgDisparity16S.rows, imgDisparity16S.cols,
+			imgDisparity16S.type());
+	for (int y = 0; y < only.rows; y++) {
+		for (int x = 0; x < only.cols; x++) {
+			if (magicMat.at<uchar>(y, x) != 255) {
+				only.at<short>(y, x) = -30000;
+			} else {
+				only.at<short>(y, x) = imgDisparity16S.at<short>(y, x);
+			}
+		}
+	}
+
+	magic.reprojectTo3D(only, xyz);
+}
+
+int main(int argc, char** argv) {
+	VideoCapture cam1;
+	cam1.open(2);
+	VideoCapture cam2;
+	cam2.open(1);
+
+	Magic magic;
+	Canvas canvas(Size(640, 480), 3);
+	Canvas canvasPC(Size(640, 480), 2);
+	Canvas canvasHead(Size(640, 480), 2);
+
+	Camera camera;
+	camera.setTranslation(0.0, 0.0, 0.5);
+
+	int picIdx = 0;
+	bool drawEpi = false;
+	int sc_type = 0;
+
+	int count = 0;
+
+//	OpenGLRenderer renderer(640, 480);
+//	renderer.init();
+
+	while (true) {
+		count++;
+
+		// ---------------------------
+		// BAL és JOBB OLDAL
+		// ---------------------------
+		//Mat imgLeftRM = magic.readAndRemap(leftImgs[picIdx], LEFT);
+		//Mat imgRightRM = magic.readAndRemap(rightImgs[picIdx], RIGHT);
+
+		Mat imgLeftRM = magic.readAndRemap(cam1, LEFT);
+		Mat imgRightRM = magic.readAndRemap(cam2, RIGHT);
+
+		//-- Step 1: Detect the keypoints using SURF Detector
+		double minHessian = 400;
+
+		SURF surf(minHessian);
+
+		std::vector<KeyPoint> keypoints_left, keypoints_right;
+		Mat descriptors_left, descriptors_right;
+
+		Mat mask_left = Mat::zeros(imgLeftRM.size(), CV_8U);
+		Mat roi_left(mask_left, magic.validRoiLeft);
+		roi_left = Scalar(255, 255, 255);
+		surf(imgLeftRM, mask_left, keypoints_left, descriptors_left);
+
+		Mat mask_right = Mat::zeros(imgRightRM.size(), CV_8U);
+		Mat roi_right(mask_right, magic.validRoiRight);
+		roi_right = Scalar(255, 255, 255);
+		surf(imgRightRM, mask_right, keypoints_right, descriptors_right);
+
+		//-- Step 3: Matching descriptor vectors using FLANN matcher
+		FlannBasedMatcher matcher;
+		std::vector<DMatch> matches;
+		try {
+			matcher.match(descriptors_left, descriptors_right, matches);
+		} catch (cv::Exception& ex) {
+			continue;
+		}
+
+		std::vector<int> pointIndexesLeft;
+		std::vector<int> pointIndexesRight;
+		for (std::vector<cv::DMatch>::const_iterator it = matches.begin();
+				it != matches.end(); ++it) {
+			// Get the indexes of the selected matched keypoints
+			pointIndexesLeft.push_back(it->queryIdx);
+			pointIndexesRight.push_back(it->trainIdx);
+		}
+
+		std::vector<cv::Point2f> selPointsLeft, selPointsRight;
+		cv::KeyPoint::convert(keypoints_left, selPointsLeft, pointIndexesLeft);
+		cv::KeyPoint::convert(keypoints_right, selPointsRight,
+				pointIndexesRight);
+
+		std::vector<cv::Point2f> projPointsLeft, projPointsRight;
+		for (int i = 0; i < selPointsLeft.size(); i++) {
+			if (abs(selPointsLeft[i].y - selPointsRight[i].y) < 4) {
+//				std::cout << selPointsLeft[i] << " -- " << selPointsRight[i]
+//						<< std::endl;
+				projPointsLeft.push_back(selPointsLeft[i]);
+				projPointsRight.push_back(selPointsRight[i]);
+				cv::circle(imgLeftRM, selPointsLeft[i], 3,
+						cv::Scalar(255, 255, 255), 2);
+				cv::circle(imgRightRM, selPointsRight[i], 3,
+						cv::Scalar(255, 255, 255), 2);
+			}
+		}
+
+		Mat points4D;
+		cv::triangulatePoints(magic.P1, magic.P2, projPointsLeft,
+				projPointsRight, points4D);
+		std::cout << points4D.cols << std::endl;
+
+		std::cout.flush();
+
+//		Mat img_matches;
+//		drawMatches(imgLeftRM, keypoints_left, imgRightRM, keypoints_right,
+//				matches, img_matches, Scalar::all(-1), Scalar::all(-1),
+//				vector<char>(), DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);
+//		imshow("matches", img_matches);
+
+		// ---------------------------
+		// 3D projekció
+		// ---------------------------
+//		Mat imgDisparity16S = magic.getDisparityMatrix(imgLeftRM, imgRightRM,
+//				SGBM);
+//		Mat xyz;
+//		if (count > 10)
+//			magic.reprojectTo3D(imgDisparity16S, xyz);
+//		Mat disp = magic.normalizeDisparity(imgDisparity16S);
+//		imshow("disp", disp);
+
+		// ---------------------------
+		// Túl távoli képek kiszûrése
+		// ---------------------------
+//		if (count > 10)
+//			magic.filter3DCoordinates(xyz);
+
+		// --------- OPENGL
+		// Mat rvec, tvec;
+		// magic.getCameraPose(rvec, tvec);
+//		renderer.updatePoints(magic.objectPoints, magic.imagePoints, imgLeftRM);
+		// --------- END
+
+		// VARÁZSLAT
+		//Mat test(imgLeftRM.size(), imgLeftRM.type());
+		//Mat warped;
+		//if (count > 10)
+		//doMagic(magic, imgLeftRM, camera, xyz, test, warped);
+
+		// --- MEGJELENÍTÉS
+		canvas.put(imgLeftRM, 0);
+		canvas.put(imgRightRM, 1);
+		// canvas.put(test, 2);
+
+		canvas.show("left -- point-cloud -- warped");
+
+//		renderer.render();
+
+		/*canvas.write("image.jpg");
+		 imwrite("warped.jpg", warped);
+		 imwrite("pointcloud.jpg", test);
+
+		 // ---------------------------
+		 // Egyéni pontfelhõk
+		 // ---------------------------
+		 // Számítógép
+		 Mat xyz2;
+		 doPointCloud(magic, Point(140, 390), imgDisparity16S, xyz2);
+		 magic.filter3DCoordinates(xyz2);
+		 Mat pcPC(imgLeftRM.size(), imgLeftRM.type());
+		 Mat warpedPC;
+		 doMagic(magic, imgLeftRM, camera, xyz2, pcPC, warpedPC);
+		 canvasPC.put(pcPC, 0);
+		 canvasPC.put(warpedPC, 1);
+		 //canvasPC.show("PC");
+		 imwrite("pc.jpg", warpedPC);
+
+		 // emberke feje
+		 Mat xyz3;
+		 doPointCloud(magic, Point(300, 180), imgDisparity16S, xyz3);
+		 magic.filter3DCoordinates(xyz3);
+		 Mat pcHead(imgLeftRM.size(), imgLeftRM.type());
+		 Mat warpedHead;
+		 doMagic(magic, imgLeftRM, camera, xyz3, pcHead, warpedHead);
+		 canvasHead.put(pcHead, 0);
+		 canvasHead.put(warpedHead, 1);
+		 //canvasHead.show("HEAD");
+		 imwrite("head.jpg", warpedHead);
+
+		 // ------------
+		 // STITCHING!!!
+		 // ------------
+		 vector<Mat> imgs;
+		 imgs.push_back(imread("_head.jpg"));
+		 imgs.push_back(imread("_pc.jpg"));
+		 Mat pano;
+
+		 Stitcher stitcher = Stitcher::createDefault(true);
+		 Stitcher::Status status = stitcher.stitch(imgs, pano);
+
+		 if (status != Stitcher::OK) {
+		 std::cout << "Can't stitch images, error code = " << int(status) << endl;
+		 } else {
+		 std::cout << "Fasza!" << endl;
+		 //imshow("pano", pano);
+		 }
+		 std::cout.flush();
+		 */
+
+		int c = waitKey(10);
+		if (c == ' ') {
+			picIdx = ((picIdx + 1) % 8);
+		} else if (c == 'f') { //|| (count % 20 == 0)) {
+			//writePLY(xyz, imgLeftRM);
+			writePLY4D(points4D, projPointsLeft, imgLeftRM);
+		} else if (c == 'k') {
+			sc_type = ((sc_type + 1) % 3);
+		} else if (c == 'l') {
+			drawEpi = !drawEpi;
+		} else if (c == 27) {
+			break;
+		} else if (c == 'e') {
+			camera.rotX(10);
+//			renderer.rotCameraX(5);
+		} else if (c == 'q') {
+			camera.rotX(-10);
+//			renderer.rotCameraX(-5);
+		} else if (c == 'd') {
+			camera.rotY(10);
+//			renderer.rotCameraY(5);
+		} else if (c == 'a') {
+			camera.rotY(-10);
+//			renderer.rotCameraY(-5);
+		} else if (c == 'c') {
+			camera.rotZ(10);
+		} else if (c == 'y') {
+			camera.rotZ(-10);
+		} else if (c == 'x') {
+			camera.setRotation(0, 0, 0);
+			camera.setTranslation(0.0, 0.0, 0.5);
+		} else if (c == 'w') {
+//			renderer.moveCamera(-1.0f);
+			camera.addZ(-0.5);
+		} else if (c == 's') {
+//			renderer.moveCamera(1.0f);
+			camera.addZ(0.5);
+		} else if (c == 2424832) { // left
+			camera.addX(0.5);
+		} else if (c == 2555904) { // right
+			camera.addX(-0.5);
+		} else if (c == 2490368) { // up
+			camera.addY(0.5);
+		} else if (c == 2621440) { // down
+			camera.addY(-0.5);
+		}
+	}
+
+//	destroyAllWindows();
+
+	return 0;
+}
