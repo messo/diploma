@@ -16,7 +16,7 @@ extern "C" void quit_signal_handler(int signum) {
 
 int main() {
     RealStereoCamera rsc;
-    Calibration calibration(NULL, NULL);
+    Calibration calibration;
 
 #ifdef __unix__
     signal(SIGINT, quit_signal_handler); // listen for ctrl-C

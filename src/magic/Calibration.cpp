@@ -145,10 +145,8 @@ void Calibration::calibrate() {
 
     cout << "Running stereo calibration ...\n";
 
-    Mat cameraMatrix[2], distCoeffs[2];
     cameraMatrix[0] = Mat::eye(3, 3, CV_64F);
     cameraMatrix[1] = Mat::eye(3, 3, CV_64F);
-    Mat R, T, E, F;
 
     double rms = stereoCalibrate(objectPoints, imagePoints[0], imagePoints[1],
             cameraMatrix[0], distCoeffs[0],
@@ -200,13 +198,13 @@ void Calibration::calibrate() {
     else
         cout << "Error: can not save the intrinsic parameters\n";
 
-    Mat R1, R2, P1, P2, Q;
-    Rect validRoi[2];
+    Mat R1, R2;
+    Rect validRoiLeft, validRoiRight;
 
     stereoRectify(cameraMatrix[0], distCoeffs[0],
             cameraMatrix[1], distCoeffs[1],
             imageSize, R, T, R1, R2, P1, P2, Q,
-            CALIB_ZERO_DISPARITY, 1, imageSize, &validRoi[0], &validRoi[1]);
+            CALIB_ZERO_DISPARITY, 1, imageSize, &validRoiLeft, &validRoiRight);
 
     // OpenCV can handle left-right
     // or up-down camera arrangements
@@ -216,7 +214,6 @@ void Calibration::calibrate() {
     if (!showRectified)
         return;
 
-    Mat rmap[2][2];
     // IF BY CALIBRATED (BOUGUET'S METHOD)
     if (useCalibrated) {
         // we already computed everything
@@ -245,7 +242,7 @@ void Calibration::calibrate() {
 
     fs.open("extrinsics.yml", FileStorage::WRITE);
     if (fs.isOpened()) {
-        fs << "R" << R << "T" << T << "E" << E << "F" << F << "R1" << R1 << "R2" << R2 << "P1" << P1 << "P2" << P2 << "Q" << Q << "validRoiLeft" << validRoi[0] << "validRoiRight" << validRoi[1];
+        fs << "R" << R << "T" << T << "E" << E << "F" << F << "R1" << R1 << "R2" << R2 << "P1" << P1 << "P2" << P2 << "Q" << Q << "validRoiLeft" << validRoiLeft << "validRoiRight" << validRoiRight;
         fs.release();
     }
     else
@@ -278,8 +275,9 @@ void Calibration::calibrate() {
             Mat canvasPart = !isVerticalStereo ? canvas(Rect(w * k, 0, w, h)) : canvas(Rect(0, h * k, w, h));
             resize(cimg, canvasPart, canvasPart.size(), 0, 0, INTER_AREA);
             if (useCalibrated) {
-                Rect vroi(cvRound(validRoi[k].x * sf), cvRound(validRoi[k].y * sf),
-                        cvRound(validRoi[k].width * sf), cvRound(validRoi[k].height * sf));
+                Rect validRoi = (k == 0) ? validRoiLeft : validRoiRight;
+                Rect vroi(cvRound(validRoi.x * sf), cvRound(validRoi.y * sf),
+                        cvRound(validRoi.width * sf), cvRound(validRoi.height * sf));
                 rectangle(canvasPart, vroi, Scalar(0, 0, 255), 3, 8);
             }
         }
