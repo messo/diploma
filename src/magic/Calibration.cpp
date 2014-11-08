@@ -41,8 +41,6 @@ Calibration::Calibration(const string &intrinsics, const string &extrinsics) :
             CV_16SC2, rmap[0][0], rmap[0][1]);
     initUndistortRectifyMap(cameraMatrix[1], distCoeffs[1], R2, P2, imageSize,
             CV_16SC2, rmap[1][0], rmap[1][1]);
-
-    //dispRoi = getValidDisparityROI(validRoiLeft, validRoiRight, 0, numberOfDisparities, 3);
 }
 
 void Calibration::acquireFrames(StereoCamera &stereoCamera) {

@@ -25,7 +25,6 @@ public:
     Mat rmap[2][2];
     Mat P1, P2, E, F;
     Rect validRoiLeft, validRoiRight;
-    // Rect dispRoi;
 
     Calibration() {
     };
