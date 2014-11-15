@@ -1,5 +1,8 @@
 #include "Calibration.hpp"
 
+using namespace std;
+using namespace cv;
+
 Calibration::Calibration(const string &intrinsics, const string &extrinsics) :
         imageSize(640, 480) {
 

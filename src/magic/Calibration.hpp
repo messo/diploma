@@ -9,27 +9,24 @@
 
 #include "StereoCamera.hpp"
 
-using namespace cv;
-using namespace std;
-
 class StereoCamera;
 
 class Calibration {
 
-    vector<Mat> images;
-    Size imageSize;
+    std::vector<cv::Mat> images;
+    cv::Size imageSize;
 
 public:
-    Mat cameraMatrix[2], distCoeffs[2];
-    Mat R, T, Q;
-    Mat rmap[2][2];
-    Mat P1, P2, E, F;
-    Rect validRoiLeft, validRoiRight;
+    cv::Mat cameraMatrix[2], distCoeffs[2];
+    cv::Mat R, T, Q;
+    cv::Mat rmap[2][2];
+    cv::Mat P1, P2, E, F;
+    cv::Rect validRoiLeft, validRoiRight;
 
     Calibration() {
     };
 
-    Calibration(const string &intrinsics, const string &extrinsics);
+    Calibration(const std::string &intrinsics, const std::string &extrinsics);
 
     void acquireFrames(StereoCamera &stereoCamera);
 

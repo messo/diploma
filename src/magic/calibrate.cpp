@@ -1,5 +1,5 @@
 #include "Calibration.hpp"
-#include "RealStereoCamera.hpp"
+#include "StereoCamera.hpp"
 
 /* Keep the webcam from locking up when you interrupt a frame capture */
 volatile int quit_signal = 0;
@@ -15,7 +15,7 @@ extern "C" void quit_signal_handler(int signum) {
 #endif
 
 int main() {
-    RealStereoCamera rsc;
+    StereoCamera sc(StereoCamera::Type::REAL);
     Calibration calibration;
 
 #ifdef __unix__
@@ -23,13 +23,13 @@ int main() {
 #endif
 
     while (true) {
-        imshow("left", rsc.getLeft());
-        imshow("right", rsc.getRight());
+        imshow("left", sc.getLeft());
+        imshow("right", sc.getRight());
 
-        char ch = waitKey(50);
+        char ch = cv::waitKey(50);
         if (ch != -1) {
             if (ch == ' ') {
-                calibration.acquireFrames(rsc);
+                calibration.acquireFrames(sc);
                 continue;
             } else if (ch == 'c') {
                 calibration.calibrate();

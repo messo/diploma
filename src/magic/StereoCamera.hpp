@@ -4,28 +4,40 @@
 #include <opencv2/highgui.hpp>
 
 #include "Calibration.hpp"
-
-using namespace cv;
+#include "Camera.hpp"
 
 class Calibration;
 
 class StereoCamera {
-protected:
-    Size imageSize;
-    Calibration *calibration;
-    Rect dispRoi;
-    Ptr<StereoSGBM> sgbm;
+    int counter = -1;
+    time_t start, end;
+    double fps;
 
-    Mat rectify(const Mat &img, int cam);
+    cv::Ptr<Camera> leftCamera, rightCamera;
+
+    cv::Size imageSize;
+    cv::Ptr<Calibration> calibration;
+
+
+    cv::Mat getImage(cv::Ptr<Camera> camera);
+
+    cv::Mat rectify(const cv::Mat &img, int cam);
 
 public:
-    StereoCamera(Calibration *calibration = NULL);
+    enum Type {
+        REAL, DUMMY
+    };
 
-    virtual Mat getLeft() = 0;
 
-    virtual Mat getRight() = 0;
+    cv::Rect dispRoi;
 
-    Mat getDisparityMatrix(Mat &left, Mat &right);
+    StereoCamera(Type type, cv::Ptr<Calibration> calibration = cv::Ptr<Calibration>());
 
-    Mat normalizeDisparity(Mat const &imgDisparity16S);
+    cv::Mat getLeft();
+
+    cv::Mat getRight();
+
+    cv::Mat getDisparityMatrix(const cv::Mat &left, const cv::Mat &right);
+
+    cv::Mat normalizeDisparity(cv::Mat const &imgDisparity16S);
 };
