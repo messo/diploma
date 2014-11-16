@@ -9,4 +9,8 @@ public:
     DummyCamera(int id);
 
     bool read(cv::OutputArray img);
+
+    virtual bool grab();
+
+    virtual bool retrieve(cv::OutputArray img);
 };

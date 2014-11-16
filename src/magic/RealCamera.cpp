@@ -20,7 +20,7 @@ RealCamera::RealCamera(int id) : Camera(id) {
         std::cout << "Setting V4L2_CID_EXPOSURE_AUTO succeeded." << std::endl;
 
     c.id = V4L2_CID_EXPOSURE_ABSOLUTE;
-    c.value = 1200;
+    c.value = 1500;
     if (v4l2_ioctl(descriptor, VIDIOC_S_CTRL, &c) == 0)
         std::cout << "Setting V4L2_CID_EXPOSURE_ABSOLUTE succeeded." << std::endl;
 
@@ -37,4 +37,12 @@ RealCamera::RealCamera(int id) : Camera(id) {
 
 bool RealCamera::read(cv::OutputArray img) {
     return cap.read(img);
+}
+
+bool RealCamera::grab() {
+    return cap.grab();
+}
+
+bool RealCamera::retrieve(cv::OutputArray img) {
+    return cap.retrieve(img);
 }

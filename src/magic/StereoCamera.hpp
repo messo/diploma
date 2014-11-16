@@ -16,8 +16,6 @@ class StereoCamera {
     cv::Ptr<Camera> leftCamera, rightCamera;
 
     cv::Size imageSize;
-    cv::Ptr<Calibration> calibration;
-
 
     cv::Mat getImage(cv::Ptr<Camera> camera);
 
@@ -29,6 +27,9 @@ public:
     };
 
 
+    cv::Ptr<Calibration> calibration;
+    std::vector<cv::Point3f> objectPoints;
+    std::vector<cv::Point2f> imagePoints;
     cv::Rect dispRoi;
 
     StereoCamera(Type type, cv::Ptr<Calibration> calibration = cv::Ptr<Calibration>());
@@ -39,5 +40,11 @@ public:
 
     cv::Mat getDisparityMatrix(const cv::Mat &left, const cv::Mat &right);
 
-    cv::Mat normalizeDisparity(cv::Mat const &imgDisparity16S);
+    cv::Mat normalizeDisparity(cv::Mat const &disparity16S);
+
+    bool reprojectTo3D(const cv::Mat &disparity16S);
+
+    void getCameraPose(cv::OutputArray rvec, cv::OutputArray tvec);
+
+    void reprojectPoints(const cv::Mat &rvec, const cv::Mat &tvec, const cv::Mat &img, cv::Mat &output);
 };

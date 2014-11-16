@@ -15,4 +15,8 @@ public:
     }
 
     virtual bool read(cv::OutputArray img) = 0;
+
+    virtual bool grab() = 0;
+
+    virtual bool retrieve(cv::OutputArray img) = 0;
 };

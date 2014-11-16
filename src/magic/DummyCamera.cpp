@@ -12,15 +12,23 @@ bool DummyCamera::read(OutputArray out) {
 
     Mat img;
     if (getId() == 0) {
-        img = imread("/home/balint/images/left_" + std::to_string(frame++));
+        img = imread("/media/balint/Data/Linux/diploma/src/images1/left_" + std::to_string(frame++) + ".png");
     } else if (getId() == 1) {
-        img = imread("/home/balint/images/right_" + std::to_string(frame++));
+        img = imread("/media/balint/Data/Linux/diploma/src/images1/right_" + std::to_string(frame++) + ".png");
     }
     img.copyTo(out);
 
-    if (frame > 200) {
+    if (frame > 231) {
         frame = 0;
     }
 
     return true;
+}
+
+bool DummyCamera::grab() {
+    return true;
+}
+
+bool DummyCamera::retrieve(OutputArray img) {
+    return read(img);
 }
