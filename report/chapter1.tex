@@ -2,7 +2,7 @@
 \chapter{Elméleti bevezetés}\label{ch:elmelet}
 %----------------------------------------------------------------------------
 
-Ebben a fejezetben az elméleti háttérről lesz szó. Bemutatásra kerülnek a diplomamunka során használt 3 dimenziós tér alapvető transzformációi, majd pedig a használt lyukkamera-modell kerül bemutatásra.
+Ebben a fejezetben az elméleti háttérről lesz szó. Bemutatásra kerülnek a 3 dimenziós tér alapvető, a diplomamunka során is használt transzformációi, majd pedig az alkalmazott lyukkamera-modell kerül bemutatásra.
 
 %----------------------------------------------------------------------------
 \section{A 3 dimenziós tér alapvető transzformációi}
@@ -12,7 +12,7 @@ A lineáris algebra legtöbbször egy lineáris transzformációt, egy mátrixsz
 
 \[\mathbf{v}' = T\cdot \mathbf{v}\]
 
-Az affin transzformációkat is hasonlóan leírhatjuk. Például egy $\mathbf{v}(x;\; y)$ vektor $\mathbf{t}(t_x;\; t_y)$ vektorral való eltolja:
+Az affin transzformációkat is hasonlóan leírhatjuk. Például egy $\mathbf{v}(x;\; y)$ vektor $\mathbf{t}(t_x;\; t_y)$ vektorral való eltoltja:
 
 \[\mathbf{v} + \mathbf{t} = (x + t_x;\; y + t_y)\]
 
@@ -145,13 +145,28 @@ ahol:
 
 \begin{figure}[tbh]
 \centering
-\caption{Lencsék radiális torzítása \label{fig:radial-distortion}}
+\begin{subfigure}[b]{.32\linewidth}
+	\centering
+	\includegraphics{figures/dist-1.png}
+	\caption{Ideális eset}
+  \end{subfigure}
+\begin{subfigure}[b]{.32\linewidth}
+	\centering
+	\includegraphics{figures/dist-2.png}
+	\caption{,,Hordó-torzítás''}
+  \end{subfigure}
+\begin{subfigure}[b]{.32\linewidth}
+	\centering
+	\includegraphics{figures/dist-3.png}
+	\caption{,,Tűpárna-torzítás''}
+  \end{subfigure}
+\caption{Lencsék radiális torzítása \cite{distortion} \label{fig:radial-distortion}}
 \end{figure}
 
-Valódi kamerák használata esetén viszont számolnunk kell, hogy a lencséknek van radiális (lásd \aref{fig:radial-distortion}. ábra) és tangenciális torzításuk (ami abból adódik, hogy a lencse és a képalkotó sík nem párhuzamos). Mivel ezek csak a konkrét kamerától függnek, ezért kalibrációval korrigálhatóak, megszüntethetőek. A radiális torzítás esetén:
+Valódi kamerák használata esetén viszont számolnunk kell azzal, hogy a lencséknek van radiális (lásd \aref{fig:radial-distortion}. ábra) és tangenciális torzításuk (ami abból adódik, hogy a lencse és a képalkotó sík nem párhuzamos). Mivel ezek csak a konkrét kamerától függnek, ezért kalibrációval korrigálhatóak, megszüntethetőek. A radiális torzítás esetén:
 \[x_{\hbox{\small jav}} = x(1 + k_1r^2 + k_2r^4 + k_3r^6)\]
 \[y_{\hbox{\small jav}} = y(1 + k_1r^2 + k_2r^4 + k_3r^6)\]
 ahol $(x,y)$ volt az eredeti kép egy pixelének koordinátája, és $(x_{\hbox{\small jav}}, y_{\hbox{\small jav}})$ pedig az új koordináta a korrigált képen. Tangenciális torzítás javítása pedig:
 \[x_{\hbox{\small jav}} = x + \Big(2p_1xy + p_2(r^2+2x^2)\Big)\]
 \[y_{\hbox{\small jav}} = y + \Big(p_1(r^2+2y^2) + 2p_2xy\Big)\]
-Ekkor $k_1, k_2$ és $k_3$ a radiális torzítás együtthatói, $p_1$ és $p_2$ pedig a tangenciálisé. Magasabb rendű együtthatók is vannak, de ezekkel általában már nem számolunk.
+Ekkor $k_1, k_2$ és $k_3$ a radiális, $p_1$ és $p_2$ pedig a tangenciális torzítás együtthatói. Magasabb rendű együtthatók is vannak, de ezekkel általában már nem számolunk.

@@ -26,7 +26,7 @@
 % \usepackage{csquotes}
 
 \usepackage{tikz, tikz-3dplot}
-\usetikzlibrary{arrows, decorations.markings, shapes.misc}
+\usetikzlibrary{arrows, decorations.markings, shapes.misc, chains}
 
 \tikzset{cross/.style={cross out, draw=black, minimum size=2*(#1-\pgflinewidth), inner sep=0pt, outer sep=0pt},
 %default radius will be 1pt. 
@@ -34,6 +34,9 @@ cross/.default={2pt}}
 
 \usepackage[backend=biber]{biblatex}
 \addbibresource{mybib.bib}
+
+\usepackage[format=hang]{caption}
+\usepackage{subcaption}
 
 %--------------------------------------------------------------------------------------
 % Main variables
