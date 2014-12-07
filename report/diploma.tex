@@ -26,7 +26,7 @@
 % \usepackage{csquotes}
 
 \usepackage{tikz, tikz-3dplot}
-\usetikzlibrary{arrows, decorations.markings, shapes.misc, chains}
+\usetikzlibrary{arrows, decorations.markings, shapes.misc, chains, decorations.pathreplacing}
 
 \tikzset{cross/.style={cross out, draw=black, minimum size=2*(#1-\pgflinewidth), inner sep=0pt, outer sep=0pt},
 %default radius will be 1pt. 
@@ -142,6 +142,7 @@ cross/.default={2pt}}
 	chapter1,%
 	chapter2,%
 	chapter3,%
+	chapter4,%
 	acknowledgement,%
 	appendices,%
 }
@@ -182,6 +183,7 @@ aboveskip=10pt}
 \include{chapter2}
 \include{chapter3}
 \include{chapter4}
+
 % \include{acknowledgement}
 
 %\listoffigures\addcontentsline{toc}{chapter}{Ábrák jegyzéke}

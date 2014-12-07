@@ -16,11 +16,9 @@ A dolgozat során kettő, lényegében eltérő módszert fogok megvizsgálni, �
 
 \subsection{Sztereó-látás, sztereó-kalibráció}
 
-\textcolor{red}{Jobban leírni ezt, epipoláris geometria stb.}
-
 Sztereó-kalibráció \cite{camera-calib-3d} során egy már ismert 3D-s objektumot használunk fel, és attól függően, hogy az objektum ismert pontjait a két kamera képén hol látjuk, kiszámolhatjuk a kamerák belső és külső paramétereit (lásd előző fejezet), valamint a kamerák egymáshoz való viszonyát (eltolás, forgatás). 
 
-Tekintsünk két kamerát, ami ugyanazt a térrészt veszi, csak kicsit más szögből
+Tekintsünk két kamerát, ami ugyanazt a térrészt veszi, csak kicsit más szögből, lásd \aref{fig:epipolar}. ábrát.
 
 \begin{figure}[tbh]
 \centering
@@ -77,26 +75,137 @@ Tekintsünk két kamerát, ami ugyanazt a térrészt veszi, csak kicsit más sz�
 
   \node [below] at (C1) {\small $C_1$};
   \node [below] at (C2_) {\small $C_2$};
-  %\draw (C1) -- (P1);
-  %\draw (C2_) -- (P2);
   \node [cross] at (E1) {};
   \node [cross] at (E2) {};
   \node [below] at (E1) {\small $e_1$};
   \node [below] at (E2) {\small $e_2$};
-  %\draw [dashed,-latex] (P1) -- (A1);
-  %\draw [dashed,-latex] (P2) -- (A2);
   
+  \draw [dashed,shorten >=-20pt,shorten <=-20pt] (UV) -- (E1);
+  \draw [dashed,shorten >=-20pt,shorten <=-20pt] (UV2) -- (E2);
+
   % leképezés
   
   \draw [dotted] (C1) -- (C2);
   \draw [dotted] (C2_) -- (C2);
   \draw [dotted] (C1) -- (C2_);
   
+  \node at (-2, 2.5, 1) {$\pi$};
+  
 \end{tikzpicture}
-\caption{Epipoláris geometria \label{fig:epipolar}}
+\caption{Epipoláris geometria szemléltetése \label{fig:epipolar}}
 \end{figure}
 
-A szakirodalomban használt mélység-meghatározó eljárások egy csoportjának \cite{SGBM, stereo-var} szükséges, hogy a két kamerán az egymásnak megfelelő pontok, csak víszintes irányban legyenek eltolva, vagyis az egymásnak megfelelő pontok egy vízsintes egyenesen legyenek rajta. Ezt \textit{sztereo-rektifikációnak} hívjuk, melyet a kalibrációval kapunk be. Így az algoritmusok, ezt az új kényszert felhasználva hatékonyabban tudják megtalálni az egyező pontokat, hiszen csak víszintes irányban kell keresniük, így a számítási komplexitás csökken.
+A $P$ pont az első kamera $I_1$ képén $p_1$-be, a második kamera $I_2$ képén $p_2$-be képződik le. Visszafele gondolkozva, ha megvan egy pontnak két képe a két képskíkon, akkor a kamera középpontjait összekötve ezekkel a képpontokkal, akkor ezek sugarak metszéspontjában kereshető a valódi $P$ pont (háromszögelés). Fontos megjegyezni, hogy ideális esetben ezeknek ténylegesen van metszéspontja, de a gyakorlatban nagyon ritkán. Ilyenkor a kitérő sugarak közti legrövidebb szakasz középpontját tekintjük a ,,metszéspontnak''.
+
+Nyílvánvaló, hogy $C_1$, $C_2$, $P$, valamint $p_1$ és $p_2$ egy síkon van rajta, ezt \textit{epipoláris sík}nak nevezzük, az ábrán $\pi$-vel jelölve (lásd pontozott vonal által határolt háromszög). Ezt felhasználva következik, hogy egy $p_1$ pont párja a másik, $I_2$ képsíkon nem lehet máshol, mint $I_2$ és $\pi$ metszésvonalán. Ezeket, vagyis a képsíkok és az epipoláris síkok metszéspontját \textit{epipoláris egyeneseknek} nevezzük, melyeket szaggatott vonalak jelölnek az ábrán.
+
+Ebből következik, hogy a képpontok párját a másik képen elég csak az epipoláris egyeneseken keresni, mert az előzőek alapján csak ott lehetnek. További egyszerűsítés, ha ezek az epipoláris egyenesek mindannyian párhuzamosak és vízszintesek, hiszen ekkor a képeken csak $x$ irányban kell keresni a pontok megfelelőit a másik képen. Gyakorlatban, nagyon nehéz így beállítani a kamerákat, ezért a kamerák képeit úgy transzformálják, hogy egy képzeletbeli közös síkba essenek a képsíkok, ahol már teljesül ez a feltétel. Ezt \textit{rektifikációnak} hívják, lásd \aref{fig:rectification}. ábrát.
+
+\begin{figure}[tbh]
+\centering
+\begin{subfigure}[b]{.49\textwidth}
+\centering
+\tdplotsetmaincoords{30}{130}
+\begin{tikzpicture}[line join = round, line cap = round, >=triangle 45, tdplot_main_coords]
+  
+  % képsík
+  
+  \coordinate (I1) at (0, 0, 0);
+  \coordinate (I2) at (0, 3, 0);
+  \coordinate (I3) at (0, 3, 3);
+  \coordinate (I4) at (0, 0, 3);
+
+  \coordinate (_I1) at (-0.7, 4, 0);
+  \coordinate (_I2) at (-0.7, 4, 3);
+  \coordinate (_I3) at (-3.7, 4, 3);
+  \coordinate (_I4) at (-3.7, 4, 0);
+
+
+  \draw (I1) -- (I2);
+  \draw (I2) -- (I3);
+  \draw (I3) -- (I4);
+  \draw (I4) -- (I1);
+  
+  \draw (_I1) -- (_I2);
+  \draw (_I2) -- (_I3);
+  \draw (_I3) -- (_I4);
+  \draw (_I4) -- (_I1);
+
+  \coordinate (C1) at (1.5, 1.5, 1.5);
+  \coordinate (C2_) at (-2.2, 5.5, 1.5);
+
+  \node [below] at (C1) {\small $C_1$};
+  \node [below] at (C2_) {\small $C_2$};
+
+  % leképezés
+
+  \draw [dashed,shorten >=-10pt] (C1) -- (I1);
+  \draw [dashed,shorten >=-10pt] (C1) -- (I2);
+  \draw [dashed,shorten >=-10pt] (C1) -- (I3);
+  \draw [dashed,shorten >=-10pt] (C1) -- (I4);
+  \draw [dashed,shorten >=-10pt] (C2_) -- (_I1);
+  \draw [dashed,shorten >=-10pt] (C2_) -- (_I2);
+  \draw [dashed,shorten >=-10pt] (C2_) -- (_I3);
+  \draw [dashed,shorten >=-10pt] (C2_) -- (_I4);
+  
+\end{tikzpicture}
+\caption{Rektifikáció előtt a képsíkok}
+\end{subfigure}\begin{subfigure}[b]{.49\textwidth}
+\centering
+\tdplotsetmaincoords{20}{90}
+\begin{tikzpicture}[line join = round, line cap = round, >=triangle 45, tdplot_main_coords]
+  
+  % képsík
+  
+  \coordinate (I1) at (0, 0, 0);
+  \coordinate (I2) at (0, 2, 0);
+  \coordinate (I3) at (0, 2, 3);
+  \coordinate (I4) at (0, 0, 3);
+
+  \coordinate (_I1) at (0, 3, 0);
+  \coordinate (_I2) at (0, 5, 0);
+  \coordinate (_I3) at (0, 5, 3);
+  \coordinate (_I4) at (0, 3, 3);
+  
+  \coordinate (S1) at (0, -0.5, -1);
+  \coordinate (S2) at (0, 5.5, -1);
+  \coordinate (S3) at (0, 5.5, 4);
+  \coordinate (S4) at (0, -0.5, 4);
+
+  \draw (I1) -- (I2);
+  \draw (I2) -- (I3);
+  \draw (I3) -- (I4);
+  \draw (I4) -- (I1);
+  
+  \draw (_I1) -- (_I2);
+  \draw (_I2) -- (_I3);
+  \draw (_I3) -- (_I4);
+  \draw (_I4) -- (_I1);
+
+  \draw [dotted] (S1) -- (S2);
+  \draw [dotted] (S2) -- (S3);
+  \draw [dotted] (S3) -- (S4);
+  \draw [dotted] (S4) -- (S1);
+  
+  \coordinate (C1) at (1.5, 1, 1.5);
+  \coordinate (C2_) at (1.5, 4, 1.5);
+
+  % leképezés
+
+  \draw [dashed,shorten >=-10pt] (C1) -- (I1);
+  \draw [dashed,shorten >=-10pt] (C1) -- (I2);
+  \draw [dashed,shorten >=-10pt] (C1) -- (I3);
+  \draw [dashed,shorten >=-10pt] (C1) -- (I4);
+  \draw [dashed,shorten >=-10pt] (C2_) -- (_I1);
+  \draw [dashed,shorten >=-10pt] (C2_) -- (_I2);
+  \draw [dashed,shorten >=-10pt] (C2_) -- (_I3);
+  \draw [dashed,shorten >=-10pt] (C2_) -- (_I4);
+  
+\end{tikzpicture}
+\caption{Egy síkba transzformálva}
+\end{subfigure}
+\caption{Rektifikáció szemléltetése \label{fig:rectification}}
+\end{figure}
 
 \Aref{fig:stereo-calibration-before}. és \aref{fig:stereo-calibration-after}. ábrán látható, ahogy egy sakktábla-mintát (melynek valódi koordinátái ismertek), több szögből lefotózva a rektifikáció előtt és után, hogy alakul a két kamera képe. A piros segéd egyenesek segítségével az is jó látható, hogy a rektifikáció után az egymásnak megfelelő rácspontok valóban egy vízszintes egyenesre esnek.
 
@@ -120,11 +229,146 @@ A szakirodalomban használt mélység-meghatározó eljárások egy csoportjána
   \caption{Rektifikáció után a két kamera képe \label{fig:stereo-calibration-after}}
 \end{figure}
 
+A rektifikált képpárokra pedig már léteznek különféle algoritmusok \cite{SGBM, stereo-var}, melyek megtalálják a képeken az egymásnak megfelelő pontokat és az eltolások alapján megadják a pontok mélységértékeit. \Aref{fig:depth-showcase}. ábra segítségével könnyű látni, hogy a nagy elmozdulást mutató pontok közelebb, a kisebbek távolabb találhatóak a kamerától.
+
+\begin{figure}[tbh]
+  \centering
+\begin{tikzpicture}
+
+\tikzset{
+    position label/.style={
+       below = 3pt,
+       text height = 1.5ex,
+       text depth = 1ex
+    },
+   brace/.style={
+     decoration={brace,amplitude=5pt},
+     decorate
+   }
+}
+
+  \coordinate (L1) at (0, 0);
+  \coordinate (L2) at (2, 0);
+  \draw (L1) -- (L2);
+  
+  \coordinate (C1) at (1, -1.5);
+  \node [below] at (C1) {$C_1$};
+
+  \draw [dashed, shorten >= -100pt] (C1) -- (L1);
+  \draw [dashed, shorten >= -100pt] (C1) -- (L2);
+
+  
+  \coordinate (R1) at (3, 0);
+  \coordinate (R2) at (5, 0);
+  \draw (R1) -- (R2);
+  
+  \coordinate (C2) at (4, -1.5);
+  \node [below] at (C2) {$C_2$};
+
+  \draw [dashed, shorten >= -100pt] (C2) -- (R1);
+  \draw [dashed, shorten >= -100pt] (C2) -- (R2);
+
+  \coordinate (P1) at (2.5, 1.5);
+  \node [cross] at (P1) {};
+  \node [right] at (P1) {$P_1$};
+  
+  \coordinate (P2) at (2.5, 4);
+  \node [cross] at (P2) {};
+  \node [right] at (P2) {$P_2$};
+
+  \draw [shorten >= -20pt] (C1) -- (P1);
+  \draw [shorten >= -10pt] (C1) -- (P2);
+  \draw [shorten >= -20pt] (C2) -- (P1);
+  \draw [shorten >= -10pt] (C2) -- (P2);
+  
+  \coordinate (P2B) at (1.4090, 0);
+  \node [cross] at (P2B) {};
+  \node [above left] at (P2B) {$p_2'$};
+  
+  \coordinate (P1B) at (1.75, 0);
+  \node [cross] at (P1B) {};
+  \node [above right] at (P1B) {$p_1'$};
+  
+  \coordinate (P2J) at (3.591, 0);
+  \node [cross] at (P2J) {};
+  \node [above right] at (P2J) {$p_2''$};
+  
+  \coordinate (P1J) at (3.25, 0);
+  \node [cross] at (P1J) {};
+  \node [above left] at (P1J) {$p_1''$};
+  
+  % távolságok másolata
+  
+  \draw (5.5, 4) -- (7.5, 4);
+  \node [cross] (T1) at (6.9090, 4) {};
+  \node [cross] (T2) at (6.091, 4) {};
+  \draw (5.5, 1.5) -- (7.5, 1.5);
+  \node [cross] (B1) at (7.25, 1.5) {};
+  \node [cross] (B2) at (5.75, 1.5) {};
+  
+   \draw [brace] (T1.south) -- (T2.south) node [position label, pos=0.5] {$d_2$};
+   \draw [brace] (B1.south) -- (B2.south) node [position label, pos=0.5] {$d_1$};
+  
+\end{tikzpicture}
+  \caption{Elmozdulás és mélység kapcsolata; a kameráktól távolabbi $P_2$ pont képeinek $d_2$ távolsága kisebb, mint a közelebbi $P_1$ pont képeinek $d_1$ távolsága \label{fig:depth-showcase}}
+\end{figure}
+
 \subsection{Optikai-folyam}
 
-Az előzőekben megismert eljárás azt feltételezi, hogy az egymásnak megfelelő pontok csak vízszintes irányban mozdulnak el, ezeket megmérve már számolható mélységkép a kalibráció során felhasznált segéd-objektum alapján.
+Az előzőekben megismert eljárás azt feltételezi, hogy a kamerák párosával sztereó-kalibráltak, és ezt kihasználva számol mélységképet a kalibráció során felhasznált segéd-objektum alapján.
 
-A most ismertetésre kerülő eljárás, az \textit{optikai-folyam}okat hívja segítségül, amelyekkel (mint elmozdulás vektorok) leírható, hogy adott pontok egymás utáni képkockákon hova mozdultak el. Ezt felhasználva nem szükséges a kamerákat párosával kalibrálni, sőt, már akár egyetlen kamerával is egy adott szilárd test lemodellezhető \textcolor{red}{(kép a structure-from-motionre)}. Például tekintsük egy adott objektum felé néző mozgó kamera két helyzetében ($C_1$ és $C_2$) látott képet (lásd \aref{fig:triangulation}. ábrát). A kamerák pontjaiból az egyező képpontokba indított sugarak metszéspontjában (ami általában nem létezik, így Hartley és Zisserman \cite{HZ} ajánlását követve, a sugarakat összekötő legrövidebb szakasz középpontját választjuk) kereshető a való világbeli pont. Ezt \textit{háromszögeléses} módszernek hívjuk. Több egyező képpontot használva, ezen sugarak metszéspontait felírva megkaphatóak a pontok 3D-s koordinátái, valamint a két kamera közti transzformáció is kinyerhető. 
+A most ismertetésre kerülő eljárás, az \textit{optikai-folyam}okat \cite{optic-flow} hívja segítségül. Vegyünk egymás utáni képsorokat egy mozgó objektumról. Az objektum mindegyik pontja egy 3D-s $\mathbf{P}(t)$ útvonalon mozog, mely a kamerák képén egy $\mathbf{p}(t) = \big(x(t), y(t)\big)$ 2D-s útvonalnak feleltethető meg. Minden pontra nézve az elmozdulás $d\mathbf{p}(t) / dt$ irányát egy 2D-s vektormezőt kapunk, ezt hívjuk optikai-folyamnak.
+
+Jelöljük $I(x, y, t)$-vel a kép $(x, y)$ pontjának intenzitását a $t$ időpillanatban. Feltehető, hogy két egymás utáni képkockán ugyanazon pontnak a képpontjainak intenzitása konstans (\textit{világosság állandóság}), vagyis:
+\[I(x, y, t) = I(x+dx, y+dy, t+dt)\]
+ahol az $(x,y)$ képpont $dt$ idő alatt $(dx,dy)$-nal mozdult el. A jobb oldal jól közelíthető első-rendű Taylor-sor kifejtésével:
+
+\[I(x+dx, y+dy, t+dt) \approx I(x, y, t) + \frac{\partial I}{\partial x} dx + \frac{\partial I}{\partial y} dy + \frac{\partial I}{\partial t} dt\]
+
+Felhasználva a villágosság állandóság kényszert:
+
+\[\frac{\partial I}{\partial x} dx + \frac{\partial I}{\partial y} dy + \frac{\partial I}{\partial t} dt = 0\]
+
+Mindkét oldalt $dt$-vel osztva:
+
+\[\frac{\partial I}{\partial x} \frac{dx}{dt} + \frac{\partial I}{\partial y} \frac{dy}{dt} + \frac{\partial I}{\partial t} \frac{dt}{dt} = 0\]
+
+Végül bevezetve a $\nabla \mathbf{I} = \left(\frac{\partial I}{\partial x}, \frac{\partial I}{\partial y}\right)$ és $\mathbf{V}\left(\frac{dx}{dt}, \frac{dy}{dt}\right)$ jelöléseket, az alábbi egyszerű alakot ölti:
+
+\[\nabla \mathbf{I} \cdot \mathbf{V} = -\frac{\partial I}{\partial t}\]
+
+Ezt nevezzük az optikai folyam feltételi egyenletének. Mivel $\mathbf{V}\left(\frac{dx}{dt}, \frac{dy}{dt}\right)$ nem ismert, ezért egy egyenletben két ismeretlenünk van, így az optikai-folyam általános esetben nem oldható meg.
+
+\subsubsection{Lucas-Kanade módszer \cite{LK}}
+
+Ez a módszer ritka vektor-mezőt generál a jellegzetes pontok elmozdulására. Lényege, hogy a vizsgált pontok és azok környezetében az elmozdulás azonos \cite{lk-wiki}, vagyis:
+
+\[\nabla \mathbf{I}_{\mathbf{q_1}} \cdot \mathbf{V} = -\frac{\partial I}{\partial t}(\mathbf{q_1}, t)\]
+\[\nabla \mathbf{I}_{\mathbf{q_2}} \cdot \mathbf{V} = -\frac{\partial I}{\partial t}(\mathbf{q_2}, t)\]
+\[\vdots\]
+\[\nabla \mathbf{I}_{\mathbf{q_n}} \cdot \mathbf{V} = -\frac{\partial I}{\partial t}(\mathbf{q_n}, t)\]
+
+ahol $\mathbf{q_1},\mathbf{q_2},\ldots,\mathbf{q_n}$ a vizsgált pont környezetében lévő pontok és $\nabla \mathbf{I}_{\mathbf{q_i}} = \left(\frac{\partial I}{\partial x}(\mathbf{q_i}), \frac{\partial I}{\partial y}(\mathbf{q_i})\right)$. Ez viszont így már egy túlhatározott egyenletrendszer, melyhez megoldást a legkisebb-négyzetek módszerével keres \cite{LK, lk-wiki}. A gyakorlatban a követendő pontokra a Shi-Thomasi \cite{shi-thomasi} módszer által adott sarokpontokat szokták használni (lásd \aref{fig:lk}. ábra).
+
+%Ez önmagában így csak kis mozgásokat tud követni, ezért nagy mozgások esetén a piramis-módszert használjuk; amikor is a képeket több lépcsőben kicsinyítjük, és ezeken is lefuttatjuk az algoritmusokat (ekkor a kis mozgások eltűnnek, a nagyok pedig kisebbekké válnak).
+
+\begin{figure}[tbh]
+\centering
+\includegraphics[width=300pt]{figures/opticalflow_lk.jpg}
+\caption{Minta a sarokpontok követésére \cite{opencv-lk} \label{fig:lk}}
+\end{figure}
+
+\subsubsection{Gunner Farnebäck módszer}
+
+A dolgozat során nekünk sűrű optikai-folyamok meghatározására lesz szükség, melyhez Gunner Farnebäck \cite{farneback} algoritmusát fogjuk használni. Ennek két praktikus haszna is van; egyrészt nem kell sarokpontokat keresnünk, másrészt pedig sűrű vektor-mezőt kapunk. \Aref{fig:dense-of}. ábrán látható egy példa, ami egy kanyon felett elrepülő helikopter videójának két egymás utáni képkockájából lett kiszámolva.
+
+\begin{figure}[tbh]
+\centering
+\includegraphics[width=420pt]{figures/farneback.png}
+\caption{Minta sűrű optikai-folyam meghatározásra \cite{farneback} \label{fig:dense-of}}
+\end{figure}
+
+Az optikai-folyamok felhasználásával nem szükséges a kamerákat párosával kalibrálni, sőt, már akár egyetlen kamerával is egy adott szilárd test lemodellezhető, ezt a problémát \textit{structure-from-motion}-nek hívjuk \cite{sfm}. Például tekintsük egy adott objektum felé néző, de körülötte mozgó kamera két helyzetében ($C_1$ és $C_2$) látott képet (lásd \aref{fig:triangulation}. ábrát). Az objektumról a kamera mozgása során több képet készítve, és ezeken az egymásnak megfelelő pontokat az optikai-folyamok segítségével meghatározva a már említett háromszögelés módszerével meghatározható a pontok 3D-s koordinátái, valamint a nézőpontok közötti transzformációk. A mi esetünkben nem a kamera fog mozogni az objektum körül, hanem a rögzített kamera előtt fog mozogni és forogni az objektum, de az elv ugyanaz.
 
 \begin{figure}[tbh]
 \centering
@@ -214,35 +458,7 @@ A most ismertetésre kerülő eljárás, az \textit{optikai-folyam}okat hívja s
   \draw [dotted] (C2_) -- (C2);
   
 \end{tikzpicture}
-\caption{Háromszögelés \label{fig:triangulation}}
-\end{figure}
-
-Optika-folyamok meghatározásánál a következő két fontos feltevéssel élünk:
-\begin{itemize}
-\item Az objektumokhoz tartozó képpontok intenzitásai nem változnak képkockáról képkockára.
-\item A szomszédos pontok elmozdulásai hasonlóak.
-\end{itemize}
-
-\textcolor{red}{Ezt átírni, csak azt leírni amit tudunk, rendesen írjuk le az egyenleteket, és aztán tagolva a két módszer}
-
-\subsubsection{Lucas-Kanade módszer}
-
-Meghatározásukra több algoritmus is létezik. Az egyik -- ami ritka vektor-mezőt generál jellegzetes pontok követéséhez -- a Lucas-Kanade \cite{LK} módszer (lásd \aref{fig:lk}. ábra). Ehhez szükséges először az, hogy az első képen a követendő pontokat (pl. Shi-Thomasi \cite{shi-thomasi} módszer által adott sarokpontok) azonosítsuk. Az LK módszer egy 9x9-es hálót definiál a pontok köré, és felteszi, hogy ezek elmozdulásai azonosak, és így oldja meg a már túl-határozott egyenletrendszert, hogy megkapjuk az elmozdulásvektorokat. Ez önmagában így csak kis mozgásokat tud követni, ezért nagy mozgások esetén a piramis-módszert használjuk; amikor is a képeket több lépcsőben kicsinyítjük, és ezeken is lefuttatjuk az algoritmusokat (ekkor a kis mozgások eltűnnek, a nagyok pedig kisebbekké válnak).
-
-\begin{figure}[tbh]
-\centering
-\includegraphics[width=300pt]{figures/opticalflow_lk.jpg}
-\caption{Minta a sarokpontok követésére \cite{opencv-lk} \label{fig:lk}}
-\end{figure}
-
-\subsubsection{Gunner Farnebäck módszer}
-
-A dolgozat során nekünk sűrű optikai-folyamok meghatározására lesz szükség, melyhez Gunner Farnebäck \cite{farneback} algoritmusát fogjuk használni. Ennek két praktikus haszna is van; egyrészt nem kell sarokpontokat keresnünk, másrészt pedig sűrű vektor-mezőt kapunk. \Aref{fig:dense-of}. ábrán látható egy példa, ami egy kanyon felett elrepülő helikopter videójának két egymás utáni képkockájából lett kiszámolva.
-
-\begin{figure}[tbh]
-\centering
-\includegraphics[width=420pt]{figures/farneback.png}
-\caption{Minta sűrű optikai-folyam meghatározásra \cite{farneback} \label{fig:dense-of}}
+\caption{Mozgó kamera két állapotban \label{fig:triangulation}}
 \end{figure}
 
 %----------------------------------------------------------------------------
