@@ -2,21 +2,21 @@
 \chapter{Tervezés}
 %----------------------------------------------------------------------------
 
-Ebben a fejezetben a következő félévre vonatkozó lépések és az elkészítendő rendszer struktúrája, főbb komponensei kerülnek leírásra, bemutatásra.
+Az elméleti megfontolások, alapelvek bemutatását követően rátérek a feladat megoldását adó rendszer struktúrájának, főbb komponenseinek tárgyalására.
 
 \section{Keretrendszer}
 
-A diplomamunka során az OpenCV \cite{opencv} keretrendszert fogom használni, melynek célja, hogy a fejlesztőknek, egy szabadon és ingyenes elérhető alkalmazás-könyvtárat biztosítson a gépi látás területén elterjedt és gyakran használt algoritmusokhoz. Több nyelvhez is biztosít API-t, én ezek közül a C++-os kötését fogom használni, azt remélve, hogy így érhetem el a legnagyobb sebességet. Az OpenCV-t már az előző félévekben megismertem, így a diplomamunka során használata már könnyedségként jelentkezik.
+A diplomamunka során az OpenCV \cite{opencv} keretrendszert fogom használni melynek célja, hogy a fejlesztőknek, egy szabadon és ingyenes elérhető alkalmazás-könyvtárat biztosítson a gépi látás területén elterjedt és gyakran használt algoritmusokhoz. Több nyelvhez is biztosít API-t, én ezek közül a C++-os interfészét fogom használni, a lehető legnagyobb teljesítmény elérése érdekében. Az OpenCV-t már az előző félévekben megismertem, így a diplomamunka során már eredményesen tudok tudok építekezni az általa nyújtott funkciókra.
 
-\section{Feladat formalizálása}
+\section{A konkrét elvárt eredmény}
 
-A diplomamunka során elkészítendő rendszernek képesnek kell lennie egy zárt térrész tetszőlegesen választott pontjában és irányában látható, a mozgó objektumokat tartalmazó kép helyreállítására fix telepítésű kamerák valós idejű videofolyamai alapján. A helyreállítást akkor tekintjük sikeresnek, ha a mozgó objektumokat detektálom és a választott nézőpontból azok megközelítő kontúrjait sikeresen ki tudom rajzolni. A tényleges, valódi objektum struktúrájának illetve textúrájának meghatározása nem esik a dolgozat hatáskörébe.
+A diplomamunka során elkészítendő rendszernek képesnek kell lennie egy zárt térrész tetszőlegesen választott pontjában és irányában látható, a mozgó objektumokat tartalmazó kép helyreállítására fix telepítésű kamerák valós idejű videofolyamai alapján. A helyreállítást akkor tekintjük sikeresnek, ha a mozgó objektumokat detektálom és a választott nézőpontból azok megközelítő kontúrjait sikeresen ki tudom rajzolni. A tényleges, valódi objektum struktúrájának illetve textúrájának meghatározása nem esik e dolgozat hatáskörébe.
 
-A rendszer tervezése során figyelembe veszem, hogy 2-nél több kamerát is felhasználhatunk a probléma megoldásához, de az elkészült rendszer az elérhető eszközök korlátozott száma miatt csak 2 kamerával lesz kipróbálva. A rendszer teljesítményére vonatkozóan viszont következtetéseket vonok le, hogy több kamera bevonása esetén, a számítási kapacitás növelése nélkül milyen csökkenésre lehet számítani.
+A rendszer tervezése során figyelembe veszem, hogy kettőnél több kamerát is felhasználhatunk a probléma megoldásához, de az elkészült rendszer az elérhető eszközök korlátozott száma miatt csak két kamerával lesz kipróbálva. A rendszer teljesítményére vonatkozóan viszont következtetéseket vonok le, hogy több kamera bevonása esetén, a számítási kapacitás növelése nélkül milyen csökkenésre lehet számítani.
 
 \section{Tervezett rendszer felépítése}
 
-A következő félévben két lényegében eltérő megközelítést fogok kipróbálni, ezek eredményeit dokumentálni és végül ajánlást adni, hogy melyiket, milyen esetben, milyen feltételek mellett célszerű választani.
+Ebben a fejezetben az elméleti rész során \aref{sec:methods}. szekcióban leírt kétféle megközelítéshez tartozó rendszerek terveit mutatom be.
 
 \subsection{Sztereó-látáson alapú megközelítés}
 
@@ -106,11 +106,11 @@ graybox/.style = {box, gray}
 \caption{Sztereókamerák módszere \label{fig:stereo-method}}
 \end{figure}
 
-Az első megközelítés kiinduló pontja, hogy a kamerák az előző fejezetben leírt módszerekkel páronként sztereókalibráltak. Ezután ciklusban amíg a program fut, a bejövő képkockákat kamera-pároként feldolgozza a következők szerint. Először rektifikálja a bejövő képet, hogy a mélységképet megkaphassuk. A folyamatos háttérmodell-építésnek köszönhetően mindig lekérhetjük az aktuális előtérnek megfelelő maszkot, ezt alkalmazzuk a képeken, így csak a számunkra érdekes képinformáció marad meg. Az eredményen a mélységképet kiszámoljuk az SGBM algoritmus segítségével és így megkaphatjuk a pontfelhőket. Amikor minden kamerapárra az előzőek lefutottak, akkor az összegyűjtött eredményeket egy közös koordináta-rendszerbe transzformáljuk. A választott nézőpontunkból ezután a pontfelhőhöz megrajzoljuk az objektumok kontúrjait és így vége is az adott pillanat rekonstrukciója. Az előzőekben leírt lépéseket \aref{fig:stereo-method}. ábra mutatja be. 
+Az első megközelítés kiinduló pontja, hogy a kamerák az előző fejezetben leírt módszerekkel páronként sztereókalibráltak. Ezután ciklusban amíg a program fut, a bejövő képkockákat kamera-pároként feldolgozza a következők szerint. Először rektifikálja a bejövő képet, hogy a mélységképet megkaphassuk. A folyamatos háttérmodell-építésnek köszönhetően mindig lekérhetjük az aktuális előtérnek megfelelő maszkot, ezt alkalmazzuk a képeken, így csak a számunkra érdekes képinformáció marad meg. Az eredményen a mélységképet kiszámoljuk az SGBM algoritmus segítségével és így megkaphatjuk a pontfelhőket. Amikor minden kamerapárra az előzőek lefutottak, akkor az összegyűjtött eredményeket egy közös koordináta-rendszerbe transzformáljuk. A választott nézőpontunkból ezután a pontfelhőhöz megrajzoljuk az objektumok kontúrjait és így az adott pillanat rekonstrukcióját kapjuk. Az előzőekben leírt lépéseket \aref{fig:stereo-method}. ábra mutatja be. 
 
 \subsection{Optikai folyamokon alapuló megközelítés}
 
-A második módszer, amit használni fogok a következő félév során az optikai folyamokon alapszik. Minden kamera egyénileg próbálja az általa látott képek alapján a mozgó objektumokat rekonstruálni. Az optikai folyamok segítségével képről képre megbecsülhetjük, hogy az objektum pontjai hova mozdultak, és ezeket felhasználva a háromszögeléses módszer segítségével meghatározhatjuk az objektum közelítő pontfelhőjét. Ezeket, hasonlóan az előző megközelítéshez, egy közös koordináta-rendszerben ábrázoljuk, végül a választott nézőpontból a látott objektumokhoz a kontúrokat megrajzoljuk az aktuális pillanathoz tartozóan.
+E módszer lényege, hogy a kamerákat külön-külön használjuk, csak azok egyéni képei alapján rekonstruáljuk a mozgó objektumokat az adott nézőpontokból. Az optikai folyamok segítségével képről képre megbecsülhetjük, hogy az objektum pontjai hova mozdultak, és ezeket felhasználva a háromszögeléses módszer segítségével meghatározhatjuk az objektum közelítő pontfelhőjét. Ezeket, hasonlóan az előző megközelítéshez, egy közös koordináta-rendszerben ábrázoljuk, végül a választott nézőpontból a látott objektumokhoz a kontúrokat megrajzoljuk az aktuális pillanathoz tartozóan lásd \aref{fig:of-method}. ábrát.
 
 \begin{figure}[tbh]
 \centering
@@ -192,5 +192,5 @@ graybox/.style = {box, gray}
 
 \end{tikzpicture}
 
-\caption{Sztereókamerák módszere \label{fig:stereo-method}}
+\caption{Optikai folyamok módszere \label{fig:of-method}}
 \end{figure}
