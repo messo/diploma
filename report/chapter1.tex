@@ -2,7 +2,7 @@
 \chapter{Elméleti bevezetés}\label{ch:elmelet}
 %----------------------------------------------------------------------------
 
-Mielőtt rátérnék a konkrét feladatra, és annak megoldására, szükség van az alkalmazott matematikai háttér bemutatására. Rövid lineáris algebra bevezető után a 3 dimenziós tér alapvető transzformációi kerülnek tárgyalásra, melyet a lyukkamera-modell leírása követ.
+Mielőtt rátérnénk a konkrét feladatra, és annak megoldására, szükség van az alkalmazott matematikai háttér bemutatására. Rövid lineáris algebra bevezető után a háromdimenziós tér alapvető transzformációi kerülnek tárgyalásra, melyet a lyukkamera-modell leírása követ.
 
 %----------------------------------------------------------------------------
 \section{Lineáris transzformációk}
@@ -32,12 +32,12 @@ Az $\sigma$ síkon vett affin transzformáción egy olyan $\phi : \sigma \righta
 
 \[\left[\begin{array}{c}x' \\y'\end{array}\right] = \left[\begin{array}{cc}a_{11} & a_{12}\\a_{21} & a_{22}\\\end{array}\right] \cdot \left[\begin{array}{c}x \\y\end{array}\right] + \left[\begin{array}{c}b_1 \\b_2\end{array}\right] \qquad \hbox{ahol} \qquad  \left|\begin{array}{cc}a_{11} & a_{12}\\a_{21} & a_{22}\\\end{array}\right| \neq 0\]
 
-Tehát lényegében egy lineáris transzformáció és egy eltolás egymásutánjával. Homogenizált alakban -- azaz a pontokat homogén koordinátarendszerben felírva -- az alábbi formát ölti:
+Vagyis egy affin transzformáció leírható egy lineáris transzformáció és egy eltolás egymásutánjával. Homogenizált alakban -- azaz a pontokat homogén koordinátarendszerben felírva -- az alábbi formát ölti:
 
 \[\left[\begin{array}{c}x' \\y'\\ 1\end{array}\right] = \left[\begin{array}{ccc}a_{11} & a_{12} & b_1\\a_{21} & a_{22} & b_2\\0 & 0 & 1\end{array}\right] \cdot \left[\begin{array}{c}x \\ y\\ 1\end{array}\right]\]
 
 %----------------------------------------------------------------------------
-\section{A 3 dimenziós tér alapvető transzformációi}
+\section{A háromdimenziós tér alapvető transzformációi}
 %----------------------------------------------------------------------------
 
 A következőkben 4 alapvető affin transzformáció kerül bemutatásra a térben, ezek sorrendben: eltolás, forgatás, skálázás és nyírás.
@@ -64,12 +64,12 @@ Legyen $\mathbf{v}(v_x, v_y, v_z), \mathbf{s}(s_x, s_y, s_z)\in\mathbb{R}^3$, ek
 
 A térbeli nyírás a tér $P$ pontjainak egy fix síkkal történő párhuzamos csúsztatása. Legyen $\mathbf{v}(v_x, v_y, v_z)\in\mathbb{R}^3$ és $\lambda\in\mathbb{R}$, ekkor a $\mathbf{v}$ vektor $x$ tengely irányában az $x-y$ sík mentén vett nyírása:
 
-\[\left[\begin{array}{c}v_x' \\v_y' \\v_z' \\ 1 \end{array}\right] = \left[\begin{array}{cccc}1 & a & 0 & 0\\0 & 1 & 0 & 0\\ 0 & 0 & 1 & 0\\ 0 & 0 & 0 & 1\end{array}\right] \cdot \left[\begin{array}{c}v_x\\ v_y\\ v_z\\ 1\end{array}\right] = \left[\begin{array}{c}v_x + a\cdot v_y\\ v_y\\ v_z\\ 1\end{array}\right]\]
+\[\left[\begin{array}{c}v_x' \\v_y' \\v_z' \\ 1 \end{array}\right] = \left[\begin{array}{cccc}1 & \lambda & 0 & 0\\0 & 1 & 0 & 0\\ 0 & 0 & 1 & 0\\ 0 & 0 & 0 & 1\end{array}\right] \cdot \left[\begin{array}{c}v_x\\ v_y\\ v_z\\ 1\end{array}\right] = \left[\begin{array}{c}v_x + \lambda\cdot v_y\\ v_y\\ v_z\\ 1\end{array}\right]\]
 
-\subsection{Transzformáció egymás utánja}
+\subsection{Transzformációk egymás utánja}
 
 Gondoljuk meg, hogy ha egy $\mathcal{A}_1, \mathcal{A}_2, \ldots, \mathcal{A}_n$ transzformáció sorozatnak megfelelő transzformációs mátrixok rendre $T_1, T_2, \ldots, T_n$, akkor $\mathbf{v}$ transzformáltja:
-\[\mathbf{v}' = \mathcal{A}_n(\mathcal{A}_{n-1}(\ldots \mathcal{A}_2(\mathcal{A}_1(\mathbf{v})))\ldots)) = T_n \cdot T_{n-1} \cdot \ldots \cdot T_2 \cdot T_1 \cdot \mathbf{v}\]
+\[\mathbf{v}' = \mathcal{A}_n(\mathcal{A}_{n-1}(\ldots \mathcal{A}_2(\mathcal{A}_1(\mathbf{v}))\ldots)) = T_n \cdot T_{n-1} \cdot \ldots \cdot T_2 \cdot T_1 \cdot \mathbf{v}\]
 Így az eredő transzformációt lényegében úgy kapjuk, hogy a transzformációs mátrixok szorzatával, azaz az ,,eredő transzformációs mátrixszal'' szorozzuk be a vektort:
 \[\mathbf{v}' = T \cdot \mathbf{v} \qquad \hbox{ahol} \; T = \prod_{i=1}^{n}{T_i}\]
 
@@ -175,9 +175,9 @@ Z \\
 1
 \end{array}\right]\]
 
-ahol $f$ a fókusztávolság, $s = Z$ pedig a skálázis tényező.
+ahol $f$ a fókusztávolság ($C$ és a képsík távolsága), $s = Z$ pedig a skálázis tényező.
 
-A manapság használt képalkotó rendszerek a képsík origójának nem a főpontot, hanem a kép balfelső sarkát tekintik, így a fenti egyenlet a következő alakot ölti, amennyiben a főpont koordinátája $(o_x, o_y)$:
+A manapság használt képalkotó rendszerek a képsík origójának nem a főpontot, hanem a kép balfelső sarkát tekintik, így a fenti egyenlet a következő  alakot ölti, amennyiben a főpont koordinátája $(o_x, o_y)$:
 
 \[s \left[\begin{array}{c}
 u \\ 
@@ -216,7 +216,7 @@ Valódi kamerák használata esetén számolni kell azzal, hogy a lencséknek va
 \caption{Lencsék radiális torzítása \cite{distortion} \label{fig:radial-distortion}}
 \end{figure}
 
-A gyakorlatban gyakran használt modell, hogy a radiális torzítás esetében a torzított és a javított pontok között egy polinomiális függvény teremt kapcsolatot:
+A gyakorlatban gyakran használt modell, hogy a radiális torzítás esetében a torzított és a javított pontok között egy polinomfüggvény teremt kapcsolatot:
 
 \[\left[\begin{array}{c}x_{\hbox{\small jav}}\\ y_{\hbox{\small jav}}\end{array}\right] = (1 + k_1r^2 + k_2r^4 + k_3r^6) \left[\begin{array}{c}x\\y\end{array}\right]\]
 
@@ -225,7 +225,7 @@ ahol $(x,y)$ volt az eredeti kép egy pixelének koordinátája, és $(x_{\hbox{
 \[y_{\hbox{\small jav}} = y + \Big(p_1(r^2+2y^2) + 2p_2xy\Big)\]
 Ekkor $k_1, k_2$ és $k_3$ a radiális, $p_1$ és $p_2$ pedig a tangenciális torzítás együtthatói.
 
-Kalibrálás során ezeket az együtthatókat határozhatjuk meg. A képen szereplő egyenesek görbületét, mint költség-függvényt minimalizálva, meghatározhatjuk a radiális torzítást, hiszen ideális esetben nincs görbület. A gyakorlatban ez úgy történik, hogy egy előre ismert objektumot -- például egy sakktáblát -- detektálunk a képeken (lásd \aref{fig:chessboards}. ábra), és a sarokpontokat összekötő egyeneseket vizsgáljuk.
+Kalibrálás során ezeket az együtthatókat határozzuk meg. A képen szereplő egyenesek görbületét, mint költség-függvényt minimalizálva, kiszámolhatjuk a radiális torzítást, hiszen ideális esetben nincs görbület. A gyakorlatban ez úgy történik, hogy egy előre ismert objektumot -- például egy sakktáblát -- detektálunk a képeken (lásd \aref{fig:chessboards}. ábra), és a sarokpontokat összekötő egyeneseket vizsgáljuk.
 
 \begin{figure}[tbh]
 \centering
@@ -291,7 +291,7 @@ Z \\
 1
 \end{array}\right]\]
 
-$\mathbf{t}^T = -\mathbf{R}\mathbf{c}^T$ helyettesítéssel, valamint a fókusztávolság általánosításával kapjuk \cite{camera-calib}-ben is található egyenletet, melyet a következőkben használni fogjuk:
+$\mathbf{t}^T = -\mathbf{R}\mathbf{c}^T$ helyettesítéssel, valamint a fókusztávolságot az effektív pixelméretekkel beszorozva kapjuk \cite{camera-calib}-ben is található egyenletet:
 
 \[s \left[\begin{array}{c}
 u \\ 
@@ -317,7 +317,7 @@ ahol:
 \item $\mathbf{A}$ a kamera-mátrix (\textit{belső paraméterek mátrixa})
 \item $(o_x, o_y)$ a főpont képsíkbeli koordinátája, amely általában a kép közepe
 \item $(f_x, f_y)$ pedig a fókusztávolságok pixelekben kifejezve
-\item $\mathbf{R}$ a forgatási mátrix és $\mathbf{t} = \left(\begin{array}{ccc}t_1 & t_2 & t_3\end{array}\right)^T$ az eltolás-vektor -- együttesen $\Big[\,\mathbf{R}\,|\,\mathbf{t}\,\Big]$ a forgatás-eltolás mátrix, mely a \textit{külső paraméterek mátrixa}; azt határozza meg, hogy a statikus világhoz képest a kamera hol helyezkedik el, vagy fordítva, a statikus kamerához a világ hogyan van pozícionálva.
+\item $\mathbf{R}$ a forgatási mátrix és $\mathbf{t} = (t_1, t_2, t_3)$ az eltolás-vektor -- együttesen $\Big[\,\mathbf{R}\,|\,\mathbf{t}^T\,\Big]$ a forgatás-eltolás mátrix, mely a \textit{külső paraméterek mátrixa}; azt határozza meg, hogy a statikus világhoz képest a kamera hol helyezkedik el, vagy fordítva, a statikus kamerához a világ hogyan van pozícionálva.
 \end{itemize}
 
-A kamera külső paramétereit, a belső paraméterekhez hasonlóan kalibrálással kaphatjuk meg. A kalibráláshoz egy ismert objektumot használunk fel, ugyanúgy ahogy előbb, most is használhatunk egy sakktáblát. A sakktábla sarokpontjait a világ-koordinátarend\-szerben koordinátázva (pl. minden pontnak a 3. koordinátája fixen 0), valamint ezek képeit a kamera képein több állásban detektálva meghatározható $\mathbf{R}$ és $\mathbf{t}$.
+A kamera külső paramétereit, a belső paraméterekhez hasonlóan kalibrálással kapjuk meg. A kalibráláshoz egy ismert objektumot használunk fel, ugyanúgy ahogy előbb, most is használhatunk egy sakktáblát. A sakktábla sarokpontjait a világ-koordinátarend\-szerben koordinátázva (pl. minden pontnak a 3. koordinátája fixen 0), valamint ezek képeit a kamera képein több állásban detektálva meghatározható $\mathbf{R}$ és $\mathbf{t}$ \cite{camera-calib}.

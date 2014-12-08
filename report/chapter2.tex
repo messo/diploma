@@ -2,7 +2,7 @@
 \chapter{Több kamerából álló kamera-rendszerek}
 %----------------------------------------------------------------------------
 
-A kitűzött feladat szempontjából két fontos részproblémát kell több kamerából álló rendszerek esetén megoldani. Az első ezek közül a kamerák szinkronizációjának problémája, ami akkor merülhet fel, ha a kamerák nem egy közös feldolgozó egységhez kapcsolódnak, hanem például a kamerák képeit egy videófolyamként kapjuk. A második pedig, hogy a kamerák képei alapján a 3 dimenziós teret, vagy annak egy részét a lehető legjobban rekonstruáljuk. Ez a fejezet ezen két problémát járja körbe, valamint bemutat egy megoldást a mozgó objektumok detekciójára.
+A kitűzött feladat szempontjából két fontos részproblémát kell több kamerából álló rendszerek esetén megoldani. Az első ezek közül a kamerák szinkronizációjának problémája, ami akkor merül fel, ha a kamerák nem egy közös feldolgozó egységhez kapcsolódnak, hanem például a kamerák képeit egy videófolyamként kapjuk. A második pedig, hogy a kamerák képei alapján a háromdimenziós teret, vagy annak egy részét a lehető legjobban rekonstruáljuk. Ez a fejezet ezen két problémát járja körbe, valamint végül bemutat egy megoldást a mozgó objektumok detekciójára.
 
 \section{Kamerák szinkronizációja}
 
@@ -10,13 +10,13 @@ Amennyiben a videófolyamba időpecséteket kódolunk, a kamerák szinkronizáci
 
 Amennyiben ilyen adat nem áll rendelkezésre a videófolyamban, egyéb módszert kell keresnünk. Megoldás lehet, ha a kamerák képsorain egy közös trigger-eseményt keresünk. Az Önálló laboratórium 1. című tárgy keretében \cite{onlab-1} egy lézerpontot kerestem mindegyik képen, és a felvillanás időpontját tekintettem referenciának. Ehhez nagyon hasonló a filmiparban használt \textit{clapperboard}, aminek összeütését használják szinkronizációra, de akár egy egyszerű taps is megfelelhet, amennyiben a kamerák hangot is rögzítenek.
 
-\section{3 dimenziós tér rekonstrukciója \label{sec:methods}}
+\section{A háromdimenziós tér rekonstrukciója \label{sec:methods}}
 
-A dolgozat során kettő, lényegében eltérő módszert fogok megvizsgálni, és ezeket teljesítményükben és eredményük minőségében összehasonlítani. Az első a sztereó-látást fogja kihasználni, azaz, hogy a kamerákat párosával használva -- azokat sztereó-kalibrálva -- fogok mélységképet alkotni. Az így kapott pontfelhőket egy koordinátarendszerbe hozva számolok majd egy új nézőpontból látható képet. A második eljárás pedig az optikai-folyamok segítségével tudja az egymásnak megfelelő pontok mozgását követni és ebből a mozgásból meghatározni az objektumok struktúráját.
+A dolgozat során kettő, lényegében eltérő módszert fogok megvizsgálni, és ezeket teljesítményükben és eredményük minőségében összehasonlítani. Az első a sztereó-látást fogja kihasználni, azaz, hogy a kamerákat párosával használva -- azokat sztereó-kalibrálva -- fogok mélységképet alkotni. Az így kapott pontfelhőket egy koordinátarendszerbe hozva számolok majd egy új nézőpontból látható képet. A második eljárás során pedig az optikai-folyamok segítségével tudom az egymásnak megfelelő pontok mozgását követni és ebből a mozgásból meghatározni az objektumok struktúráját.
 
 \subsection{Sztereó-látás, sztereó-kalibráció}
 
-Sztereó-kalibráció \cite{camera-calib-3d} során egy már ismert 3D-s objektumot használunk fel, és attól függően, hogy az objektum ismert pontjait a két kamera képén hol látjuk, kiszámolhatjuk a kamerák belső és külső paramétereit (lásd előző fejezet), valamint a kamerák egymáshoz való viszonyát (eltolás, forgatás). 
+Sztereó-kalibráció \cite{camera-calib-3d} során egy már ismert háromdimenziós objektumot használunk fel, és attól függően, hogy az objektum ismert pontjait a két kamera képén hol látjuk, kiszámolhatjuk a kamerák belső és külső paramétereit (lásd előző fejezet), valamint a kamerák egymáshoz való viszonyát (eltolás, forgatás). 
 
 Tekintsünk két kamerát, ami ugyanazt a térrészt veszi, csak kicsit más szögből, lásd \aref{fig:epipolar}. ábrát.
 
@@ -95,7 +95,7 @@ Tekintsünk két kamerát, ami ugyanazt a térrészt veszi, csak kicsit más sz�
 \caption{Epipoláris geometria szemléltetése \label{fig:epipolar}}
 \end{figure}
 
-A $P$ pont az első kamera $I_1$ képén $p_1$-be, a második kamera $I_2$ képén $p_2$-be képződik le. Visszafele gondolkozva, ha megvan egy pontnak két képe a két képskíkon, akkor a kamera középpontjait összekötve ezekkel a képpontokkal, akkor ezek sugarak metszéspontjában kereshető a valódi $P$ pont (háromszögelés). Fontos megjegyezni, hogy ideális esetben ezeknek ténylegesen van metszéspontja, de a gyakorlatban nagyon ritkán. Ilyenkor a kitérő sugarak közti legrövidebb szakasz középpontját tekintjük a ,,metszéspontnak''.
+A $P$ pont az első kamera $I_1$ képén $p_1$-be, a második kamera $I_2$ képén $p_2$-be képződik le. Visszafele gondolkozva, ha megvan egy pontnak két képe a két képsíkon, akkor a kamera középpontjait összekötve ezekkel a képpontokkal két félegyenest (sugarat, az angol \textit{ray} szóból) kapunk, melyek metszéspontjában kereshető a valódi $P$ pont (háromszögelés). Fontos megjegyezni, hogy ilyen metszéspont csak ideális esetben létezik, a gyakorlatban nagyon ritkán. Ilyenkor a kitérő félegyenesek közti legrövidebb szakasz középpontját tekintjük a ,,metszéspontnak''.
 
 Nyílvánvaló, hogy $C_1$, $C_2$, $P$, valamint $p_1$ és $p_2$ egy síkon van rajta, ezt \textit{epipoláris sík}nak nevezzük, az ábrán $\pi$-vel jelölve (lásd pontozott vonal által határolt háromszög). Ezt felhasználva következik, hogy egy $p_1$ pont párja a másik, $I_2$ képsíkon nem lehet máshol, mint $I_2$ és $\pi$ metszésvonalán. Ezeket, vagyis a képsíkok és az epipoláris síkok metszéspontját \textit{epipoláris egyeneseknek} nevezzük, melyeket szaggatott vonalak jelölnek az ábrán.
 
@@ -207,7 +207,7 @@ Ebből következik, hogy a képpontok párját a másik képen elég csak az epi
 \caption{Rektifikáció szemléltetése \label{fig:rectification}}
 \end{figure}
 
-\Aref{fig:stereo-calibration-before}. és \aref{fig:stereo-calibration-after}. ábrán látható, ahogy egy sakktábla-mintát (melynek valódi koordinátái ismertek), több szögből lefotózva a rektifikáció előtt és után, hogy alakul a két kamera képe. A piros segéd egyenesek segítségével az is jó látható, hogy a rektifikáció után az egymásnak megfelelő rácspontok valóban egy vízszintes egyenesre esnek.
+\Aref{fig:stereo-calibration-before}. és \aref{fig:stereo-calibration-after}. ábrán látható, ahogy egy sakktábla-mintát (melynek valódi koordinátái ismertek), több szögből lefotózva a rektifikáció \cite{camera-calib-3d} előtt és után, hogy alakul a két kamera képe. A piros segéd egyenesek segítségével az is jó látható, hogy a rektifikáció után az egymásnak megfelelő rácspontok valóban egy vízszintes egyenesre esnek.
 
 \begin{figure}[tbh]
   \centering
@@ -229,7 +229,7 @@ Ebből következik, hogy a képpontok párját a másik képen elég csak az epi
   \caption{Rektifikáció után a két kamera képe \label{fig:stereo-calibration-after}}
 \end{figure}
 
-A rektifikált képpárokra pedig már léteznek különféle algoritmusok \cite{SGBM, stereo-var}, melyek megtalálják a képeken az egymásnak megfelelő pontokat és az eltolások alapján megadják a pontok mélységértékeit. \Aref{fig:depth-showcase}. ábra segítségével könnyű látni, hogy a nagy elmozdulást mutató pontok közelebb, a kisebbek távolabb találhatóak a kamerától.
+A rektifikált képpárokra pedig már léteznek algoritmusok \cite{SGBM, stereo-var}, melyek megtalálják a képeken az egymásnak megfelelő pontokat és az elmozdulásuk alapján megadják a pontok mélységértékeit. \Aref{fig:depth-showcase}. ábra segítségével könnyű látni, hogy a nagy elmozdulást mutató pontok közelebb, a kisebbek távolabb találhatóak a kamerától.
 
 \begin{figure}[tbh]
   \centering
@@ -315,17 +315,17 @@ A rektifikált képpárokra pedig már léteznek különféle algoritmusok \cite
 
 \subsection{Optikai-folyam}
 
-Az előzőekben megismert eljárás azt feltételezi, hogy a kamerák párosával sztereó-kalibráltak, és ezt kihasználva számol mélységképet a kalibráció során felhasznált segéd-objektum alapján.
+Az előzőekben megismert eljárás azt feltételezi, hogy a kamerák párosával sztereó-kalib\-ráltak, és ezt kihasználva számol mélységképet a kalibráció során felhasznált segéd-objek\-tum alapján.
 
-A most ismertetésre kerülő eljárás, az \textit{optikai-folyam}okat \cite{optic-flow} hívja segítségül. Vegyünk egymás utáni képsorokat egy mozgó objektumról. Az objektum mindegyik pontja egy 3D-s $\mathbf{P}(t)$ útvonalon mozog, mely a kamerák képén egy $\mathbf{p}(t) = \big(x(t), y(t)\big)$ 2D-s útvonalnak feleltethető meg. Minden pontra nézve az elmozdulás $d\mathbf{p}(t) / dt$ irányát egy 2D-s vektormezőt kapunk, ezt hívjuk optikai-folyamnak.
+A most ismertetésre kerülő eljárás, az \textit{optikai-folyam}okat \cite{optic-flow} hívja segítségül. Vegyünk egymás utáni képsorokat egy mozgó objektumról. Az objektum mindegyik pontja egy háromdimenziós $\mathbf{P}(t)$ útvonalon mozog, mely a kamerák képén egy $\mathbf{p}(t) = \big(x(t), y(t)\big)$ kétdimenziós útvonalnak feleltethető meg. Minden pontra nézve az elmozdulás $d\mathbf{p}(t) / dt$ irányát egy vektormezőt kapunk, ezt hívjuk optikai-folyamnak.
 
-Jelöljük $I(x, y, t)$-vel a kép $(x, y)$ pontjának intenzitását a $t$ időpillanatban. Feltehető, hogy két egymás utáni képkockán ugyanazon pontnak a képpontjainak intenzitása konstans (\textit{világosság állandóság}), vagyis:
+Jelöljük $I(x, y, t)$-vel a kép $(x, y)$ pontjának intenzitását a $t$ időpillanatban. Feltehető, hogy két egymás utáni képkockán ugyanazon pontnak a képpontjainak intenzitása konstans (\textit{világosság állandóság}, az angol \textit{brightness constancy} kifejezésből), vagyis:
 \[I(x, y, t) = I(x+dx, y+dy, t+dt)\]
-ahol az $(x,y)$ képpont $dt$ idő alatt $(dx,dy)$-nal mozdult el. A jobb oldal jól közelíthető első-rendű Taylor-sor kifejtésével:
+ahol az $(x,y)$ képpont $dt$ idő alatt $(dx,dy)$-nal mozdult el. A jobb oldal jól közelíthető az első-rendű Taylor-sor kifejtésével:
 
 \[I(x+dx, y+dy, t+dt) \approx I(x, y, t) + \frac{\partial I}{\partial x} dx + \frac{\partial I}{\partial y} dy + \frac{\partial I}{\partial t} dt\]
 
-Felhasználva a villágosság állandóság kényszert:
+Felhasználva a világosság állandóság kényszert:
 
 \[\frac{\partial I}{\partial x} dx + \frac{\partial I}{\partial y} dy + \frac{\partial I}{\partial t} dt = 0\]
 
@@ -337,7 +337,7 @@ Végül bevezetve a $\nabla \mathbf{I} = \left(\frac{\partial I}{\partial x}, \f
 
 \[\nabla \mathbf{I} \cdot \mathbf{V} = -\frac{\partial I}{\partial t}\]
 
-Ezt nevezzük az optikai folyam feltételi egyenletének. Mivel $\mathbf{V}\left(\frac{dx}{dt}, \frac{dy}{dt}\right)$ nem ismert, ezért egy egyenletben két ismeretlenünk van, így az optikai-folyam általános esetben nem oldható meg.
+Ezt nevezzük az optikai folyam feltételi egyenletének \cite{phd}. Mivel $\mathbf{V}\left(\frac{dx}{dt}, \frac{dy}{dt}\right)$ nem ismert, ezért egy egyenletben két ismeretlenünk van, így az optikai-folyam általános esetben nem oldható meg.
 
 \subsubsection{Lucas-Kanade módszer \cite{LK}}
 
@@ -348,7 +348,7 @@ Ez a módszer ritka vektor-mezőt generál a jellegzetes pontok elmozdulására.
 \[\vdots\]
 \[\nabla \mathbf{I}_{\mathbf{q_n}} \cdot \mathbf{V} = -\frac{\partial I}{\partial t}(\mathbf{q_n}, t)\]
 
-ahol $\mathbf{q_1},\mathbf{q_2},\ldots,\mathbf{q_n}$ a vizsgált pont környezetében lévő pontok és $\nabla \mathbf{I}_{\mathbf{q_i}} = \left(\frac{\partial I}{\partial x}(\mathbf{q_i}), \frac{\partial I}{\partial y}(\mathbf{q_i})\right)$. Ez viszont így már egy túlhatározott egyenletrendszer, melyhez megoldást a legkisebb-négyzetek módszerével keres \cite{LK, lk-wiki}. A gyakorlatban a követendő pontokra a Shi-Thomasi \cite{shi-thomasi} módszer által adott sarokpontokat szokták használni (lásd \aref{fig:lk}. ábra).
+ahol $\mathbf{q_1},\mathbf{q_2},\ldots,\mathbf{q_n}$ a vizsgált pont környezetében lévő pontok és $\nabla \mathbf{I}_{\mathbf{q_i}} = \left(\frac{\partial I}{\partial x}(\mathbf{q_i}), \frac{\partial I}{\partial y}(\mathbf{q_i})\right)$. Ez így viszont már egy túlhatározott egyenletrendszer, melyhez közelítő megoldás a legkisebb-négyzetek módszerével kereshető \cite{LK, lk-wiki}. A gyakorlatban a követendő pontokra a Shi-Thomasi \cite{shi-thomasi} módszer által adott sarokpontokat szokták használni (lásd \aref{fig:lk}. ábra).
 
 %Ez önmagában így csak kis mozgásokat tud követni, ezért nagy mozgások esetén a piramis-módszert használjuk; amikor is a képeket több lépcsőben kicsinyítjük, és ezeken is lefuttatjuk az algoritmusokat (ekkor a kis mozgások eltűnnek, a nagyok pedig kisebbekké válnak).
 
@@ -358,9 +358,35 @@ ahol $\mathbf{q_1},\mathbf{q_2},\ldots,\mathbf{q_n}$ a vizsgált pont környezet
 \caption{Minta a sarokpontok követésére \cite{opencv-lk} \label{fig:lk}}
 \end{figure}
 
-\subsubsection{Gunner Farnebäck módszer}
+\subsubsection{Gunner Farnebäck módszer \cite{farneback}}
 
-A dolgozat során nekünk sűrű optikai-folyamok meghatározására lesz szükség, melyhez Gunner Farnebäck \cite{farneback} algoritmusát fogjuk használni. Ennek két praktikus haszna is van; egyrészt nem kell sarokpontokat keresnünk, másrészt pedig sűrű vektor-mezőt kapunk. \Aref{fig:dense-of}. ábrán látható egy példa, ami egy kanyon felett elrepülő helikopter videójának két egymás utáni képkockájából lett kiszámolva.
+A módszer lényege, hogy a kép pixeleinek intenzitását egy polinommal közelíti:
+
+\[f(\mathbf{x}) \sim \mathbf{x}^T \mathbf{A} \mathbf{x} + \mathbf{b}^T \mathbf{x} + c\]
+
+ahol $\mathbf{A}$ egy szimmetrikus mátrix, $\mathbf{b}$ vektor és $c$ skalár.
+
+Ezeket az együtthatókat a legkisebb-négyzetek módszerével közelítően meghatározhatjuk. Feltéve, hogy a teljes kép egyetlen polinommal felírható, és a két képkockán az egész polinom ideálisan $\mathbf{d}$-vel mozdul el:
+
+\[f_1(\mathbf{x} - \mathbf{d}) = f_2(\mathbf{x})\]
+
+A fenti képlet jelenti a világosság állandóság kényszer teljesülését. Bal oldalt kifejtve, jobb oldalt pedig átírva a polinom-alakba \cite{farneback}:
+
+\[\mathbf{x}^T \mathbf{A}_1 \mathbf{x} + (\mathbf{b_1} - 2 \mathbf{A}_1\mathbf{d})^T \mathbf{x} + \mathbf{d}^T \mathbf{A}_1 \mathbf{d} -\mathbf{b}_1^T + c_1 = \mathbf{x}^T \mathbf{A}_2 \mathbf{x} + \mathbf{b_2}^T \mathbf{x} + c_2\]
+
+Az együtthatókat egyenlővé téve, kapjuk a következő egyenleteket:
+
+\[\begin{array}{rcl}\mathbf{A}_2 &=& \mathbf{A}_1\\\mathbf{b_2} &=& \mathbf{b_1} - 2 \mathbf{A}_1\mathbf{d}\\ c_2 &=& \mathbf{d}^T \mathbf{A}_1 \mathbf{d} -\mathbf{b}_1^T + c_1 \end{array}\]
+
+Jól látható, hogy $\mathbf{d}$ meghatározható ha $\mathbf{A}_1$ determinánsa nem nulla. Általános esetben természetesen nem élhetünk ezzel az előbbi egyszerű feltételekkel, miszerint mindkét kép leírható egyetlen polinommal és hogy ideálisan minden pont $\mathbf{d}$-vel mozdult el. Ezért lokális polinomokkal dolgozunk, melyek a pontok egy környezetében érvényesek, vagyis $\mathbf{A}_1(\mathbf{x}), \mathbf{b_1}(\mathbf{x}), c_1(\mathbf{x})$ és $\mathbf{A}_2(\mathbf{x}), \mathbf{b_2}(\mathbf{x}), c_2(\mathbf{x})$ együtthatókkal kell számolunk. Ekkor az alábbi közelítésekket téve:
+\[\mathbf{A}(\mathbf{x}) = \frac{\mathbf{A}_2(\mathbf{x}) + \mathbf{A}_2(\mathbf{x})}{2}\]
+\[\Delta \mathbf{b}(\mathbf{x}) = -\frac{1}{2}\left(\mathbf{b}_2(\mathbf{x})-\mathbf{b}_1(\mathbf{x})\right)\]
+Kapjuk az előbbi egyenletekkel összevetve a következőt:
+\[\mathbf{A}(\mathbf{x})\mathbf{d}(\mathbf{x}) = \Delta \mathbf{b}(\mathbf{x})\]
+
+Ekkor $\mathbf{d}(\mathbf{x})$ szerepében megkaptuk a vektor-mezőt. Ez pontonként felírva megoldható, de a gyakorlatban zajos eredményt szolgáltat. Ezt elkerülendő azzal a feltevéssel élünk, hogy a pontok egy környezetében az elmozdulás vektorok csak kicsit változnak, és így a fenti megoldása egy költség-minimalizálási problémává változik \cite{farneback}.
+
+Ez utóbbi algoritmust \cite{opencv-lk} fogom a dolgozat során alkalmazni, mert sűrű optikai-folyamokat szolgáltat, és nem kell sarokpontokat keresni a kiinduló képen. \Aref{fig:dense-of}. ábrán látható egy példa, ami egy kanyon felett elrepülő helikopter videójának két egymás utáni képkockájából meghatározott sűrű optikai-folyamot mutatja.
 
 \begin{figure}[tbh]
 \centering
@@ -368,7 +394,7 @@ A dolgozat során nekünk sűrű optikai-folyamok meghatározására lesz szüks
 \caption{Minta sűrű optikai-folyam meghatározásra \cite{farneback} \label{fig:dense-of}}
 \end{figure}
 
-Az optikai-folyamok felhasználásával nem szükséges a kamerákat párosával kalibrálni, sőt, már akár egyetlen kamerával is egy adott szilárd test lemodellezhető, ezt a problémát \textit{structure-from-motion}-nek hívjuk \cite{sfm}. Például tekintsük egy adott objektum felé néző, de körülötte mozgó kamera két helyzetében ($C_1$ és $C_2$) látott képet (lásd \aref{fig:triangulation}. ábrát). Az objektumról a kamera mozgása során több képet készítve, és ezeken az egymásnak megfelelő pontokat az optikai-folyamok segítségével meghatározva a már említett háromszögelés módszerével meghatározható a pontok 3D-s koordinátái, valamint a nézőpontok közötti transzformációk. A mi esetünkben nem a kamera fog mozogni az objektum körül, hanem a rögzített kamera előtt fog mozogni és forogni az objektum, de az elv ugyanaz.
+Az optikai-folyamok felhasználásával nem szükséges a kamerákat párosával kalibrálni, sőt, már akár egyetlen kamerával is egy adott szilárd test lemodellezhető, ezt a problémát \textit{structure-from-motion}-nek hívjuk \cite{sfm}. Tekintsünk egy adott objektum felé néző, de körülötte mozgó kamera két helyzetében ($C_1$ és $C_2$) látott képet (lásd \aref{fig:triangulation}. ábrát). Az objektumról a kamera mozgása során több képet készítve, és ezeken az egymásnak megfelelő pontokat az optikai-folyamok segítségével meghatározva a már említett háromszögelés módszerével meghatározható a pontok háromdimenziós koordinátái, valamint a nézőpontok közötti transzformációk is \cite{book}. A mi esetünkben nem a kamera fog mozogni az objektum körül, hanem a rögzített kamera előtt fog mozogni és forogni az objektum, de az elv ugyanaz.
 
 \begin{figure}[tbh]
 \centering
@@ -465,11 +491,11 @@ Az optikai-folyamok felhasználásával nem szükséges a kamerákat párosával
 \section{Objektum-detekció}
 %----------------------------------------------------------------------------
 
-A feladat megoldása során mozgó objektumokat kell követnem, azokat modelleznem, így szükség van az egymás utáni képkockákon ezek azonosítására.
+A feladat megoldása során mozgó objektumokat kell követnem, azokat modelleznem, így szükség van ezeknek az egymás utáni képkockákon történő azonosítására.
 
 Az előző részben leírt Farnebäck-módszert felhasználva becslést kaphatunk arra vonatkozóan, hogy hol lehetnek a mozgó tárgyak. A kamerák statikus helyzete révén, a háttér képpontjaihoz tartozóan közel zéró elmozdulást várunk, míg a mozgó részeken ettől eltérőt.
 
-Azonban ez önmagában még nem elég, szükség van egy háttér-előtér szegmentációs algoritmus \cite{MOG} felhasználására is, mely az egymás utáni képkockákból egy háttér-modellt épít. Az aktuális képkockából a kapott hátteret kivonva, megkapjuk az éppen aktuális előtérhez tartozó maszkot, lásd \aref{fig:mog-example}. ábrát.
+Azonban ez önmagában még nem elég, szükség van egy háttér-előtér szegmentációs algoritmus (MOG) \cite{MOG} felhasználására is, mely az egymás utáni képkockákból egy háttér-modellt épít. Az aktuális képkockából a kapott hátteret kivonva, megkapjuk az éppen aktuális előtérhez tartozó maszkot, lásd \aref{fig:mog-example}. ábrát.
 
 \begin{figure}[tbh]
 \centering
@@ -477,4 +503,6 @@ Azonban ez önmagában még nem elég, szükség van egy háttér-előtér szegm
 \caption{Minta a háttér-előtér elválasztási algoritmus eredményére \cite{mog-example} \label{fig:mog-example}}
 \end{figure}
 
-A maszkot és a vektor-mezőt felhasználva már igen jó közelítéssel megkapjuk a mozgó objektumoknak megfelelő képszeleteket.
+A választott algoritmus előnye, hogy az árnyékokat nagy valószínűséggel kiszűrí és azokat nem tekinti az objektum részének, valamint a folyamatos modellépítésnek köszönhetően, nem csak egy fix tanulási időszak alatt gyűjtött információkból határozza meg a hátteret.
+
+A kapott előtér maszkot és az optika-folyamokat felhasználva már igen jó közelítéssel megkapjuk a mozgó objektumoknak megfelelő képszeleteket.
