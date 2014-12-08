@@ -396,6 +396,8 @@ Ez utóbbi algoritmust \cite{opencv-lk} fogom a dolgozat során alkalmazni, mert
 
 Az optikai-folyamok felhasználásával nem szükséges a kamerákat párosával kalibrálni, sőt, már akár egyetlen kamerával is egy adott szilárd test lemodellezhető, ezt a problémát \textit{structure-from-motion}-nek hívjuk \cite{sfm}. Tekintsünk egy adott objektum felé néző, de körülötte mozgó kamera két helyzetében ($C_1$ és $C_2$) látott képet (lásd \aref{fig:triangulation}. ábrát). Az objektumról a kamera mozgása során több képet készítve, és ezeken az egymásnak megfelelő pontokat az optikai-folyamok segítségével meghatározva a már említett háromszögelés módszerével meghatározható a pontok háromdimenziós koordinátái, valamint a nézőpontok közötti transzformációk is \cite{book}. A mi esetünkben nem a kamera fog mozogni az objektum körül, hanem a rögzített kamera előtt fog mozogni és forogni az objektum, de az elv ugyanaz.
 
+Gondoljuk meg, hogy ehhez a módszerhez fel kell tennünk, hogy az objektumok forgás és mozgásuk során az alakjukat ne változtassák, ne deformálódjanak, mert ez helytelen rekonstrukcióhoz vezetne. Ez a kényszer az implementáció és a tesztelés során is fent fog állni, melyet az összehasonlítás miatt így a sztereó-kalibrációs módszernél is fenntartunk.
+
 \begin{figure}[tbh]
 \centering
 \tdplotsetmaincoords{60}{130}

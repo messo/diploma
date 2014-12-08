@@ -1,8 +1,20 @@
 %----------------------------------------------------------------------------
-\chapter{Elméleti bevezetés}\label{ch:elmelet}
+\chapter{Bevezetés}\label{ch:elmelet}
 %----------------------------------------------------------------------------
 
-Mielőtt rátérnénk a konkrét feladatra, és annak megoldására, szükség van az alkalmazott matematikai háttér bemutatására. Rövid lineáris algebra bevezető után a háromdimenziós tér alapvető transzformációi kerülnek tárgyalásra, melyet a lyukkamera-modell leírása követ.
+Ezt a fejezetet a feladat értelmezésével fogom kezdeni, majd mielőtt a megoldásra, valamint az ahhoz vezető útra rátérnék a későbbi fejezetekben, először az alkalmazott matematikai hátteret mutatom be. Rövid lineáris algebra bevezető után a háromdimenziós tér alapvető transzformációit tárgyalom. A fejezetet a lyukkamera-modell leírásával zárom.
+
+%----------------------------------------------------------------------------
+\section{Feladat értelmezése}
+%----------------------------------------------------------------------------
+
+A feladatom egy legalább kettő fix telepítésű kamerából álló kamerarendszer által megfigyelt térrészben egy tetszőlegesen pontban és irányban látható kép valós idejű helyreállíthatóságának vizsgálata, a probléma megoldhatósági korlátainak meghatározása, és egy megvalósítási terv készítése.
+
+A dolgozat során két eltérő módszerrel fogom a valós idejű helyreállítást egy választott nézőpontból elvégezni. Az egyik módszer a jellegéből adódóan, amit majd később látni fogunk, csak a mozgó tárgyakat tudja rekonstruálni, ezért ezt a kényszert a másik módszerre is alkalmazni fogom, hogy a két megközelítés teljesítménye összehasonlítható maradjon. Ez igazodik a feladat kitűzésem második pontjához, és ennek így a tervezett megoldásom eleget tud tenni. A látott kép helyreállítása alatt az adott nézőpontból látható mozgó objektumok felismerését és azok kontúrjainak kirajzolását értem.
+
+A valós idejű helyreállítóság vizsgálatát és az eredmények dokumentációját a következőknek megfelelően végzem el. Mindkét módszert hasonló körülmények között tesztelem, tehát ugyanazon térrészt rekonstruálom nagyon hasonló jelenet-megválasztással: két mozgó, forgó, de nem deformálódó objektummal, melyek időről időre akár ki is takarhatják egymást az egyik kamerából nézve. A két módszer közti teljesítmény különbséget két metrika segítségével ellenőrzöm: számítási igény, azaz az elérhető sebesség (képkocka/másodperc), valamint a helyreállítás vizuális minősége. Előbbit egyértelműen mérni tudom, az utóbbi azonban egy szubkjektív mérce, melyet szabad szemes összehasonlítással, a valódi jelenethez mérten értékelek.
+
+A fejezet hátralévő részében a matematikai hátteret és a lyukkamera-modellt mutatom be.
 
 %----------------------------------------------------------------------------
 \section{Lineáris transzformációk}
