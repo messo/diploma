@@ -12,3 +12,7 @@ struct CloudPoint {
 std::vector<cv::Point3d> CloudPointsToPoints(const std::vector<CloudPoint> &cpts);
 
 void writeCloudPoints(const std::vector<CloudPoint> &cpts);
+
+void translate(const std::vector<cv::Point>& input, cv::Point translation, std::vector<cv::Point>& output);
+
+cv::Mat mergeImages(const cv::Mat &left, const cv::Mat &right);

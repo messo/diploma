@@ -167,7 +167,7 @@ bool OFReconstruction::reconstruct() {
             0,1,0,0,
             0,0,1,0);
 
-    vector<CloudPoint> outCloud;
+    resultingCloud.clear();
 
     //decompose E to P' , HZ (9.19)
     {
@@ -250,7 +250,7 @@ bool OFReconstruction::reconstruct() {
         vector<double> depths;
 
         for (unsigned int i = 0; i < pcloud.size(); i++) {
-            outCloud.push_back(pcloud[i]);
+            resultingCloud.push_back(pcloud[i]);
             depths.push_back(pcloud[i].pt.z);
         }
 
@@ -259,16 +259,11 @@ bool OFReconstruction::reconstruct() {
             double minVal,maxVal;
             minMaxLoc(depths, &minVal, &maxVal);
             Mat tmp(480,640,CV_8UC3, Scalar(0,0,0));
-            for (unsigned int i=0; i<outCloud.size(); i++) {
-                double _d = MAX(MIN((outCloud[i].pt.z-minVal)/(maxVal-minVal),1.0),0.0);
+            for (unsigned int i=0; i< resultingCloud.size(); i++) {
+                double _d = MAX(MIN((resultingCloud[i].pt.z-minVal)/(maxVal-minVal),1.0),0.0);
                 circle(tmp, corresp[i], 1, Scalar(255 * (1.0-(_d)),255 * (1.0-(_d)),255 * (1.0-(_d))), cv::FILLED);
             }
             imshow("Depth Map", tmp);
-            /*char ch = waitKey(0);
-            if(ch == ' ') {
-                writeCloudPoints(outCloud);
-            }*/
-            // destroyWindow("Depth Map");
         }
     }
 

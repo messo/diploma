@@ -3,6 +3,7 @@
 #include <bits/stl_bvector.h>
 #include <opencv2/core/types.hpp>
 #include "Camera.hpp"
+#include "Common.h"
 
 class OFReconstruction {
 
@@ -14,4 +15,7 @@ public:
     OFReconstruction(cv::Ptr<Camera> pts1, std::vector<cv::Point2f> pts2, std::vector<cv::Point2f> vector);
 
     bool reconstruct();
+
+    std::vector<CloudPoint> resultingCloud;
+
 };

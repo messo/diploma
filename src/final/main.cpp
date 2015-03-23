@@ -13,6 +13,8 @@
 #include "DummyCamera.hpp"
 #include "ObjectSelector.hpp"
 #include "OFReconstruction.h"
+#include "Common.h"
+#include "OpticalFlowCalculator.h"
 
 #define DEPTH_ENABLED true
 
@@ -50,15 +52,6 @@ void erode(Mat img, int erosion_size) {
             Point(erosion_size, erosion_size));
 
     erode(img, img, kernel);
-}
-
-Mat mergeImages(const Mat &left, const Mat &right) {
-    Mat result = Mat::zeros(left.rows, left.cols + right.cols, left.type());
-
-    left.copyTo(result(Rect(0, 0, left.cols, left.rows)));
-    right.copyTo(result(Rect(left.cols - 1, 0, right.cols, right.rows)));
-
-    return result;
 }
 
 Point2f getDenseAverage(Mat flow, int x, int y) {
@@ -134,135 +127,39 @@ int main(int argc, char **argv) {
 
     int i = 1;
 
+    OpticalFlowCalculator calc(camera);
+
     while (true) {
         // aktuális kép...
         camera->retrieve(img);
 
+        // maszk meghatározása és finomítása...
         bgSub->apply(img, mask, 0);
-        // objektum kiválasztása...
-
         int niters = 3;
         dilate(mask, mask, Mat(), Point(-1, -1), niters);
         erode(mask, mask, Mat(), Point(-1, -1), niters * 2);
         dilate(mask, mask, Mat(), Point(-1, -1), niters);
 
+        // B opció, ami elég fostos...
         //mask = Mat::ones(480, 640, CV_8U);
-
         //erodeAndDilate(mask, 2);
         //dilateAndErode(mask, 25);
         //erode(mask, 5);
 
-        // --- CONNECTED COMPONENTS
-        Mat selected(objSelector->selectUsingContoursWithClosestCentroid(img, mask));
-        imshow("selected", selected);
-        // ------------------------
+        // objektum kiválasztása + szürkítés
+        Mat _selected(objSelector->selectUsingContoursWithClosestCentroid(img, mask));
+        Mat _selectedGray;
+        cvtColor(_selected, _selectedGray, cv::COLOR_BGR2GRAY);
 
-        /*char filename1[80];
-        sprintf(filename1,"/media/balint/Data/Linux/selected/%d.png",i++);
-        imwrite(filename1, selected);*/
-
-        Mat selectedGray;
-        cvtColor(selected, selectedGray, cv::COLOR_BGR2GRAY);
-
-        if (!prevGray.empty()) {
-            Mat flow;
-            calcOpticalFlowFarneback(prevGray, selectedGray, flow, 0.25, 4, 13, 10, 5, 1.1, 0);
-
-            Mat backFlow;
-            calcOpticalFlowFarneback(selectedGray, prevGray, backFlow, 0.25, 4, 13, 10, 5, 1.1, 0);
-
-            Mat tmp, vis;
-            prevGray.copyTo(tmp);
-            cvtColor(tmp, vis, cv::COLOR_GRAY2BGR);
-
-            Mat flow2(flow.rows, flow.cols, flow.type());
-
-            for (int y = 0; y < flow.rows; y++) {
-                for (int x = 0; x < flow.cols; x++) {
-
-                    const Point2f &fxy = flow.at<Point2f>(y, x);
-                    Point from(x, y);
-                    Point to(cvRound(x + fxy.x), cvRound(y + fxy.y));
-
-                    double length2 = fxy.dot(fxy);
-
-                    if (pointPolygonTest(prevLastContour, from, false) > 0.0 &&
-                            pointPolygonTest(objSelector->getLastContour(), to, false) > 0.0 /*&&
-                            length2 > MIN_SQ_LENGTH && length2 < MAX_SQ_LENGTH*/) {
-                        flow2.at<Point2f>(y, x) = fxy;
-                    } else {
-                        flow2.at<Point2f>(y, x) = Point2f(0.0, 0.0);
-                    }
-                }
-            }
-
-
-
-            // trying to smooth the vectorfield
-            Mat smoothedFlow;
-            GaussianBlur(flow2, smoothedFlow, Size(15, 15), -1);
-            smoothedFlow.copyTo(flow2);
-
-
-
-            vector<Point2f> imgpts1, imgpts2;
-
-            for (int y = 0; y < flow2.rows; y += 3) {
-                for (int x = 0; x < flow2.cols; x += 3) {
-
-                    const Point2f &fxy = flow2.at<Point2f>(y, x);
-                    Point from(x, y);
-                    Point to(cvRound(x + fxy.x), cvRound(y + fxy.y));
-
-                    if (fxy.x != 0.0 && fxy.y != 0.0) {
-                        Point2f avg(getSparseAverage(flow2, x, y));
-                        Point to2(cvRound(x + avg.x), cvRound(y + avg.y));
-
-                        Point diff(to2.x - to.x, to2.y - to.y);
-
-                        if (diff.dot(diff) <= 1) {
-                            const Point2f &back = backFlow.at<Point2f>(to.y, to.x);
-                            Point backTo(cvRound(to.x + back.x), cvRound(to.y + back.y));
-
-                            Point diff2(backTo.x - from.x, backTo.y - from.y);
-                            if(diff2.dot(diff2) <= 1) {
-                                imgpts1.push_back(Point2f(from));
-                                imgpts2.push_back(Point2f(x + fxy.x, y + fxy.y));
-                                line(vis, from, to, Scalar(0, 255, 0));
-
-                                //const Point2f &s = smoothedFlow.at<Point2f>(y, x);
-                                //line(vis, from, Point(cvRound(x + s.x), cvRound(y + s.y)), Scalar(0, 0, 255));
-
-                                circle(vis, from, 2, Scalar(255, 0, 0), -1);
-                            } else {
-                                //line(vis, from, to, Scalar(0, 0, 255));
-                                //line(vis, to, backTo, Scalar(255, 0, 0));
-                            }
-                        } else {
-                            //line(vis, from, to, Scalar(0, 0, 255));
-                            //circle(vis, from, 2, Scalar(0, 0, 255), -1);
-                        }
-                    }
-                }
-            }
-
-            OFReconstruction reconstruction(camera, imgpts1, imgpts2);
-            reconstruction.reconstruct();
-
-            imshow("vis", vis);
-            //Mat merged(mergeImages(img, vis));
-            //imshow("merged", merged);
-
-            //outputVideo << merged;
-        }
-
-        selectedGray.copyTo(prevGray);
-        prevLastContour = objSelector->getLastContour();
+        // fő algoritmus etetése az új képpel és egyéb infókkal
+        calc.feed(_selectedGray, objSelector->lastBoundingRect, objSelector->getLastContour());
 
         char key = waitKey();
         if (key == 27) {
             //outputVideo.release();
             return 0;
+        } else if (key == ' ') {
+            calc.dumpReconstruction();
         }
     }
 }

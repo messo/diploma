@@ -17,7 +17,7 @@ bool DummyCamera::read(OutputArray out) {
     }
     img.copyTo(out);
 
-    frame += 2;
+    frame += 3;
 
     if (frame > lastFrame) {
         frame = firstFrame;

@@ -100,15 +100,12 @@ cv::Mat ObjectSelector::selectUsingContoursWithClosestCentroid(const cv::Mat &im
 
     lastCentroid = getCentroid(moments(contours[selectedComponent]));
 
-    // iterate through all the top-level contours,
-    // draw each connected component with its own random color
-
-
     Scalar color(255, 255, 255);
     drawContours(dst, contours, selectedComponent, color, FILLED, LINE_8);
 
     // save the contour
     lastContour = contours[selectedComponent];
+    lastBoundingRect = boundingRect(lastContour);
 
     Mat result;
     img.copyTo(result, dst);
