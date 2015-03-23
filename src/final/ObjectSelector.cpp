@@ -107,6 +107,9 @@ cv::Mat ObjectSelector::selectUsingContoursWithClosestCentroid(const cv::Mat &im
     Scalar color(255, 255, 255);
     drawContours(dst, contours, selectedComponent, color, FILLED, LINE_8);
 
+    // save the contour
+    lastContour = contours[selectedComponent];
+
     Mat result;
     img.copyTo(result, dst);
     return result;
@@ -117,4 +120,8 @@ cv::Ptr<cv::Point> ObjectSelector::getCentroid(cv::Moments moments) {
     int y = static_cast<int>(moments.m01 / moments.m00);
 
     return cv::Ptr<cv::Point>(new Point(x, y));
+}
+
+const std::vector<cv::Point> &ObjectSelector::getLastContour() const {
+    return lastContour;
 }

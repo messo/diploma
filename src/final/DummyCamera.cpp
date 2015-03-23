@@ -11,11 +11,13 @@ bool DummyCamera::read(OutputArray out) {
 
     Mat img;
     if (getId() == Camera::LEFT) {
-        img = imread(path + "/left_" + std::to_string(frame++) + ".png");
+        img = imread(path + "/left_" + std::to_string(frame) + ".png");
     } else if (getId() == Camera::RIGHT) {
-        img = imread(path + "/right_" + std::to_string(frame++) + ".png");
+        img = imread(path + "/right_" + std::to_string(frame) + ".png");
     }
     img.copyTo(out);
+
+    frame += 2;
 
     if (frame > lastFrame) {
         frame = firstFrame;

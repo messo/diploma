@@ -9,6 +9,8 @@ class ObjectSelector {
 
     cv::Ptr<cv::Point> getCentroid(cv::Moments moments);
 
+    std::vector<cv::Point> lastContour;
+
 public:
     ObjectSelector();
 
@@ -17,4 +19,6 @@ public:
     cv::Mat selectUsingContoursWithMaxArea(const cv::Mat &img, const cv::Mat &mask);
 
     cv::Mat selectUsingContoursWithClosestCentroid(const cv::Mat &img, const cv::Mat &mask);
+
+    const std::vector<cv::Point>& getLastContour() const;
 };
