@@ -15,4 +15,9 @@ void writeCloudPoints(const std::vector<CloudPoint> &cpts);
 
 void translate(const std::vector<cv::Point>& input, cv::Point translation, std::vector<cv::Point>& output);
 
+void translate(std::vector<cv::Point>& input, cv::Point translation);
+
 cv::Mat mergeImages(const cv::Mat &left, const cv::Mat &right);
+
+void shiftImage(const cv::Mat &input, const cv::Rect &boundingRect,
+                const cv::Point2i &translation, cv::Mat& output);

@@ -1,4 +1,5 @@
 #include <opencv2/imgproc.hpp>
+#include <opencv2/highgui.hpp>
 #include "ObjectSelector.hpp"
 
 using namespace std;
@@ -63,10 +64,10 @@ cv::Mat ObjectSelector::selectUsingContoursWithClosestCentroid(const cv::Mat &im
 
     findContours(mask, contours, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
 
-    Mat dst = Mat::zeros(mask.size(), CV_8UC3);
+    lastMask = Mat::zeros(mask.size(), CV_8U);
 
     if (contours.size() == 0)
-        return dst;
+        return lastMask;
 
     int selectedComponent = 0;
 
@@ -100,15 +101,14 @@ cv::Mat ObjectSelector::selectUsingContoursWithClosestCentroid(const cv::Mat &im
 
     lastCentroid = getCentroid(moments(contours[selectedComponent]));
 
-    Scalar color(255, 255, 255);
-    drawContours(dst, contours, selectedComponent, color, FILLED, LINE_8);
+    drawContours(lastMask, contours, selectedComponent, Scalar(255), FILLED, LINE_8);
 
     // save the contour
     lastContour = contours[selectedComponent];
     lastBoundingRect = boundingRect(lastContour);
 
     Mat result;
-    img.copyTo(result, dst);
+    img.copyTo(result, lastMask);
     return result;
 }
 

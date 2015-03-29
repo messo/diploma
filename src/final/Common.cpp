@@ -37,6 +37,12 @@ void translate(const std::vector<cv::Point> &input, cv::Point translation, std::
     }
 }
 
+void translate(std::vector<cv::Point> &input, cv::Point translation) {
+    for (int i = 0; i < input.size(); i++) {
+        input[i] += translation;
+    }
+}
+
 Mat mergeImages(const Mat &left, const Mat &right) {
     Mat result = Mat::zeros(left.rows, left.cols + right.cols, left.type());
 
@@ -44,4 +50,10 @@ Mat mergeImages(const Mat &left, const Mat &right) {
     right.copyTo(result(Rect(left.cols - 1, 0, right.cols, right.rows)));
 
     return result;
+}
+
+void shiftImage(const cv::Mat &input, const cv::Rect &boundingRect,
+                const cv::Point2i &translation, cv::Mat &output) {
+    output.setTo(0);
+    input(boundingRect).copyTo(output(boundingRect + translation));
 }

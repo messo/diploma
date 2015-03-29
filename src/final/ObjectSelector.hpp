@@ -24,4 +24,6 @@ public:
     cv::Ptr<cv::Point> lastCentroid;
 
     cv::Rect lastBoundingRect;
+
+    cv::Mat lastMask;
 };

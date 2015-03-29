@@ -151,8 +151,15 @@ int main(int argc, char **argv) {
         Mat _selectedGray;
         cvtColor(_selected, _selectedGray, cv::COLOR_BGR2GRAY);
 
+        /*imshow("current", _selectedGray);
+
+        char key1 = waitKey();
+        if(key1 != 'o') {
+            continue;
+        }*/
+
         // fő algoritmus etetése az új képpel és egyéb infókkal
-        calc.feed(_selectedGray, objSelector->lastBoundingRect, objSelector->getLastContour());
+        calc.feed(_selectedGray, objSelector->lastMask, objSelector->lastBoundingRect, objSelector->getLastContour());
 
         char key = waitKey();
         if (key == 27) {
