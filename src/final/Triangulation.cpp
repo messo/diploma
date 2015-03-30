@@ -96,17 +96,16 @@ Mat_<double> IterativeLinearLSTriangulation(Point3d u,    //homogenous image poi
 }
 
 //Triagulate points
-double TriangulatePoints(const vector<Point2f> &pt_set1,
+double TriangulatePoints(long frameId, const vector<Point2f> &pt_set1,
         const vector<Point2f> &pt_set2,
         const Mat &K,
         const Mat &Kinv,
         const Mat &distcoeff,
         const Matx34d &P,
         const Matx34d &P1,
-        vector<CloudPoint> &pointcloud,
+        Cloud &pointcloud,
         vector<Point> &correspImg1Pt) {
 
-//	pointcloud.clear();
     correspImg1Pt.clear();
 
     Matx44d P1_(P1(0, 0), P1(0, 1), P1(0, 2), P1(0, 3),
@@ -191,7 +190,7 @@ double TriangulatePoints(const vector<Point2f> &pt_set1,
             cp.pt = Point3d(X(0), X(1), X(2));
             cp.reprojection_error = reprj_err;
 
-            pointcloud.push_back(cp);
+            pointcloud.insert(frameId, cp, Point2i((int) pt_set1[i].x, (int) pt_set1[i].y));
             correspImg1Pt.push_back(pt_set1[i]);
         }
     }
@@ -202,4 +201,57 @@ double TriangulatePoints(const vector<Point2f> &pt_set1,
     cout << "Done. (" << pointcloud.size() << "points, " << t << "s, mean reproj err = " << mse[0] << ")" << endl;
 
     return mse[0];
+}
+
+bool TestTriangulation(const Cloud &pcloud, const Matx34d &P, vector<uchar> &status) {
+    vector<Point3d> pcloud_pt3d = CloudPointsToPoints(pcloud.points);
+    vector<Point3d> pcloud_pt3d_projected(pcloud_pt3d.size());
+
+    Matx44d P4x4 = Matx44d::eye();
+    for (int i = 0; i < 12; i++) P4x4.val[i] = P.val[i];
+
+    perspectiveTransform(pcloud_pt3d, pcloud_pt3d_projected, P4x4);
+
+    status.resize(pcloud.size(), 0);
+    for (int i = 0; i < pcloud.size(); i++) {
+        status[i] = (pcloud_pt3d_projected[i].z > 0) ? 1 : 0;
+    }
+    int count = countNonZero(status);
+
+    double percentage = ((double) count / (double) pcloud.size());
+    cout << count << "/" << pcloud.size() << " = " << percentage * 100.0 << "% are in front of camera" << endl;
+    cout.flush();
+    if (percentage < 0.75)
+        return false; //less than 75% of the points are in front of the camera
+
+    //check for coplanarity of points
+    if (false) //not
+    {
+//        cv::Mat_<double> cldm(pcloud.size(), 3);
+//        for (unsigned int i = 0; i < pcloud.size(); i++) {
+//            cldm.row(i)(0) = pcloud[i].pt.x;
+//            cldm.row(i)(1) = pcloud[i].pt.y;
+//            cldm.row(i)(2) = pcloud[i].pt.z;
+//        }
+//        cv::Mat_<double> mean;
+//        cv::PCA pca(cldm, mean, cv::PCA::DATA_AS_ROW);
+//
+//        int num_inliers = 0;
+//        cv::Vec3d nrm = pca.eigenvectors.row(2);
+//        nrm = nrm / norm(nrm);
+//        cv::Vec3d x0 = pca.mean;
+//        double p_to_plane_thresh = sqrt(pca.eigenvalues.at<double>(2));
+//
+//        for (int i = 0; i < pcloud.size(); i++) {
+//            Vec3d w = Vec3d(pcloud[i].pt) - x0;
+//            double D = fabs(nrm.dot(w));
+//            if (D < p_to_plane_thresh) num_inliers++;
+//        }
+//
+//        cout << num_inliers << "/" << pcloud.size() << " are coplanar" << endl;
+//        if ((double) num_inliers / (double) (pcloud.size()) > 0.85)
+//            return false;
+    }
+
+    return true;
 }

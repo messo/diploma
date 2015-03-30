@@ -9,8 +9,9 @@ using namespace cv;
 using namespace std;
 
 
-OFReconstruction::OFReconstruction(cv::Ptr<Camera> cam, std::vector<cv::Point2f> pts1, std::vector<cv::Point2f> pts2)
-        : cam(cam), pts1(pts1), pts2(pts2) {
+OFReconstruction::OFReconstruction(cv::Ptr<Camera> cam, long frameId1, std::vector<cv::Point2f> pts1, long frameId2,
+                                   std::vector<cv::Point2f> pts2)
+        : cam(cam), frameId1(frameId1), pts1(pts1), frameId2(frameId2), pts2(pts2) {
 
 }
 
@@ -58,70 +59,6 @@ bool DecomposeEtoRandT(
     return true;
 }
 
-bool CheckCoherentRotation(cv::Mat_<double> &R) {
-//    std::cout << "R; " << R << std::endl;
-
-    if (fabs(determinant(R)) - 1.0 > 1e-07) {
-        cerr << "det(R) != +-1.0, this is not a rotation matrix" << endl;
-        return false;
-    }
-
-    return true;
-}
-
-bool TestTriangulation(const vector<CloudPoint> &pcloud, const Matx34d &P, vector<uchar> &status) {
-    vector<Point3d> pcloud_pt3d = CloudPointsToPoints(pcloud);
-    vector<Point3d> pcloud_pt3d_projected(pcloud_pt3d.size());
-
-    Matx44d P4x4 = Matx44d::eye();
-    for (int i = 0; i < 12; i++) P4x4.val[i] = P.val[i];
-
-    perspectiveTransform(pcloud_pt3d, pcloud_pt3d_projected, P4x4);
-
-    status.resize(pcloud.size(), 0);
-    for (int i = 0; i < pcloud.size(); i++) {
-        status[i] = (pcloud_pt3d_projected[i].z > 0) ? 1 : 0;
-    }
-    int count = countNonZero(status);
-
-    double percentage = ((double) count / (double) pcloud.size());
-    cout << count << "/" << pcloud.size() << " = " << percentage * 100.0 << "% are in front of camera" << endl;
-    cout.flush();
-    if (percentage < 0.75)
-        return false; //less than 75% of the points are in front of the camera
-
-    //check for coplanarity of points
-    if (false) //not
-    {
-        cv::Mat_<double> cldm(pcloud.size(), 3);
-        for (unsigned int i = 0; i < pcloud.size(); i++) {
-            cldm.row(i)(0) = pcloud[i].pt.x;
-            cldm.row(i)(1) = pcloud[i].pt.y;
-            cldm.row(i)(2) = pcloud[i].pt.z;
-        }
-        cv::Mat_<double> mean;
-        cv::PCA pca(cldm, mean, cv::PCA::DATA_AS_ROW);
-
-        int num_inliers = 0;
-        cv::Vec3d nrm = pca.eigenvectors.row(2);
-        nrm = nrm / norm(nrm);
-        cv::Vec3d x0 = pca.mean;
-        double p_to_plane_thresh = sqrt(pca.eigenvalues.at<double>(2));
-
-        for (int i = 0; i < pcloud.size(); i++) {
-            Vec3d w = Vec3d(pcloud[i].pt) - x0;
-            double D = fabs(nrm.dot(w));
-            if (D < p_to_plane_thresh) num_inliers++;
-        }
-
-        cout << num_inliers << "/" << pcloud.size() << " are coplanar" << endl;
-        if ((double) num_inliers / (double) (pcloud.size()) > 0.85)
-            return false;
-    }
-
-    return true;
-}
-
 bool OFReconstruction::reconstruct() {
     vector<Point2f> pts1_good, pts2_good;
 
@@ -161,10 +98,10 @@ bool OFReconstruction::reconstruct() {
     Mat_<double> t1(1, 3);
     Mat_<double> t2(1, 3);
 
-    Matx34d P = cv::Matx34d(1, 0, 0, 0,
-                            0, 1, 0, 0,
-                            0, 0, 1, 0);
-    Matx34d P1 = cv::Matx34d(1, 0, 0, 50,
+    Matx34d P1 = cv::Matx34d(1, 0, 0, 0,
+                             0, 1, 0, 0,
+                             0, 0, 1, 0);
+    Matx34d P2 = cv::Matx34d(1, 0, 0, 50,
                              0, 1, 0, 0,
                              0, 0, 1, 0);
 
@@ -182,27 +119,27 @@ bool OFReconstruction::reconstruct() {
         }
         if (!CheckCoherentRotation(R1)) {
             cout << "resulting rotation is not coherent\n";
-            P1 = 0;
+            P2 = 0;
             return false;
         }
 
-        P1 = Matx34d(R1(0, 0), R1(0, 1), R1(0, 2), t1(0),
+        P2 = Matx34d(R1(0, 0), R1(0, 1), R1(0, 2), t1(0),
                      R1(1, 0), R1(1, 1), R1(1, 2), t1(1),
                      R1(2, 0), R1(2, 1), R1(2, 2), t1(2));
 //        cout << "Testing P1 " << endl << Mat(P1) << endl;
 
-        vector<CloudPoint> pcloud, pcloud1;
+        Cloud pcloud, pcloud1;
 
         vector<Point> corresp;
-        double reproj_error1 = TriangulatePoints(pts1_good, pts2_good, cam->K, cam->Kinv, cam->distCoeff, P, P1, pcloud,
-                                                 corresp);
-        double reproj_error2 = TriangulatePoints(pts2_good, pts1_good, cam->K, cam->Kinv, cam->distCoeff, P1, P,
-                                                 pcloud1, corresp);
+        double reproj_error1 = TriangulatePoints(frameId1, pts1_good, pts2_good, cam->K, cam->Kinv, cam->distCoeff, P1,
+                                                 P2, pcloud, corresp);
+        double reproj_error2 = TriangulatePoints(frameId2, pts2_good, pts1_good, cam->K, cam->Kinv, cam->distCoeff, P2,
+                                                 P1, pcloud1, corresp);
         vector<uchar> tmp_status;
         //check if pointa are triangulated --in front-- of cameras for all 4 ambiguations
-        if (!TestTriangulation(pcloud, P1, tmp_status) || !TestTriangulation(pcloud1, P, tmp_status) ||
+        if (!TestTriangulation(pcloud, P2, tmp_status) || !TestTriangulation(pcloud1, P1, tmp_status) ||
             reproj_error1 > 100.0 || reproj_error2 > 100.0) {
-            P1 = Matx34d(R1(0, 0), R1(0, 1), R1(0, 2), t2(0),
+            P2 = Matx34d(R1(0, 0), R1(0, 1), R1(0, 2), t2(0),
                          R1(1, 0), R1(1, 1), R1(1, 2), t2(1),
                          R1(2, 0), R1(2, 1), R1(2, 2), t2(2));
 //            cout << "Testing P1 " << endl << Mat(P1) << endl;
@@ -210,20 +147,22 @@ bool OFReconstruction::reconstruct() {
             pcloud.clear();
             pcloud1.clear();
             corresp.clear();
-            reproj_error1 = TriangulatePoints(pts1_good, pts2_good, cam->K, cam->Kinv, cam->distCoeff, P, P1, pcloud,
+            reproj_error1 = TriangulatePoints(frameId1, pts1_good, pts2_good, cam->K, cam->Kinv, cam->distCoeff, P1, P2,
+                                              pcloud,
                                               corresp);
-            reproj_error2 = TriangulatePoints(pts2_good, pts1_good, cam->K, cam->Kinv, cam->distCoeff, P1, P, pcloud1,
+            reproj_error2 = TriangulatePoints(frameId2, pts2_good, pts1_good, cam->K, cam->Kinv, cam->distCoeff, P2, P1,
+                                              pcloud1,
                                               corresp);
 
-            if (!TestTriangulation(pcloud, P1, tmp_status) || !TestTriangulation(pcloud1, P, tmp_status) ||
+            if (!TestTriangulation(pcloud, P2, tmp_status) || !TestTriangulation(pcloud1, P1, tmp_status) ||
                 reproj_error1 > 100.0 || reproj_error2 > 100.0) {
                 if (!CheckCoherentRotation(R2)) {
                     cout << "resulting rotation is not coherent\n";
-                    P1 = 0;
+                    P2 = 0;
                     return false;
                 }
 
-                P1 = Matx34d(R2(0, 0), R2(0, 1), R2(0, 2), t1(0),
+                P2 = Matx34d(R2(0, 0), R2(0, 1), R2(0, 2), t1(0),
                              R2(1, 0), R2(1, 1), R2(1, 2), t1(1),
                              R2(2, 0), R2(2, 1), R2(2, 2), t1(2));
 //                cout << "Testing P1 " << endl << Mat(P1) << endl;
@@ -231,14 +170,16 @@ bool OFReconstruction::reconstruct() {
                 pcloud.clear();
                 pcloud1.clear();
                 corresp.clear();
-                reproj_error1 = TriangulatePoints(pts1_good, pts2_good, cam->K, cam->Kinv, cam->distCoeff, P, P1,
+                reproj_error1 = TriangulatePoints(frameId1, pts1_good, pts2_good, cam->K, cam->Kinv, cam->distCoeff, P1,
+                                                  P2,
                                                   pcloud, corresp);
-                reproj_error2 = TriangulatePoints(pts2_good, pts1_good, cam->K, cam->Kinv, cam->distCoeff, P1, P,
+                reproj_error2 = TriangulatePoints(frameId2, pts2_good, pts1_good, cam->K, cam->Kinv, cam->distCoeff, P2,
+                                                  P1,
                                                   pcloud1, corresp);
 
-                if (!TestTriangulation(pcloud, P1, tmp_status) || !TestTriangulation(pcloud1, P, tmp_status) ||
+                if (!TestTriangulation(pcloud, P2, tmp_status) || !TestTriangulation(pcloud1, P1, tmp_status) ||
                     reproj_error1 > 100.0 || reproj_error2 > 100.0) {
-                    P1 = Matx34d(R2(0, 0), R2(0, 1), R2(0, 2), t2(0),
+                    P2 = Matx34d(R2(0, 0), R2(0, 1), R2(0, 2), t2(0),
                                  R2(1, 0), R2(1, 1), R2(1, 2), t2(1),
                                  R2(2, 0), R2(2, 1), R2(2, 2), t2(2));
 //                    cout << "Testing P1 " << endl << Mat(P1) << endl;
@@ -246,12 +187,15 @@ bool OFReconstruction::reconstruct() {
                     pcloud.clear();
                     pcloud1.clear();
                     corresp.clear();
-                    reproj_error1 = TriangulatePoints(pts1_good, pts2_good, cam->K, cam->Kinv, cam->distCoeff, P, P1,
+                    reproj_error1 = TriangulatePoints(frameId1, pts1_good, pts2_good, cam->K, cam->Kinv, cam->distCoeff,
+                                                      P1,
+                                                      P2,
                                                       pcloud, corresp);
-                    reproj_error2 = TriangulatePoints(pts1_good, pts2_good, cam->K, cam->Kinv, cam->distCoeff, P1, P,
+                    reproj_error2 = TriangulatePoints(frameId2, pts1_good, pts2_good, cam->K, cam->Kinv, cam->distCoeff,
+                                                      P2, P1,
                                                       pcloud1, corresp);
 
-                    if (!TestTriangulation(pcloud, P1, tmp_status) || !TestTriangulation(pcloud1, P, tmp_status) ||
+                    if (!TestTriangulation(pcloud, P2, tmp_status) || !TestTriangulation(pcloud1, P1, tmp_status) ||
                         reproj_error1 > 100.0 || reproj_error2 > 100.0) {
                         cout << "Shit." << endl;
                         return false;
@@ -263,9 +207,12 @@ bool OFReconstruction::reconstruct() {
         vector<double> depths;
 
         for (unsigned int i = 0; i < pcloud.size(); i++) {
-            if (pcloud[i].reprojection_error < 10.0) {
-                resultingCloud.push_back(pcloud[i]);
-                depths.push_back(pcloud[i].pt.z);
+            // FIXME -- what this should be??? 80% percentile???
+
+            if (pcloud.points[i].reprojection_error < 10.0) {
+                // FIXME -- hack??
+                resultingCloud.insert(pcloud, frameId1, pcloud1, frameId2, i);
+                depths.push_back(pcloud.points[i].pt.z);
             }
         }
 
@@ -275,13 +222,16 @@ bool OFReconstruction::reconstruct() {
             minMaxLoc(depths, &minVal, &maxVal);
             Mat tmp(480, 640, CV_8UC3, Scalar(0, 0, 0));
             for (unsigned int i = 0; i < resultingCloud.size(); i++) {
-                double _d = MAX(MIN((resultingCloud[i].pt.z - minVal) / (maxVal - minVal), 1.0), 0.0);
+                double _d = MAX(MIN((resultingCloud.points[i].pt.z - minVal) / (maxVal - minVal), 1.0), 0.0);
                 circle(tmp, corresp[i], 1, Scalar(255 * (1.0 - (_d)), 255 * (1.0 - (_d)), 255 * (1.0 - (_d))),
                        cv::FILLED);
             }
             imshow("Depth Map", tmp);
         }
     }
+
+    this->P1 = P1;
+    this->P2 = P2;
 
     return true;
 }

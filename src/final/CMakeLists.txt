@@ -9,7 +9,7 @@ list(APPEND CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS}")
 
 set(CLASSES Calibration.cpp Camera.hpp RealCamera.cpp DummyCamera.cpp DinoCamera.cpp StereoCamera.cpp OpenGLRenderer.cpp)
 
-add_executable(Final main.cpp ${CLASSES} ObjectSelector.cpp ObjectSelector.hpp Camera.cpp OFReconstruction.h OFReconstruction.cpp Triangulation.h Triangulation.cpp Common.h Common.cpp OpticalFlowCalculator.cpp OpticalFlowCalculator.h)
+add_executable(Final main.cpp ${CLASSES} ObjectSelector.cpp ObjectSelector.hpp Camera.cpp OFReconstruction.h OFReconstruction.cpp Triangulation.h Triangulation.cpp Common.h Common.cpp OpticalFlowCalculator.cpp OpticalFlowCalculator.h MultiView.cpp MultiView.h)
 target_link_libraries(Final ${OPENGL_LIBRARIES} ${OpenCV_LIBS} ${GLUT_LIBRARIES} v4l2)
 
 add_executable(Calibration calibrate.cpp ${CLASSES})

@@ -15,6 +15,8 @@
 #include "OFReconstruction.h"
 #include "Common.h"
 #include "OpticalFlowCalculator.h"
+#include "Triangulation.h"
+#include "MultiView.h"
 
 #define DEPTH_ENABLED true
 
@@ -30,8 +32,8 @@ void clearImage(Mat mat, Rect rect) {
 
 void dilateAndErode(Mat img, int erosion_size) {
     Mat kernel = getStructuringElement(MORPH_RECT,
-            Size(2 * erosion_size + 1, 2 * erosion_size + 1),
-            Point(erosion_size, erosion_size));
+                                       Size(2 * erosion_size + 1, 2 * erosion_size + 1),
+                                       Point(erosion_size, erosion_size));
 
     dilate(img, img, kernel);
     erode(img, img, kernel);
@@ -39,8 +41,8 @@ void dilateAndErode(Mat img, int erosion_size) {
 
 void erodeAndDilate(Mat img, int erosion_size) {
     Mat kernel = getStructuringElement(MORPH_RECT,
-            Size(2 * erosion_size + 1, 2 * erosion_size + 1),
-            Point(erosion_size, erosion_size));
+                                       Size(2 * erosion_size + 1, 2 * erosion_size + 1),
+                                       Point(erosion_size, erosion_size));
 
     erode(img, img, kernel);
     dilate(img, img, kernel);
@@ -48,8 +50,8 @@ void erodeAndDilate(Mat img, int erosion_size) {
 
 void erode(Mat img, int erosion_size) {
     Mat kernel = getStructuringElement(MORPH_RECT,
-            Size(2 * erosion_size + 1, 2 * erosion_size + 1),
-            Point(erosion_size, erosion_size));
+                                       Size(2 * erosion_size + 1, 2 * erosion_size + 1),
+                                       Point(erosion_size, erosion_size));
 
     erode(img, img, kernel);
 }
@@ -97,7 +99,8 @@ Point2f getSparseAverage(Mat flow, int x, int y) {
 }
 
 int main(int argc, char **argv) {
-    Ptr<DummyCamera> camera(new DummyCamera(Camera::LEFT, "/media/balint/Data/Linux/diploma/src/imgs_stereo_depth_single", 302));
+    Ptr<DummyCamera> camera(
+            new DummyCamera(Camera::LEFT, "/media/balint/Data/Linux/diploma/src/imgs_stereo_depth_single", 302));
     camera->readCalibration("/media/balint/Data/Linux/diploma/src/imgs_stereo_calibration/intrinsics.yml");
 
     //Ptr<DinoCamera> camera(new DinoCamera());
@@ -125,9 +128,10 @@ int main(int argc, char **argv) {
 
     Ptr<ObjectSelector> objSelector(new ObjectSelector());
 
-    int i = 1;
-
     OpticalFlowCalculator calc(camera);
+    MultiView mv(camera);
+
+    bool initialStructureExists = false;
 
     while (true) {
         // aktuális kép...
@@ -159,14 +163,59 @@ int main(int argc, char **argv) {
         }*/
 
         // fő algoritmus etetése az új képpel és egyéb infókkal
-        calc.feed(_selectedGray, objSelector->lastMask, objSelector->lastBoundingRect, objSelector->getLastContour());
+
+        bool ofResult = calc.feed(camera->getFrameId(), _selectedGray, objSelector->lastMask,
+                                  objSelector->lastBoundingRect,
+                                  objSelector->getLastContour());
+
+        // ofResult mutatja, hogy "használható-e a dolog"
+        if (ofResult) {
+            // két esetünk van, nincs még rekonstrukciónk, tehát kell csinálni egyet, vagy már van és ki kell egészíteni a dolgot.
+            if (!initialStructureExists) {
+                std::cout << "BUILDING INITITAL STRUCTURE: prevFrame: " << calc.prevFrameId << " currentFrame: " <<
+                calc.currentFrameId << std::endl;
+
+                Ptr<OFReconstruction> reconstruction(
+                        new OFReconstruction(camera, calc.prevFrameId, calc.points1, calc.currentFrameId,
+                                             calc.points2));
+                reconstruction->reconstruct();
+
+                mv.addP(calc.prevFrameId, reconstruction->P1);
+                mv.addP(calc.currentFrameId, reconstruction->P2);
+
+                // FIXME -- do we need to implement = operator???
+                mv.cloud = reconstruction->resultingCloud;
+                writeCloudPoints("cloud0.ply", mv.cloud.points);
+
+                // visualize
+//                Mat vis(480, 640, CV_8UC3, Scalar(0, 0, 0));
+//                std::map<int, Point2i> &from = cloud.lookup2DByIdx[60];
+//                std::map<int, Point2i> &to = cloud.lookup2DByIdx[63];
+//                for (int i = 0; i < cloud.points.size(); i++) {
+//                    Point2i &p1 = from[i];
+//                    Point2i &p2 = to[i];
+//
+//                    if (p1.x % 5 == 0 && p1.y % 5 == 0) {
+//                        line(vis, p1, p2, Scalar(0, 255, 0));
+//                        circle(vis, p1, 2, Scalar(255, 0, 0), -1);
+//                    }
+//                }
+//                imshow("VISmagic", vis);
+
+                initialStructureExists = true;
+            } else {
+                // új kép -> elmozdulások alapján egyeződés, ebből camera pose!
+
+                mv.reconstructNext(calc.prevFrameId, calc.points1, calc.currentFrameId, calc.points2);
+
+            }
+        }
+
 
         char key = waitKey();
         if (key == 27) {
             //outputVideo.release();
             return 0;
-        } else if (key == ' ') {
-            calc.dumpReconstruction();
         }
     }
 }

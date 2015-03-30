@@ -9,6 +9,8 @@ DummyCamera::DummyCamera(int id, std::string path, int count) : Camera(id), path
 
 bool DummyCamera::read(OutputArray out) {
 
+    currentFrame = frame;
+
     Mat img;
     if (getId() == Camera::LEFT) {
         img = imread(path + "/left_" + std::to_string(frame) + ".png");
@@ -17,7 +19,7 @@ bool DummyCamera::read(OutputArray out) {
     }
     img.copyTo(out);
 
-    frame += 3;
+    frame += 2; // 3;
 
     if (frame > lastFrame) {
         frame = firstFrame;
@@ -32,4 +34,8 @@ bool DummyCamera::grab() {
 
 bool DummyCamera::retrieve(OutputArray img) {
     return read(img);
+}
+
+long DummyCamera::getFrameId() const {
+    return currentFrame;
 }
