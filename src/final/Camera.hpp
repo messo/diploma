@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iostream>
 #include <opencv2/videoio.hpp>
 
 class Camera {
@@ -23,6 +24,12 @@ public:
     }
 
     void readCalibration(std::string calibrationFile);
+
+    double getWidth() { return 640.0; }
+
+    double getHeight() { return 480.0; }
+
+    double getFocalLength() { return K.at<double>(0, 0); }
 
     virtual bool read(cv::OutputArray img) = 0;
 

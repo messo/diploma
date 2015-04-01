@@ -245,7 +245,7 @@ void OpticalFlowCalculator::visualizeMatches(const vector<Point2f> &points1, con
         Point p1(points1[i]);
         Point p2(points2[i]);
 
-        if (p1.x % 5 == 0 && p1.y % 5 == 0) {
+        if (p1.x % 10 == 0 && p1.y % 10 == 0) {
             line(vis, p1, p2, Scalar(0, 255, 0));
             circle(vis, p1, 2, Scalar(255, 0, 0), -1);
         }

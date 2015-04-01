@@ -1,13 +1,8 @@
-//
-// Created by balint on 2015.03.22..
-//
-
 #include <iostream>
 #include <opencv2/core/types.hpp>
 #include <opencv2/calib3d.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
-#include "TriTest.h"
 #include "VirtualCamera.h"
 #include "Triangulation.h"
 #include "OFReconstruction.h"
@@ -73,7 +68,7 @@ int main() {
 
     char key = waitKey();
 
-    OFReconstruction reconstruction(fc, reprojected_pt_set1, reprojected_pt_set2);
+    OFReconstruction reconstruction(fc, 1, reprojected_pt_set1, 2, reprojected_pt_set2);
     reconstruction.reconstruct();
 
 

@@ -27,7 +27,7 @@ void writeCloudPoints(const vector<CloudPoint> &cpts) {
 void writeCloudPoints(const string &fileName, const vector<CloudPoint> &cpts) {
     ofstream myfile;
 
-    myfile.open("/media/balint/Data/Linux/" + fileName);
+    myfile.open("/media/balint/Data/Linux/cloud/" + fileName);
     myfile << "ply " << endl;
     myfile << "format ascii 1.0" << endl;
     myfile << "element vertex " << cpts.size() << endl;
@@ -94,12 +94,13 @@ bool FindPoseEstimation(
         return false;
     }
 
+    vector<int> inliers;
     if (true) {
         //use CPU
         double minVal, maxVal;
         cv::minMaxIdx(imgPoints, &minVal, &maxVal);
         cv::solvePnPRansac(ppcloud, imgPoints, camera->K, camera->distCoeff, rvec,
-                           t); //true, 1000, 0.006 * maxVal, 0.25 * (double)(imgPoints.size()), inliers, cv::SOLVEPNP_EPNP);
+                           t, true, 1000, 8.0, 0.99, inliers, cv::SOLVEPNP_EPNP);
         //CV_PROFILE("solvePnP",cv::solvePnP(ppcloud, imgPoints, K, distortion_coeff, rvec, t, true, CV_EPNP);)
     } else {
 #ifdef HAVE_OPENCV_GPU
@@ -119,7 +120,6 @@ bool FindPoseEstimation(
     std::vector<Point2f> projected3D;
     cv::projectPoints(ppcloud, rvec, t, camera->K, camera->distCoeff, projected3D);
 
-    vector<int> inliers;
     if (inliers.size() == 0) { //get inliers
         for (int i = 0; i < projected3D.size(); i++) {
             if (norm(projected3D[i] - imgPoints[i]) < 10.0) {

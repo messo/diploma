@@ -17,6 +17,7 @@
 #include "OpticalFlowCalculator.h"
 #include "Triangulation.h"
 #include "MultiView.h"
+#include "PclVisualization.h"
 
 #define DEPTH_ENABLED true
 
@@ -105,6 +106,8 @@ int main(int argc, char **argv) {
 
     //Ptr<DinoCamera> camera(new DinoCamera());
 
+    cout << "Building background model..." << endl;
+
     /// ----- MODELL ÉPÍTÉS!!!
     Ptr<BackgroundSubtractorMOG2> bgSub = createBackgroundSubtractorMOG2(302, 25.0, false);
     // dummy part, build a proper model, this cannot be used in real-time magic!
@@ -118,6 +121,8 @@ int main(int argc, char **argv) {
     camera->reset();
     /// ------ MODELL KÉSZ
 
+    cout << "Background model done." << endl;
+
     //VideoWriter outputVideo;
     //outputVideo.open("/media/balint/Data/Linux/diploma/src/magic.mkv", VideoWriter::fourcc('X', 'V', 'I', 'D'), 10.0, Size(1280, 480), true);
 
@@ -130,6 +135,8 @@ int main(int argc, char **argv) {
 
     OpticalFlowCalculator calc(camera);
     MultiView mv(camera);
+
+    PclVisualization pcl;
 
     bool initialStructureExists = false;
 
@@ -185,7 +192,10 @@ int main(int argc, char **argv) {
 
                 // FIXME -- do we need to implement = operator???
                 mv.cloud = reconstruction->resultingCloud;
-                writeCloudPoints("cloud0.ply", mv.cloud.points);
+                // writeCloudPoints("cloud0.ply", mv.cloud.points);
+
+                pcl.addCamera(camera, mv.P(calc.prevFrameId), calc.currentFrameId);
+                pcl.addPointCloud(mv.cloud.points, calc.currentFrameId);
 
                 // visualize
 //                Mat vis(480, 640, CV_8UC3, Scalar(0, 0, 0));
@@ -208,9 +218,10 @@ int main(int argc, char **argv) {
 
                 mv.reconstructNext(calc.prevFrameId, calc.points1, calc.currentFrameId, calc.points2);
 
+                pcl.addCamera(camera, mv.P(calc.currentFrameId), calc.currentFrameId);
+                pcl.addPointCloud(mv.cloud.points, calc.currentFrameId);
             }
         }
-
 
         char key = waitKey();
         if (key == 27) {

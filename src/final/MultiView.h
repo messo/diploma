@@ -11,11 +11,15 @@ class MultiView {
 
     std::map<int, cv::Matx34d> Pmats;
 
+    int frame = 1;
+
 public:
 
     Cloud cloud;
 
     MultiView(cv::Ptr<Camera> camera);
+
+    cv::Matx34d P(long frameId);
 
     void addP(long frameId, cv::Matx34d P);
 

@@ -8,6 +8,10 @@ MultiView::MultiView(cv::Ptr<Camera> camera) : cam(camera) {
 
 }
 
+cv::Matx34d MultiView::P(long frameId) {
+    return Pmats[frameId];
+}
+
 void MultiView::addP(long frameId, cv::Matx34d P) {
     Pmats[frameId] = P;
 }
@@ -39,9 +43,13 @@ void MultiView::reconstructNext(long frameId1, const vector<Point2f> &points1,
 
     //cout.flush();
 
-    Mat_<double> rvec(1, 3);
-    Mat_<double> t(1, 3);
-    Mat_<double> R(3, 3);
+    cv::Matx34d P1 = Pmats[frameId1];
+    cv::Mat_<double> t = (cv::Mat_<double>(1, 3) << P1(0, 3), P1(1, 3), P1(2, 3));
+    cv::Mat_<double> R = (cv::Mat_<double>(3, 3) << P1(0, 0), P1(0, 1), P1(0, 2),
+            P1(1, 0), P1(1, 1), P1(1, 2),
+            P1(2, 0), P1(2, 1), P1(2, 2));
+    cv::Mat_<double> rvec(1, 3);
+    Rodrigues(R, rvec);
 
     vector<Point2f> reprojected;
     FindPoseEstimation(cam, rvec, t, R, points3d, imgpoints, reprojected);
@@ -71,14 +79,19 @@ void MultiView::reconstructNext(long frameId1, const vector<Point2f> &points1,
     }
 
 
+    vector<CloudPoint> new_points;
+
     for (unsigned int i = 0; i < pc.size(); i++) {
         // FIXME -- what this should be??? 80% percentile???
         // SAME AS IN OF RECONSTRUCTION,, move this out??
 
-        if (pc.points[i].reprojection_error < 10.0) {
+        if (pc.points[i].reprojection_error < 10.0 && trig_status[i]) {
             cloud.insert(pc.points[i], frameId1, points1[i], frameId2, points2[i]);
+            new_points.push_back(pc.points[i]);
         }
     }
 
-    writeCloudPoints("cloud1.ply", cloud.points);
+    // writeCloudPoints("cloud" + std::to_string(frame++) + ".ply", new_points); //cloud.points);
+
+    // writeCloudPoints("cloud_full.ply", cloud.points);
 }
