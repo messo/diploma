@@ -1,9 +1,9 @@
-#include "Calibration.hpp"
+#include "StereoCalibration.hpp"
 
 using namespace std;
 using namespace cv;
 
-Calibration::Calibration(const string &intrinsics, const string &extrinsics) :
+StereoCalibration::StereoCalibration(const string &intrinsics, const string &extrinsics) :
         imageSize(640, 480) {
 
     cameraMatrix[0] = Mat::eye(3, 3, CV_64F);
@@ -46,7 +46,7 @@ Calibration::Calibration(const string &intrinsics, const string &extrinsics) :
             CV_16SC2, rmap[1][0], rmap[1][1]);
 }
 
-void Calibration::acquireFrames(StereoCamera &stereoCamera) {
+void StereoCalibration::acquireFrames(StereoCamera &stereoCamera) {
     Mat left = stereoCamera.getLeft();
     Mat right = stereoCamera.getRight();
     int id = images.size() / 2;
@@ -59,7 +59,7 @@ void Calibration::acquireFrames(StereoCamera &stereoCamera) {
     cout.flush();
 }
 
-void Calibration::calibrate() {
+void StereoCalibration::calibrate() {
     const bool displayCorners = true;
     const int maxScale = 2;
     const float squareSize = 1.f;
@@ -67,7 +67,7 @@ void Calibration::calibrate() {
     const bool showRectified = true;
     const bool useCalibrated = true;
 
-    cout << "Calibration started... \n";
+    cout << "StereoCalibration started... \n";
     cout.flush();
 
     vector<vector<Point2f> > imagePoints[2];

@@ -12,7 +12,7 @@ FakeCamera::FakeCamera(int id) : Camera(id) {
 
     cv::invert(K, Kinv);
 
-    distCoeff = cv::Mat(cv::Matx14d(0, 0, 0, 0));
+    distCoeffs = cv::Mat(cv::Matx14d(0, 0, 0, 0));
 }
 
 bool FakeCamera::read(cv::_OutputArray const &img) {

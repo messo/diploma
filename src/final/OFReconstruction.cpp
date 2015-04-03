@@ -2,7 +2,6 @@
 #include <opencv2/core/utility.hpp>
 #include <opencv2/calib3d.hpp>
 #include "OFReconstruction.h"
-#include "Camera.hpp"
 #include "Triangulation.h"
 
 using namespace cv;
@@ -131,9 +130,9 @@ bool OFReconstruction::reconstruct() {
         Cloud pcloud, pcloud1;
 
         vector<Point> corresp;
-        double reproj_error1 = TriangulatePoints(frameId1, pts1_good, pts2_good, cam->K, cam->Kinv, cam->distCoeff, P1,
+        double reproj_error1 = TriangulatePoints(frameId1, pts1_good, pts2_good, cam->K, cam->Kinv, cam->distCoeffs, P1,
                                                  P2, pcloud, corresp);
-        double reproj_error2 = TriangulatePoints(frameId2, pts2_good, pts1_good, cam->K, cam->Kinv, cam->distCoeff, P2,
+        double reproj_error2 = TriangulatePoints(frameId2, pts2_good, pts1_good, cam->K, cam->Kinv, cam->distCoeffs, P2,
                                                  P1, pcloud1, corresp);
         vector<uchar> tmp_status;
         //check if pointa are triangulated --in front-- of cameras for all 4 ambiguations
@@ -147,10 +146,10 @@ bool OFReconstruction::reconstruct() {
             pcloud.clear();
             pcloud1.clear();
             corresp.clear();
-            reproj_error1 = TriangulatePoints(frameId1, pts1_good, pts2_good, cam->K, cam->Kinv, cam->distCoeff, P1, P2,
+            reproj_error1 = TriangulatePoints(frameId1, pts1_good, pts2_good, cam->K, cam->Kinv, cam->distCoeffs, P1, P2,
                                               pcloud,
                                               corresp);
-            reproj_error2 = TriangulatePoints(frameId2, pts2_good, pts1_good, cam->K, cam->Kinv, cam->distCoeff, P2, P1,
+            reproj_error2 = TriangulatePoints(frameId2, pts2_good, pts1_good, cam->K, cam->Kinv, cam->distCoeffs, P2, P1,
                                               pcloud1,
                                               corresp);
 
@@ -170,10 +169,10 @@ bool OFReconstruction::reconstruct() {
                 pcloud.clear();
                 pcloud1.clear();
                 corresp.clear();
-                reproj_error1 = TriangulatePoints(frameId1, pts1_good, pts2_good, cam->K, cam->Kinv, cam->distCoeff, P1,
+                reproj_error1 = TriangulatePoints(frameId1, pts1_good, pts2_good, cam->K, cam->Kinv, cam->distCoeffs, P1,
                                                   P2,
                                                   pcloud, corresp);
-                reproj_error2 = TriangulatePoints(frameId2, pts2_good, pts1_good, cam->K, cam->Kinv, cam->distCoeff, P2,
+                reproj_error2 = TriangulatePoints(frameId2, pts2_good, pts1_good, cam->K, cam->Kinv, cam->distCoeffs, P2,
                                                   P1,
                                                   pcloud1, corresp);
 
@@ -187,11 +186,11 @@ bool OFReconstruction::reconstruct() {
                     pcloud.clear();
                     pcloud1.clear();
                     corresp.clear();
-                    reproj_error1 = TriangulatePoints(frameId1, pts1_good, pts2_good, cam->K, cam->Kinv, cam->distCoeff,
+                    reproj_error1 = TriangulatePoints(frameId1, pts1_good, pts2_good, cam->K, cam->Kinv, cam->distCoeffs,
                                                       P1,
                                                       P2,
                                                       pcloud, corresp);
-                    reproj_error2 = TriangulatePoints(frameId2, pts1_good, pts2_good, cam->K, cam->Kinv, cam->distCoeff,
+                    reproj_error2 = TriangulatePoints(frameId2, pts1_good, pts2_good, cam->K, cam->Kinv, cam->distCoeffs,
                                                       P2, P1,
                                                       pcloud1, corresp);
 

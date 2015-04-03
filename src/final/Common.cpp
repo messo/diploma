@@ -1,5 +1,5 @@
 #include "Common.h"
-#include "Camera.hpp"
+#include "camera/Camera.hpp"
 
 #include <fstream>
 #include <opencv2/core/mat.hpp>
@@ -99,7 +99,7 @@ bool FindPoseEstimation(
         //use CPU
         double minVal, maxVal;
         cv::minMaxIdx(imgPoints, &minVal, &maxVal);
-        cv::solvePnPRansac(ppcloud, imgPoints, camera->K, camera->distCoeff, rvec,
+        cv::solvePnPRansac(ppcloud, imgPoints, camera->K, camera->distCoeffs, rvec,
                            t, true, 1000, 8.0, 0.99, inliers, cv::SOLVEPNP_EPNP);
         //CV_PROFILE("solvePnP",cv::solvePnP(ppcloud, imgPoints, K, distortion_coeff, rvec, t, true, CV_EPNP);)
     } else {
@@ -118,7 +118,7 @@ bool FindPoseEstimation(
     }
 
     std::vector<Point2f> projected3D;
-    cv::projectPoints(ppcloud, rvec, t, camera->K, camera->distCoeff, projected3D);
+    cv::projectPoints(ppcloud, rvec, t, camera->K, camera->distCoeffs, projected3D);
 
     if (inliers.size() == 0) { //get inliers
         for (int i = 0; i < projected3D.size(); i++) {

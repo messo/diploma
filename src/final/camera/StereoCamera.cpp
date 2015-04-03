@@ -23,7 +23,7 @@ void onChanged(int pos, void *userdata) {
     sgbm = createStereoSGBM(0, numberOfDisparities, SADWindowSize, P1, P2, 1, preFilterCap, uniquenessRatio, speckleWindowSize, speckleRange, StereoSGBM::MODE_SGBM);
 }
 
-StereoCamera::StereoCamera(cv::Ptr<Calibration> calibration) :
+StereoCamera::StereoCamera(cv::Ptr<StereoCalibration> calibration) :
         calibration(calibration),
         imageSize(640, 480) {
     leftCamera = Ptr<Camera>(new RealCamera(Camera::LEFT));
@@ -33,7 +33,7 @@ StereoCamera::StereoCamera(cv::Ptr<Calibration> calibration) :
 }
 
 
-StereoCamera::StereoCamera(std::string path, int count, Ptr<Calibration> calibration) {
+StereoCamera::StereoCamera(std::string path, int count, Ptr<StereoCalibration> calibration) {
     leftCamera = Ptr<Camera>(new DummyCamera(Camera::LEFT, path, count));
     rightCamera = Ptr<Camera>(new DummyCamera(Camera::RIGHT, path, count));
 

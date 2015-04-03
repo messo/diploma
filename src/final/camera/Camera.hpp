@@ -11,7 +11,7 @@ public:
 
     cv::Mat K;
     cv::Mat Kinv;
-    cv::Mat distCoeff;
+    cv::Mat distCoeffs;
 
     static const int LEFT = 0;
     static const int RIGHT = 1;
@@ -33,7 +33,10 @@ public:
 
     virtual bool read(cv::OutputArray img) = 0;
 
+    bool readUndistorted(cv::OutputArray img);
+
     virtual bool grab() = 0;
 
     virtual bool retrieve(cv::OutputArray img) = 0;
+
 };

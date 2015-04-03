@@ -3,10 +3,10 @@
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
 
-#include "Calibration.hpp"
+#include "../calibration/StereoCalibration.hpp"
 #include "Camera.hpp"
 
-class Calibration;
+class StereoCalibration;
 
 class StereoCamera {
     int counter = -1;
@@ -23,14 +23,14 @@ class StereoCamera {
 
 public:
 
-    cv::Ptr<Calibration> calibration;
+    cv::Ptr<StereoCalibration> calibration;
     std::vector<cv::Point3f> objectPoints;
     std::vector<cv::Point2f> imagePoints;
     cv::Rect dispRoi;
 
-    StereoCamera(cv::Ptr<Calibration> calibration = cv::Ptr<Calibration>());
+    StereoCamera(cv::Ptr<StereoCalibration> calibration = cv::Ptr<StereoCalibration>());
 
-    StereoCamera(std::string path, int count, cv::Ptr<Calibration> calibration = cv::Ptr<Calibration>());
+    StereoCamera(std::string path, int count, cv::Ptr<StereoCalibration> calibration = cv::Ptr<StereoCalibration>());
 
     cv::Mat getLeft();
 

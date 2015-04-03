@@ -67,7 +67,7 @@ void MultiView::reconstructNext(long frameId1, const vector<Point2f> &points1,
 
     Cloud pc;
     vector<Point> correspond;
-    double reproj_error = TriangulatePoints(frameId1, points1, points2, cam->K, cam->Kinv, cam->distCoeff,
+    double reproj_error = TriangulatePoints(frameId1, points1, points2, cam->K, cam->Kinv, cam->distCoeffs,
                                             Pmats[frameId1], Pmats[frameId2],
                                             pc, correspond);
     // std::cout << "triangulation reproj error " << reproj_error << std::endl;

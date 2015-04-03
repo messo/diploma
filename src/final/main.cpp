@@ -6,7 +6,7 @@
 
 #define FPS_ENABLED
 
-#include "Calibration.hpp"
+#include "StereoCalibration.hpp"
 #include "StereoCamera.hpp"
 #include "OpenGLRenderer.hpp"
 #include "DinoCamera.hpp"

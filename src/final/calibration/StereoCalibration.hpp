@@ -7,11 +7,11 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
-#include "StereoCamera.hpp"
+#include "../camera/StereoCamera.hpp"
 
 class StereoCamera;
 
-class Calibration {
+class StereoCalibration {
 
     std::vector<cv::Mat> images;
     cv::Size imageSize;
@@ -23,10 +23,10 @@ public:
     cv::Mat P1, P2, E, F;
     cv::Rect validRoiLeft, validRoiRight;
 
-    Calibration() {
+    StereoCalibration() {
     };
 
-    Calibration(const std::string &intrinsics, const std::string &extrinsics);
+    StereoCalibration(const std::string &intrinsics, const std::string &extrinsics);
 
     void acquireFrames(StereoCamera &stereoCamera);
 

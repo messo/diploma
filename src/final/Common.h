@@ -4,7 +4,7 @@
 #include <opencv2/core/types.hpp>
 #include <unordered_map>
 #include <map>
-#include "Camera.hpp"
+#include "camera/Camera.hpp"
 
 struct CloudPoint {
     cv::Point3d pt;

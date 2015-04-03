@@ -2,7 +2,7 @@
 
 #include <map>
 #include <opencv2/core/matx.hpp>
-#include "Camera.hpp"
+#include "camera/Camera.hpp"
 #include "Common.h"
 
 class MultiView {

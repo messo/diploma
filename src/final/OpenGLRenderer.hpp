@@ -1,6 +1,6 @@
 #pragma once
 
-#include "StereoCamera.hpp"
+#include "camera/StereoCamera.hpp"
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>

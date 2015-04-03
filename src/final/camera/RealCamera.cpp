@@ -5,6 +5,7 @@
 #include <linux/videodev2.h>
 #include <sys/ioctl.h>
 #include <fcntl.h>
+#include <opencv2/imgproc.hpp>
 
 #include "RealCamera.hpp"
 

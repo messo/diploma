@@ -1,7 +1,7 @@
 #pragma once
 
 #include <opencv2/core/mat.hpp>
-#include "Camera.hpp"
+#include "camera/Camera.hpp"
 #include "OFReconstruction.h"
 
 class OpticalFlowCalculator {
