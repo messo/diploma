@@ -7,11 +7,12 @@
 using namespace cv;
 using namespace std;
 
-void OpticalFlowCalculator::calcTexturedRegions(const Mat frame, const Mat mask, Mat& texturedRegions) const {
+void OpticalFlowCalculator::calcTexturedRegions(const Mat frame, const Mat mask, Mat &texturedRegions) const {
     // H(σ(Iy - Ix) - ε)
     int ksize = 1;
 
     texturedRegions.create(frame.rows, frame.cols, CV_8U);
+    texturedRegions.setTo(0);
 
     // FIXME -- this can be done in boundringRect!
 
@@ -30,7 +31,7 @@ void OpticalFlowCalculator::calcTexturedRegions(const Mat frame, const Mat mask,
                         continue;
 
                     if (mask.at<uchar>(j, i)) {
-                        values.push_back(((int)frame.at<uchar>(j, i)) - Ixy);
+                        values.push_back(((int) frame.at<uchar>(j, i)) - Ixy);
                     }
                 }
             }
@@ -54,22 +55,22 @@ void OpticalFlowCalculator::calcTexturedRegions(const Mat frame, const Mat mask,
 
             if (sigma2 > EPSILON_TEXTURE) {
                 texturedRegions.at<uchar>(y, x) = 255;
-            } else {
-                texturedRegions.at<uchar>(y, x) = 0;
             }
         }
     }
 }
 
-double OpticalFlowCalculator::calcOpticalFlow() {
+double OpticalFlowCalculator::calcOpticalFlow(Point &translation) {
 
     Mat flow12;
     calcOpticalFlowFarneback(frame1, frame2, flow12, 0.5, 4, 21, 10, 7, 1.5, OPTFLOW_FARNEBACK_GAUSSIAN);
 
+//    this->visualizeOpticalFlow(frame1, mask1, frame2, mask2, flow12, "flow12");
+
     Mat flow21;
     calcOpticalFlowFarneback(frame2, frame1, flow21, 0.5, 4, 21, 10, 7, 1.5, OPTFLOW_FARNEBACK_GAUSSIAN);
 
-    // this->visualizeOpticalFlow(flow);
+//    this->visualizeOpticalFlow(frame2, mask2, frame1, mask1, flow21, "flow21");
 
     // trying to smooth the vectorfield
     //Mat smoothedFlow;
@@ -79,49 +80,52 @@ double OpticalFlowCalculator::calcOpticalFlow() {
     // collecting matching points using optical flow
     collectMatchingPoints(flow12, flow21, points1, points2);
 
-    visualizeMatches(points1, points2);
+//    visualizeMatches(points1, points2);
+//    waitKey();
 
-    return 666.0f;
+    Point2f avgMovement(this->calcAverageMovement(points1, points2));
 
-//    Point2f avgMovement(this->calcAverageMovement(points1, points2));
-//
-//    double length = norm(avgMovement);
-//    cout << avgMovement << ": " << length << endl;
-//    cout.flush();
-//
-//    if (length > 10.0) {
-//        // we consider this as "too big" displacement, so we shift the current image further, and do this again
-//
-//        Point translation(-avgMovement);
-//
-//        // translate the image
-//        Mat _currentFrame;
-//        currentFrame.copyTo(_currentFrame);
-//        shiftImage(_currentFrame, currentBoundingRect, translation, currentFrame);
-//        // translate the mask
-//        Mat _currentMask;
-//        currentMask.copyTo(_currentMask);
-//        shiftImage(_currentMask, currentBoundingRect, translation, currentMask);
-//        // translate the textured regions
-//        Mat _currentTexturedRegions;
-//        currentTexturedRegions.copyTo(_currentTexturedRegions);
-//        shiftImage(_currentTexturedRegions, currentBoundingRect, translation, currentTexturedRegions);
-//        // translating the contour
-//        translate(currentContour, translation);
-//
-//        length = this->calcOpticalFlow();
-//    } else { //if (length >= 1.0) {*/
+    double length = norm(avgMovement);
+    cout << avgMovement << ": " << length << endl;
+    cout.flush();
+
+    if (length > 10.0) {
+        // we consider this as "too big" displacement, so we shift the current image further, and do this again
+
+        Point newTranslation(-avgMovement);
+
+        Rect currentBoundingRect(boundingRect(mask2));
+
+        // translate the image
+        Mat _currentFrame;
+        frame2.copyTo(_currentFrame);
+        shiftImage(_currentFrame, currentBoundingRect, newTranslation, frame2);
+        // translate the mask
+        Mat _currentMask;
+        mask2.copyTo(_currentMask);
+        shiftImage(_currentMask, currentBoundingRect, newTranslation, mask2);
+        // translate the textured regions
+        Mat _currentTexturedRegions;
+        texturedRegions2.copyTo(_currentTexturedRegions);
+        shiftImage(_currentTexturedRegions, currentBoundingRect, newTranslation, texturedRegions2);
+        // translating the contour
+        // translate(currentContour, translation);
+
+        translation += newTranslation;
+
+        length = this->calcOpticalFlow(translation);
+    } else { //if (length >= 1.0) {*/
 //        this->visualizeMatches(points1, points2);
-//
-//        // reconstruction
-////        currentReconstruction = Ptr<OFReconstruction>(new OFReconstruction(camera, points1, points2));
-////        currentReconstruction->reconstruct();
-//        //} else {
-////        imshow("prev", prevFrame);
-////        imshow("this", currentFrame);
-//    }
-//
-//    return 2.0; //length;
+
+        // reconstruction
+//        currentReconstruction = Ptr<OFReconstruction>(new OFReconstruction(camera, points1, points2));
+//        currentReconstruction->reconstruct();
+        //} else {
+//        imshow("prev", prevFrame);
+//        imshow("this", currentFrame);
+    }
+
+    return 2.0; //length;
 }
 
 void OpticalFlowCalculator::collectMatchingPoints(const Mat &flow, const Mat &backFlow,
@@ -163,26 +167,32 @@ void OpticalFlowCalculator::collectMatchingPoints(const Mat &flow, const Mat &ba
 //  VISUALIZATIONS
 // -----------------
 
-void OpticalFlowCalculator::visualizeOpticalFlow(const cv::Mat &flow) const {
-    Mat vis;
-    frame2.copyTo(vis);
+void OpticalFlowCalculator::visualizeOpticalFlow(const cv::Mat &img1, const cv::Mat &mask1, const cv::Mat &img2,
+                                                 const cv::Mat &mask2, const cv::Mat &flow,
+                                                 const std::string &name) const {
+    Mat vis = mergeImages(img1, img2);
     cvtColor(vis, vis, cv::COLOR_GRAY2BGR);
 
-    for (int y = 0; y < flow.rows; y += 5) {
-        for (int x = 0; x < flow.cols; x += 5) {
+    RNG rng;
+    for (int y = 0; y < flow.rows; y += 30) {
+        for (int x = 0; x < flow.cols; x += 30) {
 
             Point from(x, y);
             const Point2f &f = flow.at<Point2f>(y, x);
             Point to(cvRound(x + f.x), cvRound(y + f.y));
 
             if (mask1.at<uchar>(from) && mask2.at<uchar>(to)) {
-                line(vis, from, to, Scalar(0, 255, 0));
-                circle(vis, from, 2, Scalar(255, 0, 0), -1);
+                int icolor = (unsigned) rng;
+                Scalar color(icolor & 255, (icolor >> 8) & 255, (icolor >> 16) & 255);
+
+                line(vis, from, to + Point(640, 0), color);
+                circle(vis, from, 2, color, -1);
+                circle(vis, to + Point(640, 0), 2, color, -1);
             }
         }
     }
 
-    imshow("opticalFlowVis", vis);
+    imshow(name, vis);
 }
 
 void OpticalFlowCalculator::visualizeMatches(const vector<Point2f> &points1, const vector<Point2f> &points2) const {
@@ -200,7 +210,33 @@ void OpticalFlowCalculator::visualizeMatches(const vector<Point2f> &points1, con
         }
     }
 
-    imshow("matchesVis", vis);
+    imshow("plainMatchesVis", vis);
+}
+
+void OpticalFlowCalculator::visualizeMatches(const Mat &img1, const vector<Point2f> &points1,
+                                             const Mat &img2, const vector<Point2f> &points2) const {
+
+    Mat vis = mergeImages(img1, img2);
+    if(vis.channels() != 3) {
+        cvtColor(vis, vis, cv::COLOR_GRAY2BGR);
+    }
+
+    RNG rng;
+    for (int i = 0; i < points1.size(); i++) {
+        Point p1(points1[i]);
+        Point p2(points2[i]);
+
+        if (p1.x % 10 == 0 && p1.y % 10 == 0) {
+            int icolor = (unsigned) rng;
+            Scalar color(icolor & 255, (icolor >> 8) & 255, (icolor >> 16) & 255);
+
+            line(vis, p1, p2 + Point(640, 0), color);
+            circle(vis, p1, 2, color, -1);
+            circle(vis, p2 + Point(640, 0), 2, color, -1);
+        }
+    }
+
+    imshow("restoredMatchesVis", vis);
 }
 
 cv::Point2f OpticalFlowCalculator::calcAverageMovement(const std::vector<cv::Point2f> &points1,

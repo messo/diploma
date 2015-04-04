@@ -45,29 +45,35 @@ PclVisualization::PclVisualization() : visu("pcl visualization") {
     // visu.registerKeyboardCallback(keyboardEventOccurred, (void *) &visu);
 }
 
-void PclVisualization::addCamera(cv::Ptr<Camera> cam, const cv::Matx34d &P, long frameId) {
-    Eigen::Affine3f pose;
+void PclVisualization::addCamera(cv::Ptr<Camera> cam, const cv::Mat &P, long frameId) {
+    Eigen::Affine3d pose;
 
-    pose(0, 3) = P(0, 3); // TX
-    pose(1, 3) = P(1, 3); // TY
-    pose(2, 3) = P(2, 3); // TZ
+//    pose(0, 3) = P(0, 3); // TX
+//    pose(1, 3) = P(1, 3); // TY
+//    pose(2, 3) = P(2, 3); // TZ
+//
+//    pose(0, 0) = P(0, 0);
+//    pose(0, 1) = P(0, 1);
+//    pose(0, 2) = P(0, 2);
+//
+//    pose(1, 0) = P(1, 0);
+//    pose(1, 1) = P(1, 1);
+//    pose(1, 2) = P(1, 2);
+//
+//    pose(2, 0) = P(2, 0);
+//    pose(2, 1) = P(2, 1);
+//    pose(2, 2) = P(2, 2);
+//
+//    pose(3, 0) = 0.0;
+//    pose(3, 1) = 0.0;
+//    pose(3, 2) = 0.0;
+//    pose(3, 3) = 1.0; //Scale
 
-    pose(0, 0) = P(0, 0);
-    pose(0, 1) = P(0, 1);
-    pose(0, 2) = P(0, 2);
-
-    pose(1, 0) = P(1, 0);
-    pose(1, 1) = P(1, 1);
-    pose(1, 2) = P(1, 2);
-
-    pose(2, 0) = P(2, 0);
-    pose(2, 1) = P(2, 1);
-    pose(2, 2) = P(2, 2);
-
-    pose(3, 0) = 0.0;
-    pose(3, 1) = 0.0;
-    pose(3, 2) = 0.0;
-    pose(3, 3) = 1.0; //Scale
+    for (int r = 0; r < 4; r++) {
+        for (int c = 0; c < 4; c++) {
+            pose(r, c) = P.at<double>(r, c);
+        }
+    }
 
     // add a visual for each camera at the correct pose
     double focal = cam->getFocalLength();
@@ -132,4 +138,23 @@ void PclVisualization::addPointCloud(const std::vector<CloudPoint> &points, long
 
     visu.addPointCloud(cloud, color_handler, std::to_string(frameId));
     visu.spin();
+}
+
+void PclVisualization::init() {
+    visu.removeAllPointClouds();
+    visu.removeAllShapes();
+}
+
+void PclVisualization::addChessboard() {
+    PointCloud<PointXYZ>::Ptr cloud(new PointCloud<PointXYZ>());
+
+    for (int y = 0; y < 6; y++) {
+        for (int x = 0; x < 9; x++) {
+            cloud->push_back(PointXYZ(y, x, 0));
+        }
+    }
+
+    visualization::PointCloudColorHandlerGenericField<PointXYZ> color_handler(cloud, "z");
+
+    visu.addPointCloud(cloud, color_handler, "chessboard");
 }

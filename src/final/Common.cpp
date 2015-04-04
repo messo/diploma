@@ -69,7 +69,33 @@ Mat mergeImages(const Mat &left, const Mat &right) {
 void shiftImage(const cv::Mat &input, const cv::Rect &boundingRect,
                 const cv::Point2i &translation, cv::Mat &output) {
     output.setTo(0);
-    input(boundingRect).copyTo(output(boundingRect + translation));
+    Rect newBoundingRect(boundingRect + translation);
+
+    if ((newBoundingRect & Rect(Point(0, 0), output.size())) == newBoundingRect) {
+        input(boundingRect).copyTo(output(newBoundingRect));
+    } else {
+        Rect _boundingRect(boundingRect);
+
+        if (newBoundingRect.x < 0) {
+            int diff = newBoundingRect.x;
+            newBoundingRect.x = 0;
+            newBoundingRect.width += diff;
+
+            _boundingRect.x -= diff;
+            _boundingRect.width += diff;
+        }
+
+        if (newBoundingRect.y < 0) {
+            int diff = newBoundingRect.y;
+            newBoundingRect.y = 0;
+            newBoundingRect.height += diff;
+
+            _boundingRect.y -= diff;
+            _boundingRect.height += diff;
+        }
+
+        input(_boundingRect).copyTo(output(newBoundingRect));
+    }
 }
 
 bool CheckCoherentRotation(cv::Mat_<double> &R) {
@@ -257,4 +283,20 @@ void drawBoxOnChessboard(Mat inputImage, Ptr<Camera> camera, Ptr<CameraPose> pos
     line(inputImage, imagePoints[1], imagePoints[5], Scalar(0, 0, 255), 1);
     line(inputImage, imagePoints[2], imagePoints[6], Scalar(0, 0, 255), 1);
     line(inputImage, imagePoints[3], imagePoints[7], Scalar(0, 0, 255), 1);
+}
+
+Point moveToTheCenter(Mat image, Mat mask) {
+    Rect boundingRect(cv::boundingRect(mask));
+
+    Point translation((320 - boundingRect.width / 2) - boundingRect.x,
+                      (240 - boundingRect.height / 2) - boundingRect.y);
+
+    // translate the image
+    Mat image_ = image.clone();
+    shiftImage(image_, boundingRect, translation, image);
+    // translate the mask
+    Mat mask_ = mask.clone();
+    shiftImage(mask_, boundingRect, translation, mask);
+
+    return translation;
 }

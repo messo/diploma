@@ -95,3 +95,5 @@ bool FindPoseEstimation(
 void drawBoxOnChessboard(cv::Mat &inputImage, cv::Ptr<Camera> camera, cv::Ptr<CameraPose> pose);
 
 void drawGridXY(cv::Mat &img, cv::Ptr<Camera> camera, cv::Ptr<CameraPose> cameraPose);
+
+cv::Point moveToTheCenter(cv::Mat image, cv::Mat mask);

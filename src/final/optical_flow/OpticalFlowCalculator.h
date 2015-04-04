@@ -21,23 +21,31 @@ protected:
     cv::Mat mask2;
     cv::Mat texturedRegions2;
 
-    void calcTexturedRegions(const cv::Mat frame, const cv::Mat mask, cv::Mat& texturedRegions) const;
+    void calcTexturedRegions(const cv::Mat frame, const cv::Mat mask, cv::Mat &texturedRegions) const;
 
-    cv::Point2f calcAverageMovement(const std::vector<cv::Point2f> &points1, const std::vector<cv::Point2f> &points2) const;
+    cv::Point2f calcAverageMovement(const std::vector<cv::Point2f> &points1,
+                                    const std::vector<cv::Point2f> &points2) const;
 
     void collectMatchingPoints(const cv::Mat &flow, const cv::Mat &backFlow,
                                std::vector<cv::Point2f> &points1, std::vector<cv::Point2f> &points2);
 
     /** VISUALIZATIONS */
 
-    void visualizeOpticalFlow(const cv::Mat &flow) const;
+    void visualizeOpticalFlow(const cv::Mat &img1, const cv::Mat &mask1,
+                              const cv::Mat &img2, const cv::Mat &mask2,
+                              const cv::Mat &flow, const std::string &name) const;
 
     void visualizeMatches(const std::vector<cv::Point2f> &points1, const std::vector<cv::Point2f> &points2) const;
 
-    std::vector<cv::Point2f> points1;
-    std::vector<cv::Point2f> points2;
+    void visualizeMatches(const cv::Mat &img1, const std::vector<cv::Point2f> &points1,
+                          const cv::Mat &img2, const std::vector<cv::Point2f> &points2) const;
 
     OpticalFlowCalculator(cv::Ptr<Camera> camera1, cv::Ptr<Camera> camera2) : camera1(camera1), camera2(camera2) { }
 
-    double calcOpticalFlow();
+    double calcOpticalFlow(cv::Point &translation);
+
+public:
+    std::vector<cv::Point2f> points1;
+    std::vector<cv::Point2f> points2;
+
 };

@@ -1,9 +1,15 @@
 #include <opencv2/highgui.hpp>
+#include <opencv2/video/background_segm.hpp>
+#include <opencv2/imgproc.hpp>
 #include "camera/RealCamera.hpp"
 #include "camera/CameraPose.h"
 #include "calibration/Calibration.h"
 #include "calibration/CameraPoseCalculator.h"
 #include "optical_flow/SpatialOpticalFlowCalculator.h"
+#include "ObjectSelector.hpp"
+#include "camera/DummyCamera.hpp"
+#include "Triangulation.h"
+#include "PclVisualization.h"
 
 using namespace cv;
 
@@ -74,6 +80,13 @@ void calcPose(int cameraId, const std::string &calibrationFile, const std::strin
     }
 }
 
+void dilateAndErode(Mat mask) {
+    int niters = 3;
+    dilate(mask, mask, Mat(), Point(-1, -1), niters);
+    erode(mask, mask, Mat(), Point(-1, -1), niters * 2);
+    dilate(mask, mask, Mat(), Point(-1, -1), niters);
+}
+
 int main(int argc, char **argv) {
 
 //    calibrate(Camera::LEFT);
@@ -82,13 +95,17 @@ int main(int argc, char **argv) {
 //    calcPose(Camera::LEFT, "intrinsics_left.yml", "pose_left.yml");
 //    calcPose(Camera::RIGHT, "intrinsics_right.yml", "pose_right.yml");
 
+//    Ptr<Camera> leftBgCamera(new DummyCamera(Camera::LEFT, "/media/balint/Data/Linux/diploma/src/bg", 27));
     Ptr<Camera> leftCamera(new RealCamera(Camera::LEFT, "intrinsics_left.yml"));
-    Ptr<CameraPose> lefCameraPose(new CameraPose());
-    lefCameraPose->load("pose_left.yml");
+    Ptr<CameraPose> leftCameraPose(new CameraPose());
+    leftCameraPose->load("pose_left.yml");
+    Ptr<BackgroundSubtractorMOG2> leftBgSub = createBackgroundSubtractorMOG2(300, 25.0, true);
 
+//    Ptr<Camera> rightBgCamera(new DummyCamera(Camera::RIGHT, "/media/balint/Data/Linux/diploma/src/bg", 27));
     Ptr<Camera> rightCamera(new RealCamera(Camera::RIGHT, "intrinsics_right.yml"));
     Ptr<CameraPose> rightCameraPose(new CameraPose());
     rightCameraPose->load("pose_right.yml");
+    Ptr<BackgroundSubtractorMOG2> rightBgSub = createBackgroundSubtractorMOG2(300, 25.0, true);
 
     SpatialOpticalFlowCalculator ofCalculator(leftCamera, rightCamera);
 
@@ -96,24 +113,121 @@ int main(int argc, char **argv) {
     static_cast<RealCamera *>(leftCamera.get())->focus(focus);
     static_cast<RealCamera *>(rightCamera.get())->focus(focus);
 
+    ObjectSelector leftObjSelector;
+    ObjectSelector rightObjSelector;
+
+    double learningRate = -1;
+
+    // BUILD MODEL
+//    for(int i=0; i<28; i++) {
+//        Mat leftImage, rightImage, mask;
+//
+//        leftBgCamera->read(leftImage);
+//        rightBgCamera->read(rightImage);
+//
+//        leftBgSub->apply(leftImage, mask);
+//        rightBgSub->apply(rightImage, mask);
+//    }
+
+//    int i = 0;
+
+    PclVisualization vis;
+
     while (true) {
-        Mat leftImage;
+        Mat leftImage, leftMask;
         leftCamera->readUndistorted(leftImage);
-        //drawGridXY(leftImage, leftCamera, lefCameraPose);
-        imshow("leftImage", leftImage);
+        leftBgSub->apply(leftImage, leftMask, learningRate);
+        dilateAndErode(leftMask);
+        //drawGridXY(leftImage, leftCamera, leftCameraPose);
 
-        Mat rightImage;
+        Mat leftSelected(leftObjSelector.selectUsingContoursWithMaxArea(leftImage, leftMask));
+
+        imshow("leftImage", leftSelected);
+
+        Mat rightImage, rightMask;
         rightCamera->readUndistorted(rightImage);
+        rightBgSub->apply(rightImage, rightMask, learningRate);
+        dilateAndErode(rightMask);
         //drawGridXY(rightImage, rightCamera, rightCameraPose);
-        imshow("rightImage", rightImage);
 
-        ofCalculator.feed(leftImage, Mat(leftImage.rows, leftImage.cols, CV_8U, Scalar(255)),
-                          rightImage, Mat(rightImage.rows, rightImage.cols, CV_8U, Scalar(255)));
+        Mat rightSelected(rightObjSelector.selectUsingContoursWithMaxArea(rightImage, rightMask));
+
+        imshow("rightImage", rightSelected);
+//        imshow("rightMask", rightMask);
+
+//        char filename1[80];
+//        sprintf(filename1,"/media/balint/Data/Linux/diploma/src/bg/left_%d.png",i);
+//        imwrite(filename1, leftImage);
+//
+//        char filename2[80];
+//        sprintf(filename2,"/media/balint/Data/Linux/diploma/src/bg/right_%d.png",i);
+//        imwrite(filename2, rightImage);
+//        i++;
 
         char ch = (char) waitKey(33);
 
         if (ch == 27) {
             break;
+        }
+        if (ch == 'o') {
+
+            double t = getTickCount();
+
+            ofCalculator.feed(leftSelected, leftObjSelector.lastMask,
+                              rightSelected, rightObjSelector.lastMask);
+
+            Matx33d leftR;
+            Rodrigues(leftCameraPose->rvec, leftR);
+            Matx34d leftP = Matx34d(leftR(0, 0), leftR(0, 1), leftR(0, 2), leftCameraPose->tvec.at<double>(0, 0),
+                                    leftR(1, 0), leftR(1, 1), leftR(1, 2), leftCameraPose->tvec.at<double>(1, 0),
+                                    leftR(2, 0), leftR(2, 1), leftR(2, 2), leftCameraPose->tvec.at<double>(2, 0));
+
+            Matx33d rightR;
+            Rodrigues(rightCameraPose->rvec, rightR);
+            Matx34d rightP = Matx34d(rightR(0, 0), rightR(0, 1), rightR(0, 2), rightCameraPose->tvec.at<double>(0, 0),
+                                     rightR(1, 0), rightR(1, 1), rightR(1, 2), rightCameraPose->tvec.at<double>(1, 0),
+                                     rightR(2, 0), rightR(2, 1), rightR(2, 2), rightCameraPose->tvec.at<double>(2, 0));
+
+            std::vector<CloudPoint> pointcloud;
+            std::vector<Point> cp;
+            TriangulatePoints(ofCalculator.points1, leftCamera->K, leftCamera->Kinv, ofCalculator.points2,
+                              rightCamera->K, rightCamera->Kinv, leftP, rightP, pointcloud, cp);
+
+
+            // VISU!!!
+
+            t = ((double) getTickCount() - t) / getTickFrequency();
+            std::cout << "Done in " << t << "s" << std::endl;
+            std::cout.flush();
+
+            vis.init();
+
+            Mat leftViewMatrix = Mat::zeros(4, 4, CV_64F);
+            Mat rightViewMatrix = Mat::zeros(4, 4, CV_64F);
+            for (unsigned int row = 0; row < 3; ++row) {
+                for (unsigned int col = 0; col < 3; ++col) {
+                    leftViewMatrix.at<double>(row, col) = leftR(row, col);
+                    rightViewMatrix.at<double>(row, col) = rightR(row, col);
+                }
+                leftViewMatrix.at<double>(row, 3) = leftCameraPose->tvec.at<double>(row, 0);
+                rightViewMatrix.at<double>(row, 3) = rightCameraPose->tvec.at<double>(row, 0);
+            }
+            leftViewMatrix.at<double>(3, 3) = 1.0f;
+            rightViewMatrix.at<double>(3, 3) = 1.0f;
+
+            Mat cvToGl = Mat::zeros(4, 4, CV_64F);
+            cvToGl.at<double>(0, 0) = 1.0f;
+            cvToGl.at<double>(1, 1) = -1.0f; // Invert the y axis
+            cvToGl.at<double>(2, 2) = 1.0f; // invert the z axis
+            cvToGl.at<double>(3, 3) = 1.0f;
+
+            vis.addCamera(leftCamera, leftViewMatrix, 1);
+            vis.addCamera(rightCamera, rightViewMatrix, 2);
+
+            vis.addChessboard();
+            vis.addPointCloud(pointcloud, 0);
+
+            waitKey();
         }
         if (ch == 'w') {
             focus += 1;

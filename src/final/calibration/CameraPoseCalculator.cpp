@@ -50,8 +50,8 @@ bool CameraPoseCalculator::calculate() {
     }
 
     std::vector<Point3f> objectPoints;
-    for (int j = 0; j < boardSize.height; j++)
-        for (int k = 0; k < boardSize.width; k++)
+    for (int j = 0; j < boardSize.width; j++)
+        for (int k = 0; k < boardSize.height; k++)
             objectPoints.push_back(Point3f(j * squareSize, k * squareSize, 0));
 
     cameraPose = Ptr<CameraPose>(new CameraPose());

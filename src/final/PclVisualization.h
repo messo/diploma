@@ -11,11 +11,15 @@ public:
 
     PclVisualization();
 
-    void addCamera(cv::Ptr<Camera> cam, const cv::Matx34d& P, long frameId);
+    void addCamera(cv::Ptr<Camera> cam, const cv::Mat& P, long frameId);
 
     void addPointCloud(const std::vector<CloudPoint> &points, long frameId);
 
     void spin() { visu.spin(); }
 
     void stop() { visu.spinOnce(); }
+
+    void init();
+
+    void addChessboard();
 };

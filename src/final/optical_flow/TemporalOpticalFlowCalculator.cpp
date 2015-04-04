@@ -28,7 +28,8 @@ bool TemporalOpticalFlowCalculator::feed(long frameId, const Mat &image, const M
     // calculating textured regions
     calcTexturedRegions(frame2, mask2, texturedRegions2);
 
-    if (frame1.empty() || (calcOpticalFlow()) > 1.0) {
+    Point t;
+    if (frame1.empty() || (calcOpticalFlow(t)) > 1.0) {
         // -----------------------------
         // 2.
         // -----------------------------

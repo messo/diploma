@@ -1,5 +1,6 @@
 #include <opencv2/imgproc.hpp>
 #include <opencv2/highgui.hpp>
+#include <iostream>
 #include "ObjectSelector.hpp"
 
 using namespace std;
@@ -27,15 +28,23 @@ cv::Mat ObjectSelector::selectUsingConnectedComponents(const cv::Mat &img, const
     return selection;
 }
 
-cv::Mat ObjectSelector::selectUsingContoursWithMaxArea(const cv::Mat &img, const cv::Mat &mask) {
+cv::Mat ObjectSelector::selectUsingContoursWithMaxArea(const cv::Mat &img, cv::Mat mask) {
     vector<vector<Point> > contours;
+
+    for(int y=0; y<mask.rows; y++) {
+        for(int x=0; x<mask.cols; x++) {
+            if(mask.at<uchar>(y, x) != 255) {
+                mask.at<uchar>(y, x) = 0;
+            }
+        }
+    }
 
     findContours(mask, contours, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
 
-    Mat dst = Mat::zeros(mask.size(), CV_8UC3);
+    lastMask = Mat::zeros(mask.size(), CV_8U);
 
     if (contours.size() == 0)
-        return dst;
+        return lastMask;
 
     // iterate through all the top-level contours,
     // draw each connected component with its own random color
@@ -51,11 +60,10 @@ cv::Mat ObjectSelector::selectUsingContoursWithMaxArea(const cv::Mat &img, const
         }
     }
 
-    Scalar color(255, 255, 255);
-    drawContours(dst, contours, largestComp, color, FILLED, LINE_8);
+    drawContours(lastMask, contours, largestComp, Scalar(255), FILLED, LINE_8);
 
     Mat result;
-    img.copyTo(result, dst);
+    img.copyTo(result, lastMask);
     return result;
 }
 
