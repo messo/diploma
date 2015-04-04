@@ -1,9 +1,9 @@
 #include <opencv2/highgui.hpp>
 #include "camera/RealCamera.hpp"
-#include "calibration/Calibration.h"
 #include "camera/CameraPose.h"
+#include "calibration/Calibration.h"
 #include "calibration/CameraPoseCalculator.h"
-#include "Common.h"
+#include "optical_flow/SpatialOpticalFlowCalculator.h"
 
 using namespace cv;
 
@@ -74,7 +74,6 @@ void calcPose(int cameraId, const std::string &calibrationFile, const std::strin
     }
 }
 
-
 int main(int argc, char **argv) {
 
 //    calibrate(Camera::LEFT);
@@ -83,20 +82,45 @@ int main(int argc, char **argv) {
 //    calcPose(Camera::LEFT, "intrinsics_left.yml", "pose_left.yml");
 //    calcPose(Camera::RIGHT, "intrinsics_right.yml", "pose_right.yml");
 
-    Ptr<Camera> camera(new RealCamera(Camera::LEFT, "intrinsics_left.yml"));
-    Ptr<CameraPose> cameraPose(new CameraPose());
-    cameraPose->load("pose_left.yml");
+    Ptr<Camera> leftCamera(new RealCamera(Camera::LEFT, "intrinsics_left.yml"));
+    Ptr<CameraPose> lefCameraPose(new CameraPose());
+    lefCameraPose->load("pose_left.yml");
+
+    Ptr<Camera> rightCamera(new RealCamera(Camera::RIGHT, "intrinsics_right.yml"));
+    Ptr<CameraPose> rightCameraPose(new CameraPose());
+    rightCameraPose->load("pose_right.yml");
+
+    SpatialOpticalFlowCalculator ofCalculator(leftCamera, rightCamera);
+
+    int focus = 80;
+    static_cast<RealCamera *>(leftCamera.get())->focus(focus);
+    static_cast<RealCamera *>(rightCamera.get())->focus(focus);
 
     while (true) {
-        Mat image;
-        camera->readUndistorted(image);
-        drawGridXY(image, camera, cameraPose);
-        imshow("image", image);
+        Mat leftImage;
+        leftCamera->readUndistorted(leftImage);
+        //drawGridXY(leftImage, leftCamera, lefCameraPose);
+        imshow("leftImage", leftImage);
+
+        Mat rightImage;
+        rightCamera->readUndistorted(rightImage);
+        //drawGridXY(rightImage, rightCamera, rightCameraPose);
+        imshow("rightImage", rightImage);
+
+        ofCalculator.feed(leftImage, Mat(leftImage.rows, leftImage.cols, CV_8U, Scalar(255)),
+                          rightImage, Mat(rightImage.rows, rightImage.cols, CV_8U, Scalar(255)));
 
         char ch = (char) waitKey(33);
 
         if (ch == 27) {
             break;
+        }
+        if (ch == 'w') {
+            focus += 1;
+            static_cast<RealCamera *>(leftCamera.get())->focus(focus);
+        } else if (ch == 's') {
+            focus -= 1;
+            static_cast<RealCamera *>(leftCamera.get())->focus(focus);
         }
     }
 

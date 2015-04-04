@@ -6,16 +6,11 @@
 
 #define FPS_ENABLED
 
-#include "StereoCalibration.hpp"
-#include "StereoCamera.hpp"
-#include "OpenGLRenderer.hpp"
-#include "DinoCamera.hpp"
-#include "DummyCamera.hpp"
+#include "camera/DummyCamera.hpp"
+#include "calibration/StereoCalibration.hpp"
+#include "optical_flow/OFReconstruction.h"
+#include "optical_flow/TemporalOpticalFlowCalculator.h"
 #include "ObjectSelector.hpp"
-#include "OFReconstruction.h"
-#include "Common.h"
-#include "OpticalFlowCalculator.h"
-#include "Triangulation.h"
 #include "MultiView.h"
 #include "PclVisualization.h"
 
@@ -133,7 +128,7 @@ int main(int argc, char **argv) {
 
     Ptr<ObjectSelector> objSelector(new ObjectSelector());
 
-    OpticalFlowCalculator calc(camera);
+    TemporalOpticalFlowCalculator calc(camera);
     MultiView mv(camera);
 
     PclVisualization pcl;

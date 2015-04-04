@@ -2,8 +2,8 @@
 
 #include <bits/stl_bvector.h>
 #include <opencv2/core/types.hpp>
-#include "camera/Camera.hpp"
-#include "Common.h"
+#include "../camera/Camera.hpp"
+#include "../Common.h"
 
 class OFReconstruction {
 

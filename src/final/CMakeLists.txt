@@ -11,7 +11,7 @@ include_directories(${PCL_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
-set(CLASSES calibration/StereoCalibration.cpp camera/Camera.cpp camera/RealCamera.cpp camera/DummyCamera.cpp camera/StereoCamera.cpp calibration/Calibration.cpp calibration/CameraPoseCalculator.cpp camera/CameraPose.cpp OpenGLRenderer.cpp ObjectSelector.cpp OFReconstruction.cpp Triangulation.cpp Common.cpp OpticalFlowCalculator.cpp MultiView.cpp PclVisualization.cpp)
+set(CLASSES calibration/StereoCalibration.cpp camera/Camera.cpp camera/RealCamera.cpp camera/DummyCamera.cpp camera/StereoCamera.cpp calibration/Calibration.cpp calibration/CameraPoseCalculator.cpp camera/CameraPose.cpp OpenGLRenderer.cpp ObjectSelector.cpp optical_flow/OFReconstruction.cpp Triangulation.cpp Common.cpp optical_flow/OpticalFlowCalculator.cpp optical_flow/TemporalOpticalFlowCalculator.cpp optical_flow/SpatialOpticalFlowCalculator.cpp MultiView.cpp PclVisualization.cpp)
 
 add_executable(Final main.cpp ${CLASSES})
 target_compile_features(Final PRIVATE cxx_range_for)

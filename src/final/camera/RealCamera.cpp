@@ -6,15 +6,22 @@
 #include <sys/ioctl.h>
 #include <fcntl.h>
 #include <opencv2/imgproc.hpp>
+#include <opencv2/features2d.hpp>
 
 #include "RealCamera.hpp"
 
 RealCamera::RealCamera(int id) : Camera(id) {
     // open capture
-    /*int descriptor = v4l2_open(("/dev/video" + std::to_string(id)).c_str(), O_RDWR);
+    int descriptor = v4l2_open(("/dev/video" + std::to_string(id)).c_str(), O_RDWR);
+
+    v4l2_control c;
+    c.id = V4L2_CID_FOCUS_ABSOLUTE;
+    c.value = 10;
+    if (v4l2_ioctl(descriptor, VIDIOC_S_CTRL, &c) == 0)
+        std::cout << "Setting V4L2_CID_FOCUS_ABSOLUTE succeeded." << std::endl;
 
     // manual exposure control
-    v4l2_control c;
+    /*v4l2_control c;
     c.id = V4L2_CID_EXPOSURE_AUTO;
     c.value = V4L2_EXPOSURE_MANUAL;
     if (v4l2_ioctl(descriptor, VIDIOC_S_CTRL, &c) == 0)
@@ -37,9 +44,27 @@ RealCamera::RealCamera(int id) : Camera(id) {
 }
 
 RealCamera::RealCamera(int id, const std::string &calibrationFile) : Camera(id, calibrationFile) {
+    descriptor = v4l2_open(("/dev/video" + std::to_string(id)).c_str(), O_RDWR);
+
+    v4l2_control c;
+    c.id = V4L2_CID_FOCUS_AUTO;
+    c.value = 1;
+    if (v4l2_ioctl(descriptor, VIDIOC_S_CTRL, &c) == 0)
+        std::cout << "Setting V4L2_CID_FOCUS_AUTO succeeded." << std::endl;
+    else
+        std::cout << "Setting V4L2_CID_FOCUS_AUTO FAILED." << std::endl;
+
     if (!cap.open(id)) {
         std::cout << "Cannot open camera #" << id << std::endl;
     }
+}
+
+void RealCamera::focus(int value) {
+    v4l2_control c;
+    c.id = V4L2_CID_FOCUS_ABSOLUTE;
+    c.value = value;
+    if (v4l2_ioctl(descriptor, VIDIOC_S_CTRL, &c) == 0)
+        std::cout << "Setting V4L2_CID_FOCUS_ABSOLUTE succeeded." << std::endl;
 }
 
 bool RealCamera::read(cv::OutputArray img) {
