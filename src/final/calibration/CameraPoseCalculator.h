@@ -12,11 +12,10 @@ public:
 
     cv::Ptr<CameraPose> cameraPose;
 
-    CameraPoseCalculator(cv::Ptr<Camera> camera) : camera(camera) {}
+    CameraPoseCalculator(cv::Ptr<Camera> camera) : camera(camera) { }
 
     bool calculate();
 
     bool poseCalculated();
 
-    void drawGrid(cv::Mat& img);
 };

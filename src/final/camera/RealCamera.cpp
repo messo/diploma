@@ -36,6 +36,12 @@ RealCamera::RealCamera(int id) : Camera(id) {
     }
 }
 
+RealCamera::RealCamera(int id, const std::string &calibrationFile) : Camera(id, calibrationFile) {
+    if (!cap.open(id)) {
+        std::cout << "Cannot open camera #" << id << std::endl;
+    }
+}
+
 bool RealCamera::read(cv::OutputArray img) {
     return cap.read(img);
 }

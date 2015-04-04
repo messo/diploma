@@ -10,6 +10,8 @@ class RealCamera : public Camera {
 public:
     RealCamera(int id);
 
+    RealCamera(int id, const std::string &calibrationFile);
+
     bool read(cv::OutputArray img);
 
     virtual bool grab();

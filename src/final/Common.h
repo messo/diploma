@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <map>
 #include "camera/Camera.hpp"
+#include "camera/CameraPose.h"
 
 struct CloudPoint {
     cv::Point3d pt;
@@ -90,3 +91,7 @@ bool FindPoseEstimation(
         std::vector<cv::Point2f> imgPoints,
         std::vector<cv::Point2f> &reprojected
 );
+
+void drawBoxOnChessboard(cv::Mat &inputImage, cv::Ptr<Camera> camera, cv::Ptr<CameraPose> pose);
+
+void drawGridXY(cv::Mat &img, cv::Ptr<Camera> camera, cv::Ptr<CameraPose> cameraPose);

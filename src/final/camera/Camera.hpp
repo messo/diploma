@@ -19,11 +19,15 @@ public:
     Camera(int id) : id(id) {
     }
 
+    Camera(int id, const std::string &calibrationFile) : id(id) {
+        readCalibration(calibrationFile);
+    }
+
     int getId() const {
         return id;
     }
 
-    void readCalibration(std::string calibrationFile);
+    void readCalibration(const std::string &calibrationFile);
 
     double getWidth() { return 640.0; }
 

@@ -1,10 +1,9 @@
 #include <opencv2/highgui.hpp>
-#include <opencv2/calib3d.hpp>
-#include <opencv2/imgproc.hpp>
 #include "camera/RealCamera.hpp"
 #include "calibration/Calibration.h"
 #include "camera/CameraPose.h"
 #include "calibration/CameraPoseCalculator.h"
+#include "Common.h"
 
 using namespace cv;
 
@@ -53,7 +52,7 @@ void calcPose(int cameraId, const std::string &calibrationFile, const std::strin
         Mat image;
         camera->readUndistorted(image);
         if (calculator.poseCalculated()) {
-            calculator.drawGrid(image);
+            drawGridXY(image, camera, calculator.cameraPose);
         }
         imshow("image", image);
 
@@ -62,7 +61,7 @@ void calcPose(int cameraId, const std::string &calibrationFile, const std::strin
         if (ch == 27) {
             break;
         } else if (ch == 'p') {
-            if(calculator.calculate()) {
+            if (calculator.calculate()) {
                 std::cout << "Calculated." << std::endl;
             } else {
                 std::cout << "Not calculated!" << std::endl;
@@ -75,40 +74,6 @@ void calcPose(int cameraId, const std::string &calibrationFile, const std::strin
     }
 }
 
-void drawBoxOnChessboard(Mat inputImage, Ptr<Camera> camera, Ptr<CameraPose> pose) {
-    // coordinates for box
-    std::vector<Point3f> objectPoints;
-    objectPoints.push_back(Point3f(0, 0, 0));
-    objectPoints.push_back(Point3f(0, 8, 0));
-    objectPoints.push_back(Point3f(5, 8, 0));
-    objectPoints.push_back(Point3f(5, 0, 0));
-
-    objectPoints.push_back(Point3f(0, 0, 5));
-    objectPoints.push_back(Point3f(0, 8, 5));
-    objectPoints.push_back(Point3f(5, 8, 5));
-    objectPoints.push_back(Point3f(5, 0, 5));
-
-    // calculating imagePoints
-    std::vector<Point2f> imagePoints;
-    projectPoints(objectPoints, pose->rvec, pose->tvec, camera->K, camera->distCoeffs, imagePoints);
-
-    // drawing
-    line(inputImage, imagePoints[0], imagePoints[1], Scalar(0, 0, 255), 1);
-    line(inputImage, imagePoints[1], imagePoints[2], Scalar(0, 0, 255), 1);
-    line(inputImage, imagePoints[2], imagePoints[3], Scalar(0, 0, 255), 1);
-    line(inputImage, imagePoints[3], imagePoints[0], Scalar(0, 0, 255), 1);
-
-    line(inputImage, imagePoints[4], imagePoints[5], Scalar(0, 0, 255), 1);
-    line(inputImage, imagePoints[5], imagePoints[6], Scalar(0, 0, 255), 1);
-    line(inputImage, imagePoints[6], imagePoints[7], Scalar(0, 0, 255), 1);
-    line(inputImage, imagePoints[7], imagePoints[4], Scalar(0, 0, 255), 1);
-
-    line(inputImage, imagePoints[0], imagePoints[4], Scalar(0, 0, 255), 1);
-    line(inputImage, imagePoints[1], imagePoints[5], Scalar(0, 0, 255), 1);
-    line(inputImage, imagePoints[2], imagePoints[6], Scalar(0, 0, 255), 1);
-    line(inputImage, imagePoints[3], imagePoints[7], Scalar(0, 0, 255), 1);
-}
-
 
 int main(int argc, char **argv) {
 
@@ -118,7 +83,22 @@ int main(int argc, char **argv) {
 //    calcPose(Camera::LEFT, "intrinsics_left.yml", "pose_left.yml");
 //    calcPose(Camera::RIGHT, "intrinsics_right.yml", "pose_right.yml");
 
+    Ptr<Camera> camera(new RealCamera(Camera::LEFT, "intrinsics_left.yml"));
+    Ptr<CameraPose> cameraPose(new CameraPose());
+    cameraPose->load("pose_left.yml");
 
+    while (true) {
+        Mat image;
+        camera->readUndistorted(image);
+        drawGridXY(image, camera, cameraPose);
+        imshow("image", image);
+
+        char ch = (char) waitKey(33);
+
+        if (ch == 27) {
+            break;
+        }
+    }
 
     return 0;
 }

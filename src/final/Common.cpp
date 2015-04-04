@@ -1,9 +1,13 @@
+#include "camera/CameraPose.h"
+#include "camera/RealCamera.hpp"
+#include <opencv2/highgui.hpp>
 #include "Common.h"
 #include "camera/Camera.hpp"
 
 #include <fstream>
 #include <opencv2/core/mat.hpp>
 #include <opencv2/calib3d.hpp>
+#include <opencv2/imgproc.hpp>
 
 using namespace cv;
 using namespace std;
@@ -175,4 +179,82 @@ bool FindPoseEstimation(
 
     std::cout << "found t = " << t << "\nR = \n" << R << std::endl;
     return true;
+}
+
+void drawGridXY(cv::Mat &img, cv::Ptr<Camera> camera, cv::Ptr<CameraPose> cameraPose) {
+    int minX = -2;
+    int maxX = 3;
+    int minY = -2;
+    int maxY = 4;
+    int maxZ = 0;
+    int step = 7;
+
+    std::vector<Point3f> gridPoints;
+    for (int z = 0; z <= maxZ; z++) {
+        for (int x = minX; x <= maxX; x++) {
+            gridPoints.push_back(Point3f(x * step, (minY) * step, z * step * 2));
+            gridPoints.push_back(Point3f(x * step, (maxY) * step, z * step * 2));
+        }
+        for (int y = minY; y <= maxY; y++) {
+            gridPoints.push_back(Point3f((minX) * step, y * step, z * step * 2));
+            gridPoints.push_back(Point3f((maxX) * step, y * step, z * step * 2));
+        }
+    }
+
+    std::vector<Point2f> gridImagePoints;
+    projectPoints(gridPoints, cameraPose->rvec, cameraPose->tvec, camera->K, camera->distCoeffs, gridImagePoints);
+
+    Rect imageRect(0, 0, 640, 480);
+    int i = 0;
+    RNG rng;
+    for (int z = 0; z <= maxZ; z++) {
+        int icolor = (unsigned) rng;
+        Scalar color(icolor & 255, (icolor >> 8) & 255, (icolor >> 16) & 255);
+        for (int x = minX; x <= maxX; x++) {
+            if (gridImagePoints[i].inside(imageRect) && gridImagePoints[i + 1].inside(imageRect)) {
+                line(img, gridImagePoints[i], gridImagePoints[i + 1], color, 2);
+            }
+            i += 2;
+        }
+        for (int y = minY; y <= maxY; y++) {
+            if (gridImagePoints[i].inside(imageRect) && gridImagePoints[i + 1].inside(imageRect)) {
+                line(img, gridImagePoints[i], gridImagePoints[i + 1], color, 2);
+            }
+            i += 2;
+        }
+    }
+}
+
+void drawBoxOnChessboard(Mat inputImage, Ptr<Camera> camera, Ptr<CameraPose> pose) {
+    // coordinates for box
+    vector<Point3f> objectPoints;
+    objectPoints.push_back(Point3f(0, 0, 0));
+    objectPoints.push_back(Point3f(0, 8, 0));
+    objectPoints.push_back(Point3f(5, 8, 0));
+    objectPoints.push_back(Point3f(5, 0, 0));
+
+    objectPoints.push_back(Point3f(0, 0, 5));
+    objectPoints.push_back(Point3f(0, 8, 5));
+    objectPoints.push_back(Point3f(5, 8, 5));
+    objectPoints.push_back(Point3f(5, 0, 5));
+
+    // calculating imagePoints
+    vector<Point2f> imagePoints;
+    projectPoints(objectPoints, pose->rvec, pose->tvec, camera->K, camera->distCoeffs, imagePoints);
+
+    // drawing
+    line(inputImage, imagePoints[0], imagePoints[1], Scalar(0, 0, 255), 1);
+    line(inputImage, imagePoints[1], imagePoints[2], Scalar(0, 0, 255), 1);
+    line(inputImage, imagePoints[2], imagePoints[3], Scalar(0, 0, 255), 1);
+    line(inputImage, imagePoints[3], imagePoints[0], Scalar(0, 0, 255), 1);
+
+    line(inputImage, imagePoints[4], imagePoints[5], Scalar(0, 0, 255), 1);
+    line(inputImage, imagePoints[5], imagePoints[6], Scalar(0, 0, 255), 1);
+    line(inputImage, imagePoints[6], imagePoints[7], Scalar(0, 0, 255), 1);
+    line(inputImage, imagePoints[7], imagePoints[4], Scalar(0, 0, 255), 1);
+
+    line(inputImage, imagePoints[0], imagePoints[4], Scalar(0, 0, 255), 1);
+    line(inputImage, imagePoints[1], imagePoints[5], Scalar(0, 0, 255), 1);
+    line(inputImage, imagePoints[2], imagePoints[6], Scalar(0, 0, 255), 1);
+    line(inputImage, imagePoints[3], imagePoints[7], Scalar(0, 0, 255), 1);
 }
