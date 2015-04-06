@@ -209,21 +209,21 @@ bool FindPoseEstimation(
 
 void drawGridXY(cv::Mat &img, cv::Ptr<Camera> camera, cv::Ptr<CameraPose> cameraPose) {
     int minX = -2;
-    int maxX = 3;
+    int maxX = 2;
     int minY = -2;
-    int maxY = 4;
+    int maxY = 2;
     int maxZ = 0;
     int step = 7;
 
     std::vector<Point3f> gridPoints;
     for (int z = 0; z <= maxZ; z++) {
         for (int x = minX; x <= maxX; x++) {
-            gridPoints.push_back(Point3f(x * step, (minY) * step, z * step * 2));
-            gridPoints.push_back(Point3f(x * step, (maxY) * step, z * step * 2));
+            gridPoints.push_back(Point3f(x * step, (minY) * step, -z * step * 2));
+            gridPoints.push_back(Point3f(x * step, (maxY) * step, -z * step * 2));
         }
         for (int y = minY; y <= maxY; y++) {
-            gridPoints.push_back(Point3f((minX) * step, y * step, z * step * 2));
-            gridPoints.push_back(Point3f((maxX) * step, y * step, z * step * 2));
+            gridPoints.push_back(Point3f((minX) * step, y * step, -z * step * 2));
+            gridPoints.push_back(Point3f((maxX) * step, y * step, -z * step * 2));
         }
     }
 
@@ -255,14 +255,14 @@ void drawBoxOnChessboard(Mat inputImage, Ptr<Camera> camera, Ptr<CameraPose> pos
     // coordinates for box
     vector<Point3f> objectPoints;
     objectPoints.push_back(Point3f(0, 0, 0));
-    objectPoints.push_back(Point3f(0, 8, 0));
-    objectPoints.push_back(Point3f(5, 8, 0));
-    objectPoints.push_back(Point3f(5, 0, 0));
+    objectPoints.push_back(Point3f(0, 5, 0));
+    objectPoints.push_back(Point3f(8, 5, 0));
+    objectPoints.push_back(Point3f(8, 0, 0));
 
-    objectPoints.push_back(Point3f(0, 0, 5));
-    objectPoints.push_back(Point3f(0, 8, 5));
-    objectPoints.push_back(Point3f(5, 8, 5));
-    objectPoints.push_back(Point3f(5, 0, 5));
+    objectPoints.push_back(Point3f(0, 0, -5));
+    objectPoints.push_back(Point3f(0, 5, -5));
+    objectPoints.push_back(Point3f(8, 5, -5));
+    objectPoints.push_back(Point3f(8, 0, -5));
 
     // calculating imagePoints
     vector<Point2f> imagePoints;

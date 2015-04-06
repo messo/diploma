@@ -39,8 +39,8 @@ bool Calibration::calibrate() {
     objectPoints.resize(everyCorners.size());
 
     for (int i = 0; i < everyCorners.size(); i++) {
-        for (int j = 0; j < boardSize.height; j++)
-            for (int k = 0; k < boardSize.width; k++)
+        for (int k = 0; k < boardSize.height; k++)
+            for (int j = 0; j < boardSize.width; j++)
                 objectPoints[i].push_back(Point3f(j * squareSize, k * squareSize, 0));
     }
 

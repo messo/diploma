@@ -12,13 +12,15 @@
 
 RealCamera::RealCamera(int id) : Camera(id) {
     // open capture
-    int descriptor = v4l2_open(("/dev/video" + std::to_string(id)).c_str(), O_RDWR);
+    descriptor = v4l2_open(("/dev/video" + std::to_string(id)).c_str(), O_RDWR);
 
     v4l2_control c;
-    c.id = V4L2_CID_FOCUS_ABSOLUTE;
-    c.value = 10;
+    c.id = V4L2_CID_FOCUS_AUTO;
+    c.value = 1;
     if (v4l2_ioctl(descriptor, VIDIOC_S_CTRL, &c) == 0)
-        std::cout << "Setting V4L2_CID_FOCUS_ABSOLUTE succeeded." << std::endl;
+        std::cout << "Setting V4L2_CID_FOCUS_AUTO succeeded." << std::endl;
+    else
+        std::cout << "Setting V4L2_CID_FOCUS_AUTO FAILED." << std::endl;
 
     // manual exposure control
     /*v4l2_control c;

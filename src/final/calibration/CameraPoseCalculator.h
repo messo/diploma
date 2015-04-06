@@ -12,7 +12,7 @@ public:
 
     cv::Ptr<CameraPose> cameraPose;
 
-    CameraPoseCalculator(cv::Ptr<Camera> camera) : camera(camera) { }
+    CameraPoseCalculator(cv::Ptr<Camera> camera) : camera(camera), cameraPose(new CameraPose()) { }
 
     bool calculate();
 

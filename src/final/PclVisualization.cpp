@@ -87,7 +87,7 @@ void PclVisualization::addCamera(cv::Ptr<Camera> cam, const cv::Mat &P, long fra
     p1.z = 0;
     double angleX = RAD2DEG(2.0 * atan(width / (2.0 * focal)));
     double angleY = RAD2DEG(2.0 * atan(height / (2.0 * focal)));
-    double dist = 0.75;
+    double dist = -0.75;
     double minX, minY, maxX, maxY;
     maxX = dist * tan(atan(width / (2.0 * focal)));
     minX = -maxX;

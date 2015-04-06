@@ -1,5 +1,6 @@
 #include <opencv2/imgproc.hpp>
 #include <opencv2/calib3d.hpp>
+#include <opencv2/highgui.hpp>
 #include "CameraPoseCalculator.h"
 #include "../camera/Camera.hpp"
 
@@ -45,14 +46,15 @@ bool CameraPoseCalculator::calculate() {
 
     if (!found) {
         std::cout << "Chessboard not found. Pose cannot be estimated!";
-        cameraPose = Ptr<CameraPose>();
+        cameraPose->rvec = Mat();
+        cameraPose->tvec = Mat();
         return false;
     }
 
     std::vector<Point3f> objectPoints;
-    for (int j = 0; j < boardSize.width; j++)
-        for (int k = 0; k < boardSize.height; k++)
-            objectPoints.push_back(Point3f(j * squareSize, k * squareSize, 0));
+    for (int k = 0; k < boardSize.height; k++)
+        for (int j = 0; j < boardSize.width; j++)
+            objectPoints.push_back(Point3f(squareSize * j, squareSize * k, 0));
 
     cameraPose = Ptr<CameraPose>(new CameraPose());
     solvePnP(objectPoints, imagePoints, camera->K, camera->distCoeffs, cameraPose->rvec, cameraPose->tvec);
@@ -61,5 +63,5 @@ bool CameraPoseCalculator::calculate() {
 }
 
 bool CameraPoseCalculator::poseCalculated() {
-    return !cameraPose.empty();
+    return !cameraPose->rvec.empty();
 }

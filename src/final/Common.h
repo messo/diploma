@@ -92,7 +92,7 @@ bool FindPoseEstimation(
         std::vector<cv::Point2f> &reprojected
 );
 
-void drawBoxOnChessboard(cv::Mat &inputImage, cv::Ptr<Camera> camera, cv::Ptr<CameraPose> pose);
+void drawBoxOnChessboard(cv::Mat inputImage, cv::Ptr<Camera> camera, cv::Ptr<CameraPose> pose);
 
 void drawGridXY(cv::Mat &img, cv::Ptr<Camera> camera, cv::Ptr<CameraPose> cameraPose);
 

@@ -37,7 +37,7 @@ void calibrate(int cameraId) {
             }
         } else if (ch == 'c') {
             if (calibration.calibrate()) {
-                calibration.save(cameraId == Camera::LEFT ? "intrinsics_left.yml" : "intrinsics_right.yml");
+                calibration.save((cameraId == Camera::LEFT) ? "intrinsics_left.yml" : "intrinsics_right.yml");
                 std::cout << "Calibration succeeded." << std::endl;
             } else {
                 std::cout << "Calibration failed." << std::endl;
@@ -49,9 +49,7 @@ void calibrate(int cameraId) {
 }
 
 void calcPose(int cameraId, const std::string &calibrationFile, const std::string &poseFile) {
-    Ptr<Camera> camera(new RealCamera(cameraId));
-    camera->readCalibration(calibrationFile);
-
+    Ptr<Camera> camera(new RealCamera(cameraId, calibrationFile));
     CameraPoseCalculator calculator(camera);
 
     while (true) {
@@ -59,6 +57,7 @@ void calcPose(int cameraId, const std::string &calibrationFile, const std::strin
         camera->readUndistorted(image);
         if (calculator.poseCalculated()) {
             drawGridXY(image, camera, calculator.cameraPose);
+            drawBoxOnChessboard(image, camera, calculator.cameraPose);
         }
         imshow("image", image);
 
@@ -92,19 +91,21 @@ int main(int argc, char **argv) {
 //    calibrate(Camera::LEFT);
 //    calibrate(Camera::RIGHT);
 
-//    calcPose(Camera::LEFT, "intrinsics_left.yml", "pose_left.yml");
-//    calcPose(Camera::RIGHT, "intrinsics_right.yml", "pose_right.yml");
+//    calcPose(Camera::LEFT, "/media/balint/Data/Linux/diploma/src/final/intrinsics_left.yml", "pose_left.yml");
+//    calcPose(Camera::RIGHT, "/media/balint/Data/Linux/diploma/src/final/intrinsics_right.yml", "pose_right.yml");
 
 //    Ptr<Camera> leftBgCamera(new DummyCamera(Camera::LEFT, "/media/balint/Data/Linux/diploma/src/bg", 27));
-    Ptr<Camera> leftCamera(new RealCamera(Camera::LEFT, "intrinsics_left.yml"));
+    Ptr<Camera> leftCamera(
+            new RealCamera(Camera::LEFT, "/media/balint/Data/Linux/diploma/src/final/intrinsics_left.yml"));
     Ptr<CameraPose> leftCameraPose(new CameraPose());
-    leftCameraPose->load("pose_left.yml");
+    leftCameraPose->load("/media/balint/Data/Linux/diploma/src/final/pose_left.yml");
     Ptr<BackgroundSubtractorMOG2> leftBgSub = createBackgroundSubtractorMOG2(300, 25.0, true);
 
 //    Ptr<Camera> rightBgCamera(new DummyCamera(Camera::RIGHT, "/media/balint/Data/Linux/diploma/src/bg", 27));
-    Ptr<Camera> rightCamera(new RealCamera(Camera::RIGHT, "intrinsics_right.yml"));
+    Ptr<Camera> rightCamera(
+            new RealCamera(Camera::RIGHT, "/media/balint/Data/Linux/diploma/src/final/intrinsics_right.yml"));
     Ptr<CameraPose> rightCameraPose(new CameraPose());
-    rightCameraPose->load("pose_right.yml");
+    rightCameraPose->load("/media/balint/Data/Linux/diploma/src/final/pose_right.yml");
     Ptr<BackgroundSubtractorMOG2> rightBgSub = createBackgroundSubtractorMOG2(300, 25.0, true);
 
     SpatialOpticalFlowCalculator ofCalculator(leftCamera, rightCamera);
@@ -212,17 +213,17 @@ int main(int argc, char **argv) {
                 leftViewMatrix.at<double>(row, 3) = leftCameraPose->tvec.at<double>(row, 0);
                 rightViewMatrix.at<double>(row, 3) = rightCameraPose->tvec.at<double>(row, 0);
             }
-            leftViewMatrix.at<double>(3, 3) = 1.0f;
-            rightViewMatrix.at<double>(3, 3) = 1.0f;
+            leftViewMatrix.at<double>(3, 3) = 1.0;
+            rightViewMatrix.at<double>(3, 3) = 1.0;
 
             Mat cvToGl = Mat::zeros(4, 4, CV_64F);
-            cvToGl.at<double>(0, 0) = 1.0f;
-            cvToGl.at<double>(1, 1) = -1.0f; // Invert the y axis
-            cvToGl.at<double>(2, 2) = 1.0f; // invert the z axis
-            cvToGl.at<double>(3, 3) = 1.0f;
+            cvToGl.at<double>(0, 0) = 1.0;
+            cvToGl.at<double>(1, 1) = 1.0; // Invert the y axis
+            cvToGl.at<double>(2, 2) = -1.0; // invert the z axis
+            cvToGl.at<double>(3, 3) = 1.0;
 
-            vis.addCamera(leftCamera, leftViewMatrix, 1);
-            vis.addCamera(rightCamera, rightViewMatrix, 2);
+            vis.addCamera(leftCamera, cvToGl * leftViewMatrix, 1);
+            vis.addCamera(rightCamera, cvToGl * rightViewMatrix, 2);
 
             vis.addChessboard();
             vis.addPointCloud(pointcloud, 0);
