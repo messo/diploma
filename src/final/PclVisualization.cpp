@@ -45,7 +45,7 @@ PclVisualization::PclVisualization() : visu("pcl visualization") {
     // visu.registerKeyboardCallback(keyboardEventOccurred, (void *) &visu);
 }
 
-void PclVisualization::addCamera(cv::Ptr<Camera> cam, const cv::Mat &P, long frameId) {
+void PclVisualization::addCamera(cv::Ptr<Camera> cam, const cv::Matx44d &P, long frameId) {
     Eigen::Affine3d pose;
 
 //    pose(0, 3) = P(0, 3); // TX
@@ -71,7 +71,7 @@ void PclVisualization::addCamera(cv::Ptr<Camera> cam, const cv::Mat &P, long fra
 
     for (int r = 0; r < 4; r++) {
         for (int c = 0; c < 4; c++) {
-            pose(r, c) = P.at<double>(r, c);
+            pose(r, c) = P(r, c);
         }
     }
 

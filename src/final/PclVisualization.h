@@ -11,7 +11,7 @@ public:
 
     PclVisualization();
 
-    void addCamera(cv::Ptr<Camera> cam, const cv::Mat& P, long frameId);
+    void addCamera(cv::Ptr<Camera> cam, const cv::Matx44d &P, long frameId);
 
     void addPointCloud(const std::vector<CloudPoint> &points, long frameId);
 

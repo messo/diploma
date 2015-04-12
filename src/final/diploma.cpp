@@ -194,7 +194,6 @@ int main(int argc, char **argv) {
             TriangulatePoints(ofCalculator.points1, leftCamera->K, leftCamera->Kinv, ofCalculator.points2,
                               rightCamera->K, rightCamera->Kinv, leftP, rightP, pointcloud, cp);
 
-
             // VISU!!!
 
             t = ((double) getTickCount() - t) / getTickFrequency();
@@ -203,27 +202,15 @@ int main(int argc, char **argv) {
 
             vis.init();
 
-            Mat leftViewMatrix = Mat::zeros(4, 4, CV_64F);
-            Mat rightViewMatrix = Mat::zeros(4, 4, CV_64F);
-            for (unsigned int row = 0; row < 3; ++row) {
-                for (unsigned int col = 0; col < 3; ++col) {
-                    leftViewMatrix.at<double>(row, col) = leftR(row, col);
-                    rightViewMatrix.at<double>(row, col) = rightR(row, col);
-                }
-                leftViewMatrix.at<double>(row, 3) = leftCameraPose->tvec.at<double>(row, 0);
-                rightViewMatrix.at<double>(row, 3) = rightCameraPose->tvec.at<double>(row, 0);
-            }
-            leftViewMatrix.at<double>(3, 3) = 1.0;
-            rightViewMatrix.at<double>(3, 3) = 1.0;
+            cv::Affine3d leftViewAffine(leftCameraPose->rvec, leftCameraPose->tvec);
+            cv::Affine3d rightViewAffine(rightCameraPose->rvec, rightCameraPose->tvec);
 
-            Mat cvToGl = Mat::zeros(4, 4, CV_64F);
-            cvToGl.at<double>(0, 0) = 1.0;
-            cvToGl.at<double>(1, 1) = 1.0; // Invert the y axis
-            cvToGl.at<double>(2, 2) = -1.0; // invert the z axis
-            cvToGl.at<double>(3, 3) = 1.0;
+            Matx33d magic(1.0, 0, 0,
+                          0, 1.0, 0,
+                          0, 0, -1.0);
 
-            vis.addCamera(leftCamera, cvToGl * leftViewMatrix, 1);
-            vis.addCamera(rightCamera, cvToGl * rightViewMatrix, 2);
+            vis.addCamera(leftCamera, leftViewAffine.rotate(magic).matrix, 1);
+            vis.addCamera(rightCamera, rightViewAffine.rotate(magic).matrix, 2);
 
             vis.addChessboard();
             vis.addPointCloud(pointcloud, 0);
