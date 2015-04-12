@@ -64,12 +64,22 @@ void OpticalFlowCalculator::calcTexturedRegions(const Mat frame, const Mat mask,
 double OpticalFlowCalculator::calcOpticalFlow(Point &translation) {
 
     Mat flows[2];
+    Mat _flows[2];
+
+    // find a common bounding rect to simplify the OF
+    Rect rect0(boundingRect(masks[0]));
+    Rect rect1(boundingRect(masks[1]));
+    Rect unified(rect0 | rect1);
 
 #pragma omp parallel for
     for (int i = 0; i < 2; i++) {
-        calcOpticalFlowFarneback(frames[i], frames[(i + 1) % 2], flows[i], 0.5, 4, 21, 10, 7, 1.5,
+        calcOpticalFlowFarneback(frames[i](unified), frames[(i + 1) % 2](unified), _flows[i], 0.5, 4, 21, 10, 7, 1.5,
                                  OPTFLOW_FARNEBACK_GAUSSIAN);
 //        this->visualizeOpticalFlow(frame1, mask1, frame2, mask2, flow12, "flow12");
+
+        // put the flows back into the full matrix
+        flows[i] = Mat::zeros(frames[0].rows, frames[0].cols, CV_32FC2);
+        _flows[i].copyTo(flows[i](unified));
     }
 
     // trying to smooth the vectorfield
@@ -78,7 +88,7 @@ double OpticalFlowCalculator::calcOpticalFlow(Point &translation) {
     //smoothedFlow.copyTo(flow2);
 
     // collecting matching points using optical flow
-    collectMatchingPoints(flows[0], flows[1], points1, points2);
+    collectMatchingPoints(flows[0], flows[1], unified, points1, points2);
 
 //    visualizeMatches(points1, points2);
 //    waitKey();
@@ -126,7 +136,7 @@ double OpticalFlowCalculator::calcOpticalFlow(Point &translation) {
     return 2.0; //length;
 }
 
-void OpticalFlowCalculator::collectMatchingPoints(const Mat &flow, const Mat &backFlow,
+void OpticalFlowCalculator::collectMatchingPoints(const Mat &flow, const Mat &backFlow, const Rect &roi,
                                                   vector<Point2f> &points1, vector<Point2f> &points2) {
     points1.clear();
     points2.clear();
@@ -134,8 +144,8 @@ void OpticalFlowCalculator::collectMatchingPoints(const Mat &flow, const Mat &ba
 //    double t0 = getTickCount();
 
 #pragma omp parallel for collapse(2)
-    for (int y = 0; y < flow.rows; y++) {
-        for (int x = 0; x < flow.cols; x++) {
+    for (int y = roi.tl().y; y <= roi.br().y; y++) {
+        for (int x = roi.tl().x; x <= roi.br().x; x++) {
 
             // from + fwd = to
             Point from(x, y);

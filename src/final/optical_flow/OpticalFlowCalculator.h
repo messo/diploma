@@ -22,7 +22,7 @@ protected:
     cv::Point2f calcAverageMovement(const std::vector<cv::Point2f> &points1,
                                     const std::vector<cv::Point2f> &points2) const;
 
-    void collectMatchingPoints(const cv::Mat &flow, const cv::Mat &backFlow,
+    void collectMatchingPoints(const cv::Mat &flow, const cv::Mat &backFlow, const cv::Rect &roi,
                                std::vector<cv::Point2f> &points1, std::vector<cv::Point2f> &points2);
 
     /** VISUALIZATIONS */
