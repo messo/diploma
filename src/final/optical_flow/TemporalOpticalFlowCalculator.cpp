@@ -18,33 +18,33 @@ bool TemporalOpticalFlowCalculator::feed(long frameId, const Mat &image, const M
     currentBoundingRect = boundingRect + translation;
 
     // translate the image
-    shiftImage(image, boundingRect, translation, frame2);
+    shiftImage(image, boundingRect, translation, frames[1]);
     // translate the mask
-    shiftImage(lastMask, boundingRect, translation, mask2);
+    shiftImage(lastMask, boundingRect, translation, masks[1]);
     // translating the contour
     currentContour.clear();
     translate(contour, translation, currentContour);
 
     // calculating textured regions
-    calcTexturedRegions(frame2, mask2, texturedRegions2);
+    calcTexturedRegions(frames[1], masks[1], texturedRegions[1]);
 
     Point t;
-    if (frame1.empty() || (calcOpticalFlow(t)) > 1.0) {
+    if (frames[0].empty() || (calcOpticalFlow(t)) > 1.0) {
         // -----------------------------
         // 2.
         // -----------------------------
 
         // shiftelés csak akkor, ha elfogadjuk, egyébként következő képkocka ("túl kicsi mozgás")
 
-        bool prevFrameEmpty = frame1.empty();
+        bool prevFrameEmpty = frames[0].empty();
 
         prevFrameId = currentFrameId;
         currentFrameId = frameId;
 
         prevContour = currentContour;
-        frame2.copyTo(frame1);
-        mask2.copyTo(mask1);
-        texturedRegions2.copyTo(texturedRegions1);
+        frames[1].copyTo(frames[0]);
+        masks[1].copyTo(masks[0]);
+        texturedRegions[1].copyTo(texturedRegions[0]);
 
         return !prevFrameEmpty;
     } else {

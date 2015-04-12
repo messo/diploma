@@ -94,76 +94,59 @@ int main(int argc, char **argv) {
 //    calcPose(Camera::LEFT, "/media/balint/Data/Linux/diploma/src/final/intrinsics_left.yml", "pose_left.yml");
 //    calcPose(Camera::RIGHT, "/media/balint/Data/Linux/diploma/src/final/intrinsics_right.yml", "pose_right.yml");
 
-//    Ptr<Camera> leftBgCamera(new DummyCamera(Camera::LEFT, "/media/balint/Data/Linux/diploma/src/bg", 27));
-    Ptr<Camera> leftCamera(
+    Ptr<Camera> camera[2];
+    camera[Camera::LEFT] = Ptr<Camera>(
             new RealCamera(Camera::LEFT, "/media/balint/Data/Linux/diploma/src/final/intrinsics_left.yml"));
-    Ptr<CameraPose> leftCameraPose(new CameraPose());
-    leftCameraPose->load("/media/balint/Data/Linux/diploma/src/final/pose_left.yml");
-    Ptr<BackgroundSubtractorMOG2> leftBgSub = createBackgroundSubtractorMOG2(300, 25.0, true);
-
-//    Ptr<Camera> rightBgCamera(new DummyCamera(Camera::RIGHT, "/media/balint/Data/Linux/diploma/src/bg", 27));
-    Ptr<Camera> rightCamera(
+    camera[Camera::RIGHT] = Ptr<Camera>(
             new RealCamera(Camera::RIGHT, "/media/balint/Data/Linux/diploma/src/final/intrinsics_right.yml"));
-    Ptr<CameraPose> rightCameraPose(new CameraPose());
-    rightCameraPose->load("/media/balint/Data/Linux/diploma/src/final/pose_right.yml");
-    Ptr<BackgroundSubtractorMOG2> rightBgSub = createBackgroundSubtractorMOG2(300, 25.0, true);
 
-    SpatialOpticalFlowCalculator ofCalculator(leftCamera, rightCamera);
+    CameraPose cameraPose[2];
+
+    cameraPose[Camera::LEFT].load("/media/balint/Data/Linux/diploma/src/final/pose_left.yml");
+    Matx34d leftP = cameraPose[Camera::LEFT].getProjectionMatrix();
+    Matx44d leftPclP = cameraPose[Camera::LEFT].getPoseForPcl();
+    cameraPose[Camera::RIGHT].load("/media/balint/Data/Linux/diploma/src/final/pose_right.yml");
+    Matx34d rightP = cameraPose[Camera::RIGHT].getProjectionMatrix();
+    Matx44d rightPclP = cameraPose[Camera::RIGHT].getPoseForPcl();
+
+    Ptr<BackgroundSubtractorMOG2> bgSub[2];
+    bgSub[Camera::LEFT] = createBackgroundSubtractorMOG2(300, 25.0, true);
+    bgSub[Camera::RIGHT] = createBackgroundSubtractorMOG2(300, 25.0, true);
+
+    SpatialOpticalFlowCalculator ofCalculator(camera[Camera::LEFT], camera[Camera::RIGHT]);
 
     int focus = 80;
-    static_cast<RealCamera *>(leftCamera.get())->focus(focus);
-    static_cast<RealCamera *>(rightCamera.get())->focus(focus);
+    static_cast<RealCamera *>(camera[Camera::LEFT].get())->focus(focus);
+    static_cast<RealCamera *>(camera[Camera::RIGHT].get())->focus(focus);
 
-    ObjectSelector leftObjSelector;
-    ObjectSelector rightObjSelector;
+    ObjectSelector objSelector[2];
 
     double learningRate = -1;
-
-    // BUILD MODEL
-//    for(int i=0; i<28; i++) {
-//        Mat leftImage, rightImage, mask;
-//
-//        leftBgCamera->read(leftImage);
-//        rightBgCamera->read(rightImage);
-//
-//        leftBgSub->apply(leftImage, mask);
-//        rightBgSub->apply(rightImage, mask);
-//    }
-
-//    int i = 0;
 
     PclVisualization vis;
 
     while (true) {
-        Mat leftImage, leftMask;
-        leftCamera->readUndistorted(leftImage);
-        leftBgSub->apply(leftImage, leftMask, learningRate);
-        dilateAndErode(leftMask);
-        //drawGridXY(leftImage, leftCamera, leftCameraPose);
+        Mat selected[2];
 
-        Mat leftSelected(leftObjSelector.selectUsingContoursWithMaxArea(leftImage, leftMask));
+        //double t0 = getTickCount();
 
-        imshow("leftImage", leftSelected);
+#pragma omp parallel for
+        for (int i = 0; i < 2; i++) {
+            Mat image, mask;
+            camera[i]->readUndistorted(image);
+            bgSub[i]->apply(image, mask, learningRate);
+            dilateAndErode(mask);
+            //drawGridXY(leftImage, leftCamera, leftCameraPose);
 
-        Mat rightImage, rightMask;
-        rightCamera->readUndistorted(rightImage);
-        rightBgSub->apply(rightImage, rightMask, learningRate);
-        dilateAndErode(rightMask);
-        //drawGridXY(rightImage, rightCamera, rightCameraPose);
+            selected[i] = objSelector[i].selectUsingContoursWithMaxArea(image, mask);
+        }
 
-        Mat rightSelected(rightObjSelector.selectUsingContoursWithMaxArea(rightImage, rightMask));
+//        t0 = ((double) getTickCount() - t0) / getTickFrequency();
+//        std::cout << "Done in " << t0 << "s" << std::endl;
+//        std::cout.flush();
 
-        imshow("rightImage", rightSelected);
-//        imshow("rightMask", rightMask);
-
-//        char filename1[80];
-//        sprintf(filename1,"/media/balint/Data/Linux/diploma/src/bg/left_%d.png",i);
-//        imwrite(filename1, leftImage);
-//
-//        char filename2[80];
-//        sprintf(filename2,"/media/balint/Data/Linux/diploma/src/bg/right_%d.png",i);
-//        imwrite(filename2, rightImage);
-//        i++;
+        imshow("leftImage", selected[Camera::LEFT]);
+        imshow("rightImage", selected[Camera::RIGHT]);
 
         char ch = (char) waitKey(33);
 
@@ -174,56 +157,37 @@ int main(int argc, char **argv) {
 
             double t = getTickCount();
 
-            ofCalculator.feed(leftSelected, leftObjSelector.lastMask,
-                              rightSelected, rightObjSelector.lastMask);
+            ofCalculator.feed(selected, objSelector);
 
-            Matx33d leftR;
-            Rodrigues(leftCameraPose->rvec, leftR);
-            Matx34d leftP = Matx34d(leftR(0, 0), leftR(0, 1), leftR(0, 2), leftCameraPose->tvec.at<double>(0, 0),
-                                    leftR(1, 0), leftR(1, 1), leftR(1, 2), leftCameraPose->tvec.at<double>(1, 0),
-                                    leftR(2, 0), leftR(2, 1), leftR(2, 2), leftCameraPose->tvec.at<double>(2, 0));
-
-            Matx33d rightR;
-            Rodrigues(rightCameraPose->rvec, rightR);
-            Matx34d rightP = Matx34d(rightR(0, 0), rightR(0, 1), rightR(0, 2), rightCameraPose->tvec.at<double>(0, 0),
-                                     rightR(1, 0), rightR(1, 1), rightR(1, 2), rightCameraPose->tvec.at<double>(1, 0),
-                                     rightR(2, 0), rightR(2, 1), rightR(2, 2), rightCameraPose->tvec.at<double>(2, 0));
+            std::cout << "## Feed done in " << (((double) getTickCount() - t) / getTickFrequency()) << "s" << std::endl;
+            std::cout.flush();
 
             std::vector<CloudPoint> pointcloud;
             std::vector<Point> cp;
-            TriangulatePoints(ofCalculator.points1, leftCamera->K, leftCamera->Kinv, ofCalculator.points2,
-                              rightCamera->K, rightCamera->Kinv, leftP, rightP, pointcloud, cp);
-
-            // VISU!!!
+            TriangulatePoints(ofCalculator.points1, camera[Camera::LEFT]->K, camera[Camera::LEFT]->Kinv,
+                              ofCalculator.points2, camera[Camera::RIGHT]->K, camera[Camera::RIGHT]->Kinv,
+                              leftP, rightP, pointcloud, cp);
 
             t = ((double) getTickCount() - t) / getTickFrequency();
-            std::cout << "Done in " << t << "s" << std::endl;
+            std::cout << "## Done in " << t << "s" << std::endl;
             std::cout.flush();
 
+            // VISU
             vis.init();
-
-            cv::Affine3d leftViewAffine(leftCameraPose->rvec, leftCameraPose->tvec);
-            cv::Affine3d rightViewAffine(rightCameraPose->rvec, rightCameraPose->tvec);
-
-            Matx33d magic(1.0, 0, 0,
-                          0, 1.0, 0,
-                          0, 0, -1.0);
-
-            vis.addCamera(leftCamera, leftViewAffine.rotate(magic).matrix, 1);
-            vis.addCamera(rightCamera, rightViewAffine.rotate(magic).matrix, 2);
-
+            vis.addCamera(camera[Camera::LEFT], leftPclP, 1);
+            vis.addCamera(camera[Camera::RIGHT], rightPclP, 2);
             vis.addChessboard();
             vis.addPointCloud(pointcloud, 0);
+            // waitKey();
+        }
 
-            waitKey();
-        }
-        if (ch == 'w') {
-            focus += 1;
-            static_cast<RealCamera *>(leftCamera.get())->focus(focus);
-        } else if (ch == 's') {
-            focus -= 1;
-            static_cast<RealCamera *>(leftCamera.get())->focus(focus);
-        }
+//        if (ch == 'w') {
+//            focus += 1;
+//            static_cast<RealCamera *>(leftCamera.get())->focus(focus);
+//        } else if (ch == 's') {
+//            focus -= 1;
+//            static_cast<RealCamera *>(leftCamera.get())->focus(focus);
+//        }
     }
 
     return 0;

@@ -6,10 +6,16 @@ find_package(OpenCV 3.0.0 REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(GLUT REQUIRED)
 find_package(PCL 1.7.2 REQUIRED)
+find_package(OpenMP)
 
 include_directories(${PCL_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
+
+if (OPENMP_FOUND)
+    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+endif()
 
 set(CLASSES calibration/StereoCalibration.cpp camera/Camera.cpp camera/RealCamera.cpp camera/DummyCamera.cpp camera/StereoCamera.cpp calibration/Calibration.cpp calibration/CameraPoseCalculator.cpp camera/CameraPose.cpp OpenGLRenderer.cpp ObjectSelector.cpp optical_flow/OFReconstruction.cpp Triangulation.cpp Common.cpp optical_flow/OpticalFlowCalculator.cpp optical_flow/TemporalOpticalFlowCalculator.cpp optical_flow/SpatialOpticalFlowCalculator.cpp MultiView.cpp PclVisualization.cpp)
 

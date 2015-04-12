@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include <opencv2/core/mat.hpp>
 
 class CameraPose {
@@ -10,8 +9,9 @@ public:
 
     void load(const std::string& fileName);
 
-    void save(const std::string& fileName);
+    void save(const std::string& fileName) const;
+
+    cv::Matx34d getProjectionMatrix() const;
+
+    cv::Matx44d getPoseForPcl() const;
 };
-
-
-

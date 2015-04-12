@@ -13,13 +13,9 @@ protected:
     cv::Ptr<Camera> camera1;
     cv::Ptr<Camera> camera2;
 
-    cv::Mat frame1;
-    cv::Mat mask1;
-    cv::Mat texturedRegions1;
-
-    cv::Mat frame2;
-    cv::Mat mask2;
-    cv::Mat texturedRegions2;
+    cv::Mat frames[2];
+    cv::Mat masks[2];
+    cv::Mat texturedRegions[2];
 
     void calcTexturedRegions(const cv::Mat frame, const cv::Mat mask, cv::Mat &texturedRegions) const;
 

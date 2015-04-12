@@ -156,7 +156,7 @@ double TriangulatePoints(long frameId, const vector<Point2f> &pt_set1,
 
 #else
     Mat_<double> KP1 = K * Mat(P1);
-#pragma omp parallel for num_threads(1)
+#pragma omp parallel for
     for (int i = 0; i < pts_size; i++) {
         Point2f kp = pt_set1[i];
         Point3d u(kp.x, kp.y, 1.0);
@@ -183,15 +183,14 @@ double TriangulatePoints(long frameId, const vector<Point2f> &pt_set1,
 //		cout <<	"Point * K: " << xPt_img << endl;
         Point2f xPt_img_(xPt_img(0) / xPt_img(2), xPt_img(1) / xPt_img(2));
 
+        double reprj_err = norm(xPt_img_ - kp1);
+        CloudPoint cp;
+        cp.pt = Point3d(X(0), X(1), X(2));
+        cp.reprojection_error = reprj_err;
+
 #pragma omp critical
         {
-            double reprj_err = norm(xPt_img_ - kp1);
             reproj_error.push_back(reprj_err);
-
-            CloudPoint cp;
-            cp.pt = Point3d(X(0), X(1), X(2));
-            cp.reprojection_error = reprj_err;
-
             pointcloud.insert(frameId, cp, Point2i((int) pt_set1[i].x, (int) pt_set1[i].y));
             correspImg1Pt.push_back(pt_set1[i]);
         }
@@ -232,7 +231,7 @@ double TriangulatePoints(const vector<Point2f> &pt_set1,
     unsigned int pts_size = pt_set1.size();
 
     Mat_<double> KP1 = K2 * Mat(P1);
-#pragma omp parallel for num_threads(1)
+#pragma omp parallel for
     for (int i = 0; i < pts_size; i++) {
         Point2f kp = pt_set1[i];
         Point3d u(kp.x, kp.y, 1.0);
@@ -259,15 +258,14 @@ double TriangulatePoints(const vector<Point2f> &pt_set1,
 //		cout <<	"Point * K: " << xPt_img << endl;
         Point2f xPt_img_(xPt_img(0) / xPt_img(2), xPt_img(1) / xPt_img(2));
 
+        double reprj_err = norm(xPt_img_ - kp1);
+        CloudPoint cp;
+        cp.pt = Point3d(X(0), X(1), X(2));
+        cp.reprojection_error = reprj_err;
+
 #pragma omp critical
         {
-            double reprj_err = norm(xPt_img_ - kp1);
             reproj_error.push_back(reprj_err);
-
-            CloudPoint cp;
-            cp.pt = Point3d(X(0), X(1), X(2));
-            cp.reprojection_error = reprj_err;
-
             pointcloud.push_back(cp);
             correspImg1Pt.push_back(pt_set1[i]);
         }

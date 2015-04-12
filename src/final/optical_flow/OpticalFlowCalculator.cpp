@@ -14,11 +14,12 @@ void OpticalFlowCalculator::calcTexturedRegions(const Mat frame, const Mat mask,
     texturedRegions.create(frame.rows, frame.cols, CV_8U);
     texturedRegions.setTo(0);
 
-    // FIXME -- this can be done in boundringRect!
+    Rect roi(boundingRect(mask));
 
-    for (int y = 0; y < frame.rows; y++) {
-        for (int x = 0; x < frame.cols; x++) {
-            if (!frame.at<char>(y, x)) {
+#pragma omp parallel for collapse(2)
+    for (int y = roi.tl().y; y <= roi.br().y; y++) {
+        for (int x = roi.tl().x; x <= roi.br().x; x++) {
+            if (!mask.at<char>(y, x)) {
                 continue;
             }
 
@@ -62,15 +63,14 @@ void OpticalFlowCalculator::calcTexturedRegions(const Mat frame, const Mat mask,
 
 double OpticalFlowCalculator::calcOpticalFlow(Point &translation) {
 
-    Mat flow12;
-    calcOpticalFlowFarneback(frame1, frame2, flow12, 0.5, 4, 21, 10, 7, 1.5, OPTFLOW_FARNEBACK_GAUSSIAN);
+    Mat flows[2];
 
-//    this->visualizeOpticalFlow(frame1, mask1, frame2, mask2, flow12, "flow12");
-
-    Mat flow21;
-    calcOpticalFlowFarneback(frame2, frame1, flow21, 0.5, 4, 21, 10, 7, 1.5, OPTFLOW_FARNEBACK_GAUSSIAN);
-
-//    this->visualizeOpticalFlow(frame2, mask2, frame1, mask1, flow21, "flow21");
+#pragma omp parallel for
+    for (int i = 0; i < 2; i++) {
+        calcOpticalFlowFarneback(frames[i], frames[(i + 1) % 2], flows[i], 0.5, 4, 21, 10, 7, 1.5,
+                                 OPTFLOW_FARNEBACK_GAUSSIAN);
+//        this->visualizeOpticalFlow(frame1, mask1, frame2, mask2, flow12, "flow12");
+    }
 
     // trying to smooth the vectorfield
     //Mat smoothedFlow;
@@ -78,7 +78,7 @@ double OpticalFlowCalculator::calcOpticalFlow(Point &translation) {
     //smoothedFlow.copyTo(flow2);
 
     // collecting matching points using optical flow
-    collectMatchingPoints(flow12, flow21, points1, points2);
+    collectMatchingPoints(flows[0], flows[1], points1, points2);
 
 //    visualizeMatches(points1, points2);
 //    waitKey();
@@ -94,22 +94,20 @@ double OpticalFlowCalculator::calcOpticalFlow(Point &translation) {
 
         Point newTranslation(-avgMovement);
 
-        Rect currentBoundingRect(boundingRect(mask2));
+        Rect currentBoundingRect(boundingRect(masks[1]));
 
         // translate the image
         Mat _currentFrame;
-        frame2.copyTo(_currentFrame);
-        shiftImage(_currentFrame, currentBoundingRect, newTranslation, frame2);
+        frames[1].copyTo(_currentFrame);
+        shiftImage(_currentFrame, currentBoundingRect, newTranslation, frames[1]);
         // translate the mask
         Mat _currentMask;
-        mask2.copyTo(_currentMask);
-        shiftImage(_currentMask, currentBoundingRect, newTranslation, mask2);
+        masks[1].copyTo(_currentMask);
+        shiftImage(_currentMask, currentBoundingRect, newTranslation, masks[1]);
         // translate the textured regions
         Mat _currentTexturedRegions;
-        texturedRegions2.copyTo(_currentTexturedRegions);
-        shiftImage(_currentTexturedRegions, currentBoundingRect, newTranslation, texturedRegions2);
-        // translating the contour
-        // translate(currentContour, translation);
+        texturedRegions[1].copyTo(_currentTexturedRegions);
+        shiftImage(_currentTexturedRegions, currentBoundingRect, newTranslation, texturedRegions[1]);
 
         translation += newTranslation;
 
@@ -133,6 +131,9 @@ void OpticalFlowCalculator::collectMatchingPoints(const Mat &flow, const Mat &ba
     points1.clear();
     points2.clear();
 
+//    double t0 = getTickCount();
+
+#pragma omp parallel for collapse(2)
     for (int y = 0; y < flow.rows; y++) {
         for (int x = 0; x < flow.cols; x++) {
 
@@ -142,7 +143,7 @@ void OpticalFlowCalculator::collectMatchingPoints(const Mat &flow, const Mat &ba
             Point to(cvRound(x + fwd.x), cvRound(y + fwd.y));
 
             // check if we are still in the mask, and the movement is not zero
-            if (mask1.at<uchar>(from) && mask2.at<uchar>(to) && fwd.dot(fwd) > 0.0001) {
+            if (masks[0].at<uchar>(from) && masks[1].at<uchar>(to) && fwd.dot(fwd) > 0.0001) {
 
                 // to + back = backTo
                 const Point2f &back = backFlow.at<Point2f>(to);
@@ -152,15 +153,22 @@ void OpticalFlowCalculator::collectMatchingPoints(const Mat &flow, const Mat &ba
 
                 // only use if the backflow points almost there
                 if (diff2.dot(diff2) <= 1) {
-                    if (texturedRegions1.at<char>(from) && texturedRegions2.at<char>(to)) {
-                        points1.push_back(Point2f(from));
-                        points2.push_back(Point2f(x + fwd.x, y + fwd.y));
+                    if (texturedRegions[0].at<char>(from) && texturedRegions[1].at<char>(to)) {
+#pragma omp critical
+                        {
+                            points1.push_back(Point2f(from));
+                            points2.push_back(Point2f(x + fwd.x, y + fwd.y));
+                        }
                     }
                 }
 
             }
         }
     }
+
+//    t0 = ((double) getTickCount() - t0) / getTickFrequency();
+//    std::cout << "collect Done in " << t0 << "s" << std::endl;
+//    std::cout.flush();
 }
 
 // -----------------
@@ -197,7 +205,7 @@ void OpticalFlowCalculator::visualizeOpticalFlow(const cv::Mat &img1, const cv::
 
 void OpticalFlowCalculator::visualizeMatches(const vector<Point2f> &points1, const vector<Point2f> &points2) const {
     Mat vis;
-    frame2.copyTo(vis);
+    frames[1].copyTo(vis);
     cvtColor(vis, vis, cv::COLOR_GRAY2BGR);
 
     for (int i = 0; i < points1.size(); i++) {
@@ -217,7 +225,7 @@ void OpticalFlowCalculator::visualizeMatches(const Mat &img1, const vector<Point
                                              const Mat &img2, const vector<Point2f> &points2) const {
 
     Mat vis = mergeImages(img1, img2);
-    if(vis.channels() != 3) {
+    if (vis.channels() != 3) {
         cvtColor(vis, vis, cv::COLOR_GRAY2BGR);
     }
 
