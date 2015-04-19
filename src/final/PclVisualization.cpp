@@ -14,26 +14,29 @@ PclVisualization::PclVisualization() : visu("pcl visualization") {
 
     visu.addCoordinateSystem(1.0, "global");
 
-//    Clipping plane [near,far] 0.024828, 24.828
+//    Clipping plane [near,far] 0.0724658, 72.4658
 //    Focal point [x,y,z] -0.457301, 0.33872, 8.81649
-//    Position [x,y,z] 1.87121, -3.00263, -4.96935
-//    View up [x,y,z] -0.396604, -0.905247, 0.152421
+//    Position [x,y,z] 9.11403, 23.3834, -28.7686
+//    View up [x,y,z] -0.264227, -0.790776, -0.552139
+//    Camera view angle [degrees] 90
+//    Window size [x,y] 640, 480
+//    Window position [x,y] 65, 52
 
     visualization::Camera cam;
-    cam.pos[0] = 0.0494508;
-    cam.pos[1] = -0.388455;
-    cam.pos[2] = 5.81629;
+    cam.pos[0] = 9.11403;
+    cam.pos[1] = 23.3834;
+    cam.pos[2] = -28.7686;
 
-    cam.view[0] = -0.3966;
-    cam.view[1] = -0.905247;
-    cam.view[2] = 0.152421;
+    cam.view[0] = -0.264227;
+    cam.view[1] = -0.790776;
+    cam.view[2] =  -0.552139;
 
     cam.focal[0] = -0.457301;
     cam.focal[1] = 0.33872;
     cam.focal[2] = 8.81649;
 
-    cam.clip[0] = 0.008923;
-    cam.clip[1] = 8.923;
+    cam.clip[0] = 0.0724658;
+    cam.clip[1] = 72.4658;
 
     cam.fovy = M_PI_2;
 
@@ -137,7 +140,7 @@ void PclVisualization::addPointCloud(const std::vector<CloudPoint> &points, long
     visualization::PointCloudColorHandlerGenericField<PointXYZ> color_handler(cloud, "z");
 
     visu.addPointCloud(cloud, color_handler, std::to_string(frameId));
-    visu.spin();
+    visu.spinOnce(50, false);
 }
 
 void PclVisualization::init() {

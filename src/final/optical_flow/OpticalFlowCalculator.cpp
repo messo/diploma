@@ -1,5 +1,6 @@
 #include <opencv2/video/tracking.hpp>
 #include <opencv2/highgui.hpp>
+#include <omp.h>
 #include "OpticalFlowCalculator.h"
 #include "../Common.h"
 #include "OFReconstruction.h"
@@ -73,6 +74,7 @@ double OpticalFlowCalculator::calcOpticalFlow(Point &translation) {
 
 #pragma omp parallel for
     for (int i = 0; i < 2; i++) {
+        //std::cout << "THREAD: " << omp_get_thread_num() << std::endl;
         calcOpticalFlowFarneback(frames[i](unified), frames[(i + 1) % 2](unified), _flows[i], 0.5, 4, 21, 10, 7, 1.5,
                                  OPTFLOW_FARNEBACK_GAUSSIAN);
 //        this->visualizeOpticalFlow(frame1, mask1, frame2, mask2, flow12, "flow12");
@@ -143,6 +145,8 @@ void OpticalFlowCalculator::collectMatchingPoints(const Mat &flow, const Mat &ba
 
 //    double t0 = getTickCount();
 
+    Rect imageArea(Point(0, 0), masks[1].size());
+
 #pragma omp parallel for collapse(2)
     for (int y = roi.tl().y; y <= roi.br().y; y++) {
         for (int x = roi.tl().x; x <= roi.br().x; x++) {
@@ -153,7 +157,7 @@ void OpticalFlowCalculator::collectMatchingPoints(const Mat &flow, const Mat &ba
             Point to(cvRound(x + fwd.x), cvRound(y + fwd.y));
 
             // check if we are still in the mask, and the movement is not zero
-            if (masks[0].at<uchar>(from) && masks[1].at<uchar>(to) && fwd.dot(fwd) > 0.0001) {
+            if (masks[0].at<uchar>(from) && to.inside(imageArea) && masks[1].at<uchar>(to) && fwd.dot(fwd) > 0.0001) {
 
                 // to + back = backTo
                 const Point2f &back = backFlow.at<Point2f>(to);

@@ -23,7 +23,7 @@ add_executable(Final main.cpp ${CLASSES})
 target_compile_features(Final PRIVATE cxx_range_for)
 target_link_libraries(Final ${OPENGL_LIBRARIES} ${OpenCV_LIBS} ${GLUT_LIBRARIES} v4l2 ${PCL_COMMON_LIBRARIES} ${PCL_VISUALIZATION_LIBRARIES})
 
-add_executable(Diploma diploma.cpp ${CLASSES})
+add_executable(Diploma diploma.cpp ${CLASSES} locking.h MatVisualization.cpp MatVisualization.h)
 target_compile_features(Diploma PRIVATE cxx_range_for)
 target_link_libraries(Diploma ${OPENGL_LIBRARIES} ${OpenCV_LIBS} ${GLUT_LIBRARIES} v4l2 ${PCL_COMMON_LIBRARIES} ${PCL_VISUALIZATION_LIBRARIES})
 
@@ -38,3 +38,5 @@ target_link_libraries(VideoMaker ${OPENGL_LIBRARIES} ${OpenCV_LIBS} ${GLUT_LIBRA
 add_executable(TriTest TriTest.cpp ${CLASSES} camera/VirtualCamera.cpp camera/FakeCamera.cpp)
 target_compile_features(TriTest PRIVATE cxx_range_for)
 target_link_libraries(TriTest ${OPENGL_LIBRARIES} ${OpenCV_LIBS} ${GLUT_LIBRARIES} v4l2 ${PCL_LIBRARIES})
+
+add_executable(OmpTest omp_test.cpp)

@@ -74,25 +74,8 @@ void shiftImage(const cv::Mat &input, const cv::Rect &boundingRect,
     if ((newBoundingRect & Rect(Point(0, 0), output.size())) == newBoundingRect) {
         input(boundingRect).copyTo(output(newBoundingRect));
     } else {
-        Rect _boundingRect(boundingRect);
-
-        if (newBoundingRect.x < 0) {
-            int diff = newBoundingRect.x;
-            newBoundingRect.x = 0;
-            newBoundingRect.width += diff;
-
-            _boundingRect.x -= diff;
-            _boundingRect.width += diff;
-        }
-
-        if (newBoundingRect.y < 0) {
-            int diff = newBoundingRect.y;
-            newBoundingRect.y = 0;
-            newBoundingRect.height += diff;
-
-            _boundingRect.y -= diff;
-            _boundingRect.height += diff;
-        }
+        newBoundingRect &= Rect(Point(0, 0), output.size());
+        Rect _boundingRect(newBoundingRect - translation);
 
         input(_boundingRect).copyTo(output(newBoundingRect));
     }

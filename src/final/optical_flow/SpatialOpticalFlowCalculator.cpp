@@ -7,7 +7,7 @@ using namespace cv;
 using namespace std;
 
 
-bool SpatialOpticalFlowCalculator::feed(cv::Mat(&frames)[2], ObjectSelector(&objSelector)[2]) {
+bool SpatialOpticalFlowCalculator::feed(std::vector<cv::Mat> &frames, std::vector<cv::Mat> &masks) {
 
     Point translations[2];
 
@@ -20,7 +20,7 @@ bool SpatialOpticalFlowCalculator::feed(cv::Mat(&frames)[2], ObjectSelector(&obj
         } else {
             this->frames[i] = frames[i].clone();
         }
-        this->masks[i] = objSelector[i].lastMask.clone();
+        this->masks[i] = masks[i].clone();
 
         // move the frame2 and mask around a bit, so the main object's movement is not that big -- so OF will be okay
         translations[i] = moveToTheCenter(this->frames[i], this->masks[i]);
