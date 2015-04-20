@@ -1,0 +1,23 @@
+%----------------------------------------------------------------------------
+\chapter*{Bevezető}\addcontentsline{toc}{chapter}{Bevezető}
+%----------------------------------------------------------------------------
+
+Az informatika, ezen belül pedig a gépi látással foglalkozó terület, valamint az ehhez szükséges számítási kapacitás és célhardverek rohamos fejlődésével, mind újabb, hatékonyabb valamint pontosabb megoldások születtek és születnek a felmerült problémákra.
+
+Míg egy-két évtizeddel ezelőtt a gépi látáshoz kapcsolódó kutatások jelentős részét főként a robotika, a katonság (pl. drónok), valamint az űrkutatás adta, manapság már a mindennapi élet gyökeres részévé vált. Vegyük például a közlekedést; a közép-felső kategóriás autóknál már szériatartozéknak tekinthető az elülső és hátsó tolató radar. Ugyanígy a kereskedelmi forgalomban kapható kis robot-porszívók is rendelkeznek beépített kamera/radar-rendszerrel, amely a beltéri navigációt segíti. A napjainkban kapható játékkonzolokhoz is vásárolható kiegészítő kamera rendszer, mely a játékos mozgását és pozícióját figyeli, lényegében a játékos a saját testét használja vezérlőként. Szórakozást tekintve a manapság egyre nagyobb teret kapó quadcoptereket \cite{quadropter} is említeni kell, ezek is rendelkeznek kamerával (vagy rájuk szerelhető), és már folynak kutatások, amelyek ezek akár autonóm \cite{quad-autonomous}, akár tömeges \cite{quad-swarm} -- rajban történő -- repülését vizsgálja.
+
+A dolgozat motivációját a következő feltevésekhez hasonló problémák adták:
+\begin{itemize}
+\item Egy izgalmas gólhelyzet során mit láthatott a kapus a kapuban állva?
+\item Egy bankrablási szituációban mit láthatott az elkövető, és mit a biztonsági őr?
+\item Egy vizsga során, a gyanús egyetemista láthatta-e az előtte ülő dolgozatát?
+\item Egy közlekedési balesetben mit láthatott a biciklis, és mit a buszsofőr?
+\end{itemize}
+
+Ezekre és ehhez hasonló kérdésekre választ nyújthat a kitűzött feladat megoldása, miszerint több kamerával megfigyelt térrészt egy választott nézpontból rekonstruálunk, mivel a fenti esetekben nem oldható meg, hogy a választott személy nézőpontjába valódi kamerákat állítsunk.
+
+Az 1. fejezetben a feladat értelmezését követően a megoldásához szükséges elméleti háttérről lesz szó, mely tartalmazza a háromdimenziós tér alapvető transzformációit, valamint a dolgozat során használt kameramodellt.
+
+A 2. fejezetben a több kamerából álló kamerarendszereknél felmerülő problémák kerülnek tárgyalásra, illetve, hogy ezekre milyen, a napjainkban is használt megoldások léteznek, kitérve a feladat során szükséges részproblémák megoldására is.
+
+A 3. fejezetben bemutatásra kerül az előző fejezetek által leírt információk és algoritmusok alapján egy, a kitűzött feladatra megoldást adó rendszer váza, megvalósítási terve. %, és a tervezett rendszerrel szemben támasztott követelmények.
