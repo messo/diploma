@@ -10,23 +10,24 @@ A diplomamunka során az OpenCV \cite{opencv} keretrendszert fogom használni me
 
 \section{A célkitűzés}
 
-A diplomamunka során elkészítendő rendszernek képesnek kell lennie egy zárt térrész tetszőlegesen választott pontjában és irányában látható, a mozgó objektumokat tartalmazó kép helyreállítására fix telepítésű kamerák valós idejű videofolyamai alapján. A helyreállítást akkor tekintjük sikeresnek, ha a mozgó objektumokat detektálom és a választott nézőpontból azok megközelítő kontúrjait sikeresen ki tudom rajzolni. A tényleges objektum struktúrájának illetve textúrájának meghatározása nem esik e dolgozat hatáskörébe.
+A diplomamunka során elkészítendő rendszernek képesnek kell lennie egy zárt térrész tetszőlegesen választott pontjában és irányában látható, a mozgó objektumokat tartalmazó kép helyreállítására fix telepítésű kamerák valós idejű videofolyamai alapján. A helyreállítást akkor tekintjük sikeresnek, ha a mozgó objektumokat detektálom és választott nézőpontból azok megközelítő kontúrjait sikeresen meghatározom. A tényleges objektum struktúrájának illetve textúrájának meghatározása nem esik e dolgozat hatáskörébe. Gondoljuk meg, hogy a választott nézőpontra is vannak korlátaink, érdemi rekonstrukciót csak a kamerákat összekötő képzeletbeli szakaszon és annak környezetében várhatunk, így a tesztelést is így fogom végezni.
 
-A rendszer tervezése során figyelembe veszem, hogy lényegében tetszőleges számú kamerát is felhasználhatok a probléma megoldásához, de az elkészült rendszer az elérhető eszközök korlátozott száma miatt csak négy kamerával lesz kipróbálva. Egyre több kamera bevonásával a rekonstrukció minősége, valamint a helyesen rekonstruálható nézőpontok száma növekszik, de ezzel együtt a rendszer teljesítménye a megnövekedő számítási szükséglet miatt csökken. A rendszer implementálása után következtetéseket vonok le, hogy a teljesítményesés milyen tendenciát mutat, esetleg hogyan javítható. %A rendszer teljesítményére vonatkozóan viszont következtetéseket vonok le, hogy több kamera bevonása esetén, a számítási kapacitás növelése nélkül milyen csökkenésre lehet számítani.
+A rendszer tervezése során figyelembe veszem, hogy lényegében tetszőleges számú kamerát is felhasználhatok a probléma megoldásához, ennek megfelelően a megvalósított rendszer architektúráját így készítem el, de az elérhető eszközök korlátozott száma miatt csak két kamerával lesz tesztelve. Egyre több kamera bevonásával a rekonstrukció minősége, valamint a helyesen rekonstruálható nézőpontok száma növekszik, de ezzel együtt a rendszer teljesítménye a megnövekedő számítási szükséglet miatt csökken. Fontos megemlíteni, hogy a feladat és a megoldás jellegéből adódóan a független kamerákból meghatározott rekonstrukciók párhuzamosíthatóak, így ezek megfelelő feldolgozó egységet feltételezve egy időben elvégezhetőek. Ez azt jelenti, hogy a kamerák számának növelése valóban megoldás lehet a robusztus eredmény eléréséhez.
 
 \section{A tervezett rendszer felépítése}
 
-Ebben a részben az elméleti résznél \aref{sec:methods}. szekcióban leírt kétféle megközelítéshez tartozó rendszerek terveit mutatom be.
+A feladat megoldásához \aref{methods:optic}. alszekcióban leírt optikai-folyamos eljárást használom fel. A rendszer tervét, átfogó képét mutatom be a következőkben.
 
-\subsection{Sztereó-látáson alapú megközelítés}
+A kamerákat két lépésben kalibrálom; először, hogy a torzításukat minimalizáljam, majd azért, hogy meghatározhassam az elhelyezkedésüket egy rögzített koordinátarendszerben. Ezt követően a kamerákat úgy párosítva, hogy azok egymáshoz közel helyezkedjenek el, és nagyjából egy irányba nézzenek, az általuk látott térrészről alkotott képeiken egyező pontokat keresek az optikai folyamok segítségével. Felhasználva, hogy a kamerák helyzetét ismerem, háromszögeléssel megkaphatom a pontok világbeli koordinátájukat. Így tetszőleges sok kamera által előállított pontfelhőt egy közös koordinátarendszerben kapom meg, így ezek könnyen egyesíthetőek. Ezután a választott nézőpontból projekció segítségével meghatározom az onnan látható képet, és ezen befoglaló sokszögekkel közelíthetőek az objektumok kontúrja. Ezt a folyamatot mutatja be \aref{fig:of-method}. ábra. A diplomaterv keretében a színezett hátterű lépések készültek el, a több kamerákra vonatkozó együttes kezelés nem.
 
-\begin{figure}[t]
+\begin{sidewaysfigure}
 \centering
 
 \pgfdeclarelayer{background}
 \pgfdeclarelayer{foreground}
 \pgfsetlayers{background,main,foreground}
 
+\resizebox{\textwidth}{!}{%
 \begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto]
 \tikzset{
 box/.style={draw, rectangle, text width=12em, minimum height=2.5em, text centered},
@@ -35,165 +36,134 @@ line/.style = {-,shorten >=0pt},
 graybox/.style = {box, gray}
 }
 
-\node[plain] (Cam12) {1. kamera pár};
+\node[plain] (Cam1) {1. kamera};
 
-\node[graybox] (SCalib) [below of=Cam12] {Sztereó kalibrálás};
+\node[graybox,fill=green!10] (Calib1) [below of=Cam1] {Kalibrálás};
 
-\node[box] (GetFrames1) [below of=SCalib,yshift=-1.5em] {Aktuális képkockák lekérése};
+\node[box,fill=green!10] (GetFrames1) [below of=Calib1,yshift=-1.5em] {Aktuális képkocka lekérése};
 
-\node[box] (Rectify) [below of=GetFrames1,yshift=-1.5em] {Rektifikáció};
+\node[box,fill=green!10] (OD1) [below of=GetFrames1,yshift=-1.5em] {Objektum(ok) detekciója};
 
-\node[box] (FwdBkg) [below of=Rectify,yshift=-1.5em] {Előtér-háttér szegmentáció};
+\draw (Calib1) -- (GetFrames1);
+\draw (GetFrames1) -- (OD1);
 
-\node[box] (Depth) [below of=FwdBkg,yshift=-1.5em] {Mélység-kép meghatározása};
 
-\node[box] (3D) [below of=Depth,yshift=-1.5em] {Pontfelhő rekonstrukció};
 
-\draw (SCalib) -- (GetFrames1);
-\draw (GetFrames1) -- (Rectify);
-\draw (Rectify) -- (FwdBkg);
-\draw (FwdBkg) -- (Depth);
-\draw (Depth) -- (3D);
+\node[plain] (Cam2) [right of=Cam1,xshift=14em] {2. kamera};
 
-\node[plain] (LDots) [right of=Rectify,xshift=7.75em] {$\ldots$};
+\node[graybox,fill=green!10] (Calib2) [below of=Cam2] {Kalibrálás};
 
-\node[plain] (Cam34) [right of=Cam12,xshift=18em] {$n$. kamera pár};
+\node[box,fill=green!10] (GetFrames2) [below of=Calib2,yshift=-1.5em] {Aktuális képkocka lekérése};
 
-\node[graybox] (SCalib2) [below of=Cam34] {Sztereó kalibrálás};
+\node[box,fill=green!10] (OD2) [below of=GetFrames2,yshift=-1.5em] {Objektum(ok) detekciója};
 
-\node[box] (GetFrames2) [below of=SCalib2,yshift=-1.5em] {Aktuális képkockák lekérése};
+\draw (Calib2) -- (GetFrames2);
+\draw (GetFrames2) -- (OD2);
 
-\node[plain] (Dots1) [below of=GetFrames2,yshift=-1.5em] {$\vdots$};
 
-\node[box] (3D2) [right of=3D,xshift=18em] {Pontfelhő rekonstrukció};
 
-\node[plain] (Dots2) [right of=Depth,xshift=18em] {$\vdots$};
+\node[plain] (Cam3) [right of=Cam2,xshift=14em] {3. kamera};
 
-\draw (SCalib2) -- (GetFrames2);
-\draw (GetFrames2) -- (Dots1);
-\draw (Dots2) -- (3D2);
+\node[graybox] (Calib3) [below of=Cam3] {Kalibrálás};
 
-\node[box] (Coords) [below of=3D,xshift=10.35em,yshift=-2.5em] {Koordináta-rendszer egységesítés};
+\node[box] (GetFrames3) [below of=Calib3,yshift=-1.5em] {Aktuális képkocka lekérése};
 
-\draw (3D) |- (Coords);
-\draw (3D2) |- (Coords);
+\node[box] (OD3) [below of=GetFrames3,yshift=-1.5em] {Objektum(ok) detekciója};
 
-\node[box] (Viewpoint) [below of=Coords,yshift=-1.5em] {Választott nézőpontból kontúrok};
+\draw (Calib3) -- (GetFrames3);
+\draw (GetFrames3) -- (OD3);
 
-\draw (Coords) -- (Viewpoint);
 
-\coordinate (Bottom) at ($(Viewpoint) + (0,-3em)$);
 
-\draw (Viewpoint) -- (Bottom);
+\node[plain] (CamN) [right of=Cam3,xshift=18em] {$n$. kamera};
 
-\draw (Bottom) -- ++(-7.5,0) |- (GetFrames1);
-\draw (Bottom) -- ++(7.5,0) |- (GetFrames2);
+\node[graybox] (CalibN) [below of=CamN] {Kalibrálás};
+
+\node[box] (GetFramesN) [below of=CalibN,yshift=-1.5em] {Aktuális képkocka lekérése};
+
+\node[box] (ODN) [below of=GetFramesN,yshift=-1.5em] {Objektum(ok) detekciója};
+
+\draw (CalibN) -- (GetFramesN);
+\draw (GetFramesN) -- (ODN);
+
+
+\node[plain] (LDots) [right of=GetFrames3,xshift=7.75em] {$\ldots$};
+
+
+\node[box,fill=green!10] (OF12) [below of=OD1,xshift=8.25em,yshift=-2.5em] {Optikai folyam meghatározása};
+ 
+\draw (OD1) |- (OF12);
+\draw (OD2) |- (OF12);
+
+
+\node[box] (OF23) [below of=OD2,xshift=8.25em,yshift=-2.5em] {Optikai folyam meghatározása};
+ 
+\draw (OD2) |- (OF23);
+\draw (OD3) |- (OF23);
+
+
+\node[plain] (OF34) [below of=OD3,xshift=6em,yshift=-2.5em,text width=2em] {$\ldots$};
+\draw (OD3) |- (OF34);
+
+\node[plain,below of=ODN,xshift=-6em,yshift=-2.5em,text width=2em] (OFnn) {$\ldots$};
+\draw (ODN) |- (OFnn);
+
+
+
+\node[box,fill=green!10] (Triangle12) [below of=OF12,yshift=-1.5em] {Háromszögelés};
+
+\draw (OF12) -- (Triangle12);
+
+\node[box] (Triangle23) [below of=OF23,yshift=-1.5em] {Háromszögelés};
+
+\draw (OF23) -- (Triangle23);
+
+
+\node[plain] (Others) [below of=OD3,xshift=10em,yshift=-8em,text width=2em] {$\vdots$};
+
+\node[box] (Merge) [below of=Triangle12,xshift=8em,yshift=-2.5em] {Összefűzés};
+
+\draw (Triangle12) |- (Merge);
+\draw (Triangle23) |- (Merge);
+\draw (Others) |- (Merge);
+
+
+\node[box,fill=green!10] (Contour) [below of=Merge,yshift=-1.5em] {Nézőpontból projekció + kontúr};
+
+\draw (Merge) -- (Contour);
+
+
 
 \begin{pgfonlayer}{background}
-    \path (Cam12.north west)+(-0.5,0.5) node (a) {};
-    \path (3D.south east)+(+0.5,-0.5) node (b) {};
+    \path (Cam1.north west)+(-0.5,0.5) node (a) {};
+    \path (OD1.south east)+(+0.5,-0.5) node (b) {};
     \path[rounded corners, draw=black!50, dashed] (a) rectangle (b);
 \end{pgfonlayer}
 
 \begin{pgfonlayer}{background}
-    \path (Cam34.north west)+(-0.5,0.5) node (a) {};
-    \path (3D2.south east)+(+0.5,-0.5) node (b) {};
+    \path (Cam2.north west)+(-0.5,0.5) node (a) {};
+    \path (OD2.south east)+(+0.5,-0.5) node (b) {};
+    \path[rounded corners, draw=black!50, dashed] (a) rectangle (b);
+\end{pgfonlayer}
+
+\begin{pgfonlayer}{background}
+    \path (Cam3.north west)+(-0.5,0.5) node (a) {};
+    \path (OD3.south east)+(+0.5,-0.5) node (b) {};
+    \path[rounded corners, draw=black!50, dashed] (a) rectangle (b);
+\end{pgfonlayer}
+
+
+\begin{pgfonlayer}{background}
+    \path (CamN.north west)+(-0.5,0.5) node (a) {};
+    \path (ODN.south east)+(+0.5,-0.5) node (b) {};
     \path[rounded corners, draw=black!50, dashed] (a) rectangle (b);
 \end{pgfonlayer}
 
 \end{tikzpicture}
-
-\caption{Sztereókamerák módszere \label{fig:stereo-method}}
-\end{figure}
-
-Az első megközelítés kiinduló pontja, hogy a kamerák az előző fejezetben leírt módszerekkel páronként sztereókalibráltak. Ezután a program a bejövő képkockákat kamera-pároként dolgozza fel a következők szerint. Először rektifikálja a bejövő képet, hogy a mélységképet megkapjuk. A folyamatos háttérmodell-építésnek köszönhetően mindig lekéri az aktuális előtérnek megfelelő maszkot, ezt alkalmazva a képeken csak a számunkra érdekes képinformáció marad meg. Az eredményből a mélységképet meghatározom az SGBM \cite{SGBM} algoritmus segítségével, és így előállnak a pontfelhők. Amikor minden kamerapárra az előzőek lefutottak, akkor az összegyűjtött eredményeket egy közös koordináta-rendszerbe transzformálom. A választott nézőpontokból ezután a pontfelhőhöz meghatározom az objektumok kontúrjait, és így az adott pillanat rekonstrukcióját kapom. Az előzőekben leírt lépéseket \aref{fig:stereo-method}. ábra mutatja be. 
-
-\subsection{Optikai folyamokon alapuló megközelítés}
-
-E módszer lényege, hogy a kamerákat külön-külön használom, azok egyéni képei alapján rekonstruálom a mozgó objektumokat az adott nézőpontokból. Az optikai folyamok segítségével képről képre megbecsülöm, hogy az objektum pontjai hova mozdultak, és ezeket felhasználva a háromszögeléses módszer segítségével meghatározom az objektum közelítő pontfelhőjét. Ezeket, hasonlóan az előző megközelítéshez, egy közös koordináta-rendszerben ábrázolom, végül a választott nézőpontból a látott objektumok aktuális pillanatában látható kontúrjait kiszámolom, lásd \aref{fig:of-method}. ábrát.
-
-\begin{figure}[tbh]
-\centering
-
-\pgfdeclarelayer{background}
-\pgfdeclarelayer{foreground}
-\pgfsetlayers{background,main,foreground}
-
-\begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto]
-\tikzset{
-box/.style={draw, rectangle, text width=12em, minimum height=2.5em, text centered},
-plain/.style={text width=12em, text centered},
-line/.style = {-,shorten >=0pt},
-graybox/.style = {box, gray}
 }
-
-\node[plain] (Cam12) {1. kamera};
-
-\node[graybox] (SCalib) [below of=Cam12] {Kalibrálás};
-
-\node[box] (GetFrames1) [below of=SCalib,yshift=-1.5em] {Aktuális képkocka lekérése};
-
-\node[box] (OF1) [below of=GetFrames1,yshift=-1.5em] {Optikai folyam meghatározása};
-
-\node[box] (Triangulation) [below of=OF1,yshift=-1.5em] {Háromszögelés};
-
-\node[box] (CloudUpdate) [below of=Triangulation,yshift=-1.5em] {Pontfelhő frissítése az új adatokkal};
-
-\draw (SCalib) -- (GetFrames1);
-\draw (GetFrames1) -- (OF1);
-\draw (OF1) -- (Triangulation);
-\draw (Triangulation) -- (CloudUpdate);
-
-\node[plain] (LDots) [right of=OF1,xshift=7.75em] {$\ldots$};
-
-\node[plain] (Cam34) [right of=Cam12,xshift=18em] {$n$. kamera};
-
-\node[graybox] (SCalib2) [below of=Cam34] {Kalibrálás};
-
-\node[box] (GetFrames2) [below of=SCalib2,yshift=-1.5em] {Aktuális képkocka lekérése};
-
-\node[plain] (Dots1) [below of=GetFrames2,yshift=-1.5em] {$\vdots$};
-
-\node[plain] (Dots2) [right of=Triangulation,xshift=18em] {$\vdots$};
-
-\node[box] (CloudUpdate2) [right of=CloudUpdate,xshift=18em] {Pontfelhő frissítése az új adatokkal};
-
-\draw (SCalib2) -- (GetFrames2);
-\draw (GetFrames2) -- (Dots1);
-\draw (Dots2) -- (CloudUpdate2);
-
-\node[box] (Coords) [below of=CloudUpdate,xshift=10.35em,yshift=-2.5em] {Koordináta-rendszer egységesítés};
-
-\draw (CloudUpdate) |- (Coords);
-\draw (CloudUpdate2) |- (Coords);
-
-\node[box] (Viewpoint) [below of=Coords,yshift=-1.5em] {Választott nézőpontból kontúrok};
-
-\draw (Coords) -- (Viewpoint);
-
-\coordinate (Bottom) at ($(Viewpoint) + (0,-3em)$);
-
-\draw (Viewpoint) -- (Bottom);
-
-\draw (Bottom) -- ++(-7.5,0) |- (GetFrames1);
-\draw (Bottom) -- ++(7.5,0) |- (GetFrames2);
-
-\begin{pgfonlayer}{background}
-    \path (Cam12.north west)+(-0.5,0.5) node (a) {};
-    \path (CloudUpdate.south east)+(+0.5,-0.5) node (b) {};
-    \path[rounded corners, draw=black!50, dashed] (a) rectangle (b);
-\end{pgfonlayer}
-
-\begin{pgfonlayer}{background}
-    \path (Cam34.north west)+(-0.5,0.5) node (a) {};
-    \path (CloudUpdate2.south east)+(+0.5,-0.5) node (b) {};
-    \path[rounded corners, draw=black!50, dashed] (a) rectangle (b);
-\end{pgfonlayer}
-
-\end{tikzpicture}
 
 \caption{Optikai folyamok módszere \label{fig:of-method}}
-\end{figure}
+\end{sidewaysfigure}
 
 \section{Összefoglaló}
 

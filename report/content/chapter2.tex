@@ -12,7 +12,7 @@ Amennyiben ilyen adat nem áll rendelkezésre a videófolyamban, egyéb módszer
 
 \section{A háromdimenziós tér rekonstrukciója \label{sec:methods}}
 
-A dolgozat során kettő, lényegében eltérő módszert fogok megvizsgálni, és ezeket teljesítményükben és eredményük minőségében összehasonlítani. Az első a sztereó-látást fogja kihasználni, azaz, hogy a kamerákat párosával használva -- azokat sztereó-kalibrálva -- fogok mélységképet alkotni. Az így kapott pontfelhőket egy koordinátarendszerbe hozva számolok majd egy új nézőpontból látható képet. A második eljárás során pedig az optikai-folyamok segítségével tudom az egymásnak megfelelő pontok mozgását követni és ebből a mozgásból meghatározni az objektumok struktúráját.
+A dolgozat során kettő, lényegében eltérő módszerre térek ki. Az első a sztereó-látás elvén alapszik, azaz a kamerákat párosával használva -- azokat sztereó-kalibrálva -- alkotunk mélységképet, mely segítségével a képpontokat mélységinformációval ruházzuk fel. A második eljárás az optikai-folyamok segítségével a kamerák képein meghatározza az egymásnak megfelelő pontokat, és ezekből a párosításokból háromszögelés után meghatározza a pontok világbeli koordinátáját.
 
 \subsection{Sztereó-látás, sztereó-kalibráció}
 
@@ -97,7 +97,7 @@ Tekintsünk két kamerát, ami ugyanazt a térrészt veszi más szögből, lásd
 
 A $P$ pont az első kamera $I_1$ képén $p_1$-be, a második kamera $I_2$ képén $p_2$-be képződik le. Visszafele gondolkozva, ha megvan egy pontnak két képe a két képsíkon, akkor a kamera középpontjait összekötve ezekkel a képpontokkal két félegyenest (sugarat, az angol \textit{ray} szóból) kapunk, melyek metszéspontjában kereshető a valódi $P$ pont (háromszögelés). Fontos megjegyezni, hogy ilyen metszéspont csak ideális esetben létezik, a gyakorlatban nagyon ritkán. Ilyenkor a kitérő félegyenesek közti legrövidebb szakasz középpontját tekintjük a ,,metszéspontnak''.
 
-Nyílvánvaló, hogy $C_1$, $C_2$, $P$, valamint $p_1$ és $p_2$ egy síkon van rajta, ezt \textit{epipoláris sík}nak nevezzük, az ábrán $\pi$-vel jelölve (lásd pontozott vonal által határolt háromszög). Ezt felhasználva adódik, hogy egy $p_1$ pont párja a másik, $I_2$ képsíkon nem lehet máshol, mint $I_2$ és $\pi$ metszésvonalán. Ezeket, vagyis a képsíkok és az epipoláris síkok metszéspontját \textit{epipoláris egyeneseknek} nevezzük, melyeket szaggatott vonalak jelölnek az ábrán.
+Nyilvánvaló, hogy $C_1$, $C_2$, $P$, valamint $p_1$ és $p_2$ egy síkon van rajta, ezt \textit{epipoláris sík}nak nevezzük, az ábrán $\pi$-vel jelölve (lásd pontozott vonal által határolt háromszög). Ezt felhasználva adódik, hogy egy $p_1$ pont párja a másik, $I_2$ képsíkon nem lehet máshol, mint $I_2$ és $\pi$ metszésvonalán. Ezeket, vagyis a képsíkok és az epipoláris síkok metszéspontját \textit{epipoláris egyeneseknek} nevezzük, melyeket szaggatott vonalak jelölnek az ábrán.
 
 Ebből következik, hogy a képpontok párját a másik képen elég csak az epipoláris egyeneseken keresni, mert az előzőek alapján csak ott lehetnek. További egyszerűsítés, ha ezek az epipoláris egyenesek mindannyian párhuzamosak és vízszintesek, hiszen ekkor a képeken csak $x$ irányban kell keresni a pontok megfelelőit a másik képen. Gyakorlatban, nagyon nehéz így beállítani a kamerákat, ezért a kamerák képeit úgy transzformálják, hogy egy képzeletbeli közös síkba essenek a képsíkok, ahol már teljesül ez a feltétel. Ezt \textit{rektifikációnak} hívják, lásd \aref{fig:rectification}. ábrát.
 
@@ -313,7 +313,9 @@ A rektifikált képpárokra pedig már léteznek algoritmusok \cite{SGBM, stereo
   \caption{Elmozdulás és mélység kapcsolata; a kameráktól távolabbi $P_2$ pont képeinek $d_2$ távolsága kisebb, mint a közelebbi $P_1$ pont képeinek $d_1$ távolsága \label{fig:depth-showcase}}
 \end{figure}
 
-\subsection{Optikai-folyam}
+Fontos megemlíteni, hogy gyakorlatban a kameráknak már eleve nagyon közel kell lenniük az ideális elhelyezkedéshez, azaz, egymás mellett (vagy egymás felett, attól függően, hogy horizontális, vagy vertikális sztereó-kamerákat használunk) legyenek, úgy hogy képsíkjuk közel egybeessenek. Így érhető el az, hogy a rektifikáció sikeres legyen, valamint, hogy utána a kép legnagyobb része ,,használható'' legyen, lásd \aref{fig:stereo-calibration-after}. ábrán a szélén lévő fekete részeket.
+
+\subsection{Optikai-folyam \label{methods:optic}}
 
 Az előzőekben megismert eljárás azt feltételezi, hogy a kamerák párosával sztereó-kalib\-ráltak, és ezt kihasználva számol mélységképet a kalibráció során felhasznált segéd-objek\-tum alapján.
 
@@ -394,9 +396,7 @@ Ez utóbbi algoritmust \cite{opencv-lk} fogom a dolgozat során alkalmazni, mert
 \caption{Minta sűrű optikai-folyam meghatározásra \cite{farneback} \label{fig:dense-of}}
 \end{figure}
 
-Az optikai-folyamok felhasználásával nem szükséges a kamerákat párosával kalibrálni, sőt, már akár egyetlen kamerával is egy adott szilárd test lemodellezhető, ezt a problémát \textit{structure-from-motion}-nek hívjuk \cite{sfm}. Tekintsünk egy adott objektum felé néző, de körülötte mozgó kamera két helyzetében ($C_1$ és $C_2$) látott képet (lásd \aref{fig:triangulation}. ábrát). Az objektumról a kamera mozgása során több képet készítve, és ezeken az egymásnak megfelelő pontokat az optikai-folyamok segítségével meghatározva a már említett háromszögelés módszerével meghatározhatóak a pontok háromdimenziós koordinátái, valamint a nézőpontok közötti transzformációk is \cite{book}. A mi esetünkben nem a kamera fog mozogni az objektum körül, hanem a rögzített kamera előtt fog mozogni és forogni az objektum, de az elv ugyanaz.
-
-Gondoljuk meg, hogy ehhez a módszerhez fel kell tennünk, hogy az objektumok forgás és mozgásuk során az alakjukat nem változtatják, nem deformálódnak, mert ez helytelen rekonstrukcióhoz vezetne. Ez a kényszer az implementáció és a tesztelés során is fent fog állni, melyet az összehasonlítás miatt így a sztereó-kalibrációs módszernél is fenntartunk.
+Az optikai-folyamokat felhasználhatjuk statikus objektumok (pl. szobrok, kastélyok) modellezésére, ezt a problémát \textit{structure-from-motion}-nek hívjuk \cite{sfm}. Tekintsünk egy adott objektum felé néző, de körülötte mozgó kamera két helyzetében ($C_1$ és $C_2$) látott képet (lásd \aref{fig:triangulation}. ábrát). Az objektumról a kamera mozgása során több képet készítve, és ezeken az egymásnak megfelelő pontokat az optikai-folyamok segítségével meghatározva a már említett háromszögelés módszerével meghatározhatóak a pontok háromdimenziós koordinátái, valamint a nézőpontok közötti transzformációk is \cite[4. fejezet]{book}.
 
 \begin{figure}[tbh]
 \centering
@@ -485,9 +485,15 @@ Gondoljuk meg, hogy ehhez a módszerhez fel kell tennünk, hogy az objektumok fo
   \draw [dotted] (C1) -- (C2);
   \draw [dotted] (C2_) -- (C2);
   
+  \draw [shorten <= 10pt, shorten >= 10pt,dashed,->,>=stealth'] (C1) to[out=-20,in=-160] (C2_);
+  
 \end{tikzpicture}
 \caption{Mozgó kamera két állapotban \label{fig:triangulation}}
 \end{figure}
+
+Ennél lényegesen eltérő felhasználási mód, ha az optikai-folyamokat nem egy mozgó kamera két képkockáján, hanem két különböző kamera egy időponthoz tartozó két képkockáján határozzuk meg, melyek megközelítőleg ugyanazon térrészt veszik, de kicsit más pontból és szögből. Ekkor az optikai folyam lényegében a két kamera képén egy megfeleltetést tesz lehetővé. Feltéve, hogy előzetesen a kamerák pozícióját meghatároztuk (külső paraméterek), valamint ismerjük a projekciójukat leíró mátrixokat (belső paraméterek), akkor az egyező képontokat felhasználva háromszögeléssel kaphatjuk a mindkét kamera által látott pontok világbeli koordinátájukat.
+
+Az előbbi módszer, jól használható nagy felbontású képeknél, ahol az objektum a kép nagy részét teszi ki, így sok hasznos képpontot gyűjthetünk. A feladatom során éppen ellenkezőleg, a képek csak egy részén megjelenő és ott mozgó objektumokat kell rekonstruálni, így az utóbbi megközelítést valósítom meg.
 
 %----------------------------------------------------------------------------
 \section{Objektum-detekció}
@@ -495,7 +501,8 @@ Gondoljuk meg, hogy ehhez a módszerhez fel kell tennünk, hogy az objektumok fo
 
 A feladat megoldása során mozgó objektumokat kell követnem, azokat modelleznem, így szükség van ezeknek az egymás utáni képkockákon történő azonosítására.
 
-Az előző részben leírt Farnebäck-módszert felhasználva becslést kaphatunk arra vonatkozóan, hogy hol lehetnek a mozgó tárgyak. A kamerák statikus helyzete révén, a háttér képpontjaihoz tartozóan közel zéró elmozdulást várunk, míg a mozgó részeken ettől eltérőt.
+{\color{red} Ezt lehet ki kell majd venni... }
+Az előző részben leírt Farnebäck-módszert egy kamera egymás utáni képkockáin felhasználva becslést kaphatunk arra vonatkozóan, hogy hol lehetnek a mozgó tárgyak. A kamerák statikus helyzete révén, a háttér képpontjaihoz tartozóan közel zéró elmozdulást várunk, míg a mozgó részeken ettől eltérőt.
 
 Azonban ez önmagában még nem elég, szükség van egy háttér-előtér szegmentálási algoritmus (MOG) \cite{MOG} felhasználására is, mely az egymás utáni képkockákból egy háttér-modellt épít. Az aktuális képkockából a kapott hátteret kivonva, megkapjuk az éppen aktuális előtérhez tartozó maszkot, lásd \aref{fig:mog-example}. ábrát.
 
