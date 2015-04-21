@@ -2,14 +2,14 @@
 
 #include <opencv2/core/mat.hpp>
 
-class ObjectSelector {
+class SingleObjectSelector {
 
     cv::Ptr<cv::Point> getCentroid(cv::Moments moments);
 
     std::vector<cv::Point> lastContour;
 
 public:
-    ObjectSelector();
+    SingleObjectSelector();
 
     cv::Mat selectUsingConnectedComponents(const cv::Mat &img, const cv::Mat &mask);
 

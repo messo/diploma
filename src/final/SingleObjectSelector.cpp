@@ -1,16 +1,16 @@
 #include <opencv2/imgproc.hpp>
 #include <opencv2/highgui.hpp>
 #include <iostream>
-#include "ObjectSelector.hpp"
+#include "SingleObjectSelector.hpp"
 
 using namespace std;
 using namespace cv;
 
-ObjectSelector::ObjectSelector() {
+SingleObjectSelector::SingleObjectSelector() {
 
 }
 
-cv::Mat ObjectSelector::selectUsingConnectedComponents(const cv::Mat &img, const cv::Mat &mask) {
+cv::Mat SingleObjectSelector::selectUsingConnectedComponents(const cv::Mat &img, const cv::Mat &mask) {
     Mat labels, stats, centroids;
 
     Mat selection(mask.size(), CV_8UC3);
@@ -28,46 +28,37 @@ cv::Mat ObjectSelector::selectUsingConnectedComponents(const cv::Mat &img, const
     return selection;
 }
 
-cv::Mat ObjectSelector::selectUsingContoursWithMaxArea(const cv::Mat &img, cv::Mat mask) {
+cv::Mat SingleObjectSelector::selectUsingContoursWithMaxArea(const cv::Mat &img, cv::Mat mask) {
     vector<vector<Point> > contours;
-
-    for(int y=0; y<mask.rows; y++) {
-        for(int x=0; x<mask.cols; x++) {
-            if(mask.at<uchar>(y, x) != 255) {
-                mask.at<uchar>(y, x) = 0;
-            }
-        }
-    }
 
     findContours(mask, contours, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
 
     lastMask = Mat::zeros(mask.size(), CV_8U);
 
-    if (contours.size() == 0)
-        return lastMask;
+    if (contours.size() != 0) {
+        // iterate through all the top-level contours,
+        // draw each connected component with its own random color
+        int largestComp = 0;
+        double maxArea = 0;
 
-    // iterate through all the top-level contours,
-    // draw each connected component with its own random color
-    int largestComp = 0;
-    double maxArea = 0;
-
-    for (int idx = 0; idx < contours.size(); idx++) {
-        const vector<Point> &c = contours[idx];
-        double area = fabs(contourArea(Mat(c)));
-        if (area > maxArea) {
-            maxArea = area;
-            largestComp = idx;
+        for (int idx = 0; idx < contours.size(); idx++) {
+            const vector<Point> &c = contours[idx];
+            double area = fabs(contourArea(Mat(c)));
+            if (area > maxArea) {
+                maxArea = area;
+                largestComp = idx;
+            }
         }
-    }
 
-    drawContours(lastMask, contours, largestComp, Scalar(255), FILLED, LINE_8);
+        drawContours(lastMask, contours, largestComp, Scalar(255), FILLED, LINE_8);
+    }
 
     Mat result;
     img.copyTo(result, lastMask);
     return result;
 }
 
-cv::Mat ObjectSelector::selectUsingContoursWithClosestCentroid(const cv::Mat &img, const cv::Mat &mask) {
+cv::Mat SingleObjectSelector::selectUsingContoursWithClosestCentroid(const cv::Mat &img, const cv::Mat &mask) {
     vector<vector<Point> > contours;
 
     findContours(mask, contours, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
@@ -97,7 +88,8 @@ cv::Mat ObjectSelector::selectUsingContoursWithClosestCentroid(const cv::Mat &im
         for (int idx = 0; idx < contours.size(); idx++) {
             Ptr<Point> currentCentroid = getCentroid(moments(contours[idx]));
 
-            Point diff(currentCentroid.get()->x - lastCentroid.get()->x, currentCentroid.get()->y - lastCentroid.get()->y);
+            Point diff(currentCentroid.get()->x - lastCentroid.get()->x,
+                       currentCentroid.get()->y - lastCentroid.get()->y);
             double distance = diff.dot(diff);
 
             if (distance < minDistance) {
@@ -120,13 +112,13 @@ cv::Mat ObjectSelector::selectUsingContoursWithClosestCentroid(const cv::Mat &im
     return result;
 }
 
-cv::Ptr<cv::Point> ObjectSelector::getCentroid(cv::Moments moments) {
+cv::Ptr<cv::Point> SingleObjectSelector::getCentroid(cv::Moments moments) {
     int x = static_cast<int>(moments.m10 / moments.m00);
     int y = static_cast<int>(moments.m01 / moments.m00);
 
     return cv::Ptr<cv::Point>(new Point(x, y));
 }
 
-const std::vector<cv::Point> &ObjectSelector::getLastContour() const {
+const std::vector<cv::Point> &SingleObjectSelector::getLastContour() const {
     return lastContour;
 }
