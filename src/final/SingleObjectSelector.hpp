@@ -13,7 +13,7 @@ public:
 
     cv::Mat selectUsingConnectedComponents(const cv::Mat &img, const cv::Mat &mask);
 
-    cv::Mat selectUsingContoursWithMaxArea(const cv::Mat &img, cv::Mat mask);
+    cv::Mat selectUsingContourWithMaxArea(const cv::Mat &img, cv::Mat mask);
 
     cv::Mat selectUsingContoursWithClosestCentroid(const cv::Mat &img, const cv::Mat &mask);
 

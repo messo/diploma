@@ -6,12 +6,13 @@
 #include "calibration/Calibration.h"
 #include "calibration/CameraPoseCalculator.h"
 #include "optical_flow/SpatialOpticalFlowCalculator.h"
-#include "ObjectSelector.hpp"
+#include "SingleObjectSelector.hpp"
 #include "camera/DummyCamera.hpp"
 #include "Triangulation.h"
 #include "PclVisualization.h"
 #include "locking.h"
 #include "MatVisualization.h"
+#include "FPSCounter.h"
 
 using namespace cv;
 
@@ -29,7 +30,7 @@ void calibrate(int cameraId) {
         char ch = (char) waitKey(33);
 
         if (ch == ' ') {
-            if (calibration.acquireFrames()) {
+            if (calibration.acquireFrame()) {
                 Mat chessboard;
                 calibration.drawChessboardCorners(chessboard);
                 imshow("img", chessboard);
@@ -86,23 +87,51 @@ void dilateAndErode(Mat mask) {
     dilate(mask, mask, Mat(), Point(-1, -1), niters);
     erode(mask, mask, Mat(), Point(-1, -1), niters * 2);
     dilate(mask, mask, Mat(), Point(-1, -1), niters);
+
+//    Mat small = getStructuringElement(MORPH_RECT, Size(2, 2));
+//    Mat bigger = getStructuringElement(MORPH_RECT, Size(5, 5));
+//    erode(mask, mask, small, Point(-1, -1), niters);
+//    dilate(mask, mask, bigger, Point(-1, -1), niters * 2);
+//    erode(mask, mask, bigger, Point(-1, -1), niters * 2);
+}
+
+int counter = 0;
+
+void removeShadows(Mat mask) {
+    for (int y = 0; y < mask.rows; y++) {
+        for (int x = 0; x < mask.cols; x++) {
+            if (mask.at<uchar>(y, x) != 255) {
+                mask.at<uchar>(y, x) = 0;
+            }
+        }
+    }
 }
 
 std::vector<Mat> getFramesFromCameras(std::vector<Ptr<Camera>> &camera,
                                       std::vector<Ptr<BackgroundSubtractorMOG2>> &bgSub,
-                                      std::vector<ObjectSelector> &objSelector,
+                                      std::vector<SingleObjectSelector> &objSelector,
                                       double learningRate) {
     std::vector<Mat> selected(2);
-#pragma omp parallel for shared(objSelector)
+#pragma omp parallel for
     for (int i = 0; i < 2; i++) {
         // std::cout << "CAP THREAD: " << omp_get_thread_num() << std::endl;
         Mat image, mask;
         camera[i]->readUndistorted(image);
         bgSub[i]->apply(image, mask, learningRate);
+        removeShadows(mask);
+
+//        if (i == 0) {
+//            imshow("image", image);
+//            imwrite("/media/balint/Data/cucc/image" + std::to_string(counter) + ".png", image);
+//            imshow("mask", mask);
+//            imwrite("/media/balint/Data/cucc/mask" + std::to_string(counter) + ".png", mask);
+//            counter++;
+//        }
+
         dilateAndErode(mask);
         //drawGridXY(leftImage, leftCamera, leftCameraPose);
 
-        selected[i] = objSelector[i].selectUsingContoursWithMaxArea(image, mask);
+        selected[i] = objSelector[i].selectUsingContourWithMaxArea(image, mask);
     }
 
     return selected;
@@ -122,14 +151,13 @@ int main(int argc, char **argv) {
     camera[Camera::RIGHT] = Ptr<Camera>(
             new RealCamera(Camera::RIGHT, "/media/balint/Data/Linux/diploma/src/final/intrinsics_right.yml"));
 
-    CameraPose cameraPose[2];
-
+    std::vector<CameraPose> cameraPose(2);
     cameraPose[Camera::LEFT].load("/media/balint/Data/Linux/diploma/src/final/pose_left.yml");
     Matx34d leftP = cameraPose[Camera::LEFT].getProjectionMatrix();
-    Matx44d leftPclP = cameraPose[Camera::LEFT].getPoseForPcl();
+    //Matx44d leftPclP = cameraPose[Camera::LEFT].getPoseForPcl();
     cameraPose[Camera::RIGHT].load("/media/balint/Data/Linux/diploma/src/final/pose_right.yml");
     Matx34d rightP = cameraPose[Camera::RIGHT].getProjectionMatrix();
-    Matx44d rightPclP = cameraPose[Camera::RIGHT].getPoseForPcl();
+    //Matx44d rightPclP = cameraPose[Camera::RIGHT].getPoseForPcl();
 
     std::vector<Ptr<BackgroundSubtractorMOG2>> bgSub(2);
     bgSub[Camera::LEFT] = createBackgroundSubtractorMOG2(300, 25.0, true);
@@ -141,18 +169,17 @@ int main(int argc, char **argv) {
     static_cast<RealCamera *>(camera[Camera::LEFT].get())->focus(focus);
     static_cast<RealCamera *>(camera[Camera::RIGHT].get())->focus(focus);
 
-    std::vector<ObjectSelector> objSelector(2);
+    std::vector<SingleObjectSelector> objSelector(2);
 
-    double learningRate = -1;
+    double learningRate;
 
     // PclVisualization vis;
-    MatVisualization matVis(cameraPose[Camera::LEFT], camera[Camera::LEFT]->K);
+    MatVisualization matVis(cameraPose[Camera::LEFT], camera[Camera::LEFT]->cameraMatrix);
 
-    bool shouldRun = true;
     bool taskRunning = false;
 
     // Data to share
-    MutexType mutexForProcessing;
+    MutexType mutex;
     Mat frame0, frame1;
     Mat mask0, mask1;
 
@@ -164,30 +191,33 @@ int main(int argc, char **argv) {
     {
 #pragma omp single
         {
-            while (shouldRun) {
+            FPSCounter dispCnter, procCnter;
+
+            while (true) {
                 //double t0 = getTickCount();
 
                 frameCounter++;
 
-                if (frameCounter < 500) {
-                    learningRate = -1.0;
-                } else {
-                    learningRate = 0;
-                }
+//                if (frameCounter < 500) {
+                learningRate = -1.0;
+//                } else {
+//                    learningRate = 0;
+//                }
 
                 std::vector<Mat> selected = getFramesFromCameras(camera, bgSub, objSelector, learningRate);
 
-                imshow("leftImage", selected[Camera::LEFT]);
-                imshow("rightImage", selected[Camera::RIGHT]);
+                Mat leftRight = mergeImages(selected[Camera::LEFT], selected[Camera::RIGHT]);
+                dispCnter.tick();
+                std::cout << "Display: " << dispCnter.get() << std::endl;
+                imshow("input", leftRight);
 
-                char ch = (char) waitKey(33);
+                char ch = (char) waitKey(1);
                 if (ch == 27) {
-                    shouldRun = false;
                     break;
                 }
 
                 // copy the current data if it's needed.
-                mutexForProcessing.Lock();
+                mutex.Lock();
                 frame0 = selected[0].clone();
                 frame1 = selected[1].clone();
                 mask0 = objSelector[0].lastMask.clone();
@@ -195,7 +225,7 @@ int main(int argc, char **argv) {
 
 #pragma omp task firstprivate(frame0,frame1,mask0,mask1)
                 {
-                    mutexForProcessing.Unlock();
+                    mutex.Unlock();
                     if (!taskRunning && boundingRect(mask0).area() > 100 && boundingRect(mask1).area() > 100) {
                         taskRunning = true;
 
@@ -211,20 +241,23 @@ int main(int argc, char **argv) {
                         ofCalculator.feed(frames, masks);
 
                         std::cout << "## Feed done in " << (((double) getTickCount() - t) / getTickFrequency()) <<
-                        "s" <<
-                        std::endl;
+                        "s" << std::endl;
                         std::cout.flush();
 
                         std::vector<CloudPoint> pointcloud;
                         std::vector<Point> cp;
-                        TriangulatePoints(ofCalculator.points1, camera[Camera::LEFT]->K, camera[Camera::LEFT]->Kinv,
-                                          ofCalculator.points2, camera[Camera::RIGHT]->K, camera[Camera::RIGHT]->Kinv,
+                        TriangulatePoints(ofCalculator.points1, camera[Camera::LEFT]->cameraMatrix,
+                                          camera[Camera::LEFT]->Kinv,
+                                          ofCalculator.points2, camera[Camera::RIGHT]->cameraMatrix,
+                                          camera[Camera::RIGHT]->Kinv,
                                           leftP, rightP, pointcloud, cp);
 
                         t = ((double) getTickCount() - t) / getTickFrequency();
                         std::cout << "## Done in " << t << "s" << std::endl;
                         std::cout.flush();
 
+                        procCnter.tick();
+                        std::cout << "Process: " << procCnter.get() << std::endl;
                         matVis.renderPointCloud(pointcloud);
 // VISU
 //                        vis.init();

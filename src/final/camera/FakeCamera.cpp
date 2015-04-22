@@ -6,11 +6,11 @@
 
 
 FakeCamera::FakeCamera(int id) : Camera(id) {
-    K = cv::Mat(cv::Matx33d(20, 0, 320,
+    cameraMatrix = cv::Mat(cv::Matx33d(20, 0, 320,
             0, 20, 240,
             0, 0, 1));
 
-    cv::invert(K, Kinv);
+    cv::invert(cameraMatrix, Kinv);
 
     distCoeffs = cv::Mat(cv::Matx14d(0, 0, 0, 0));
 }

@@ -9,19 +9,19 @@ void Camera::readCalibration(const std::string &calibrationFile) {
     }
 
     if (id == LEFT) {
-        fs["M1"] >> K;
+        fs["M1"] >> cameraMatrix;
         fs["D1"] >> distCoeffs;
     } else {
-        fs["M2"] >> K;
+        fs["M2"] >> cameraMatrix;
         fs["D2"] >> distCoeffs;
     }
 
-    invert(K, Kinv);
+    invert(cameraMatrix, Kinv);
 }
 
 bool Camera::readUndistorted(cv::OutputArray img) {
     cv::Mat distorted;
     read(distorted);
-    undistort(distorted, img, K, distCoeffs);
+    undistort(distorted, img, cameraMatrix, distCoeffs);
     return true;
 }

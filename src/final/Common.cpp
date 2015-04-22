@@ -112,7 +112,7 @@ bool FindPoseEstimation(
         //use CPU
         double minVal, maxVal;
         cv::minMaxIdx(imgPoints, &minVal, &maxVal);
-        cv::solvePnPRansac(ppcloud, imgPoints, camera->K, camera->distCoeffs, rvec,
+        cv::solvePnPRansac(ppcloud, imgPoints, camera->cameraMatrix, camera->distCoeffs, rvec,
                            t, true, 1000, 8.0, 0.99, inliers, cv::SOLVEPNP_EPNP);
         //CV_PROFILE("solvePnP",cv::solvePnP(ppcloud, imgPoints, K, distortion_coeff, rvec, t, true, CV_EPNP);)
     } else {
@@ -131,7 +131,7 @@ bool FindPoseEstimation(
     }
 
     std::vector<Point2f> projected3D;
-    cv::projectPoints(ppcloud, rvec, t, camera->K, camera->distCoeffs, projected3D);
+    cv::projectPoints(ppcloud, rvec, t, camera->cameraMatrix, camera->distCoeffs, projected3D);
 
     if (inliers.size() == 0) { //get inliers
         for (int i = 0; i < projected3D.size(); i++) {
@@ -211,7 +211,7 @@ void drawGridXY(cv::Mat &img, cv::Ptr<Camera> camera, cv::Ptr<CameraPose> camera
     }
 
     std::vector<Point2f> gridImagePoints;
-    projectPoints(gridPoints, cameraPose->rvec, cameraPose->tvec, camera->K, camera->distCoeffs, gridImagePoints);
+    projectPoints(gridPoints, cameraPose->rvec, cameraPose->tvec, camera->cameraMatrix, camera->distCoeffs, gridImagePoints);
 
     Rect imageRect(0, 0, 640, 480);
     int i = 0;
@@ -249,7 +249,7 @@ void drawBoxOnChessboard(Mat inputImage, Ptr<Camera> camera, Ptr<CameraPose> pos
 
     // calculating imagePoints
     vector<Point2f> imagePoints;
-    projectPoints(objectPoints, pose->rvec, pose->tvec, camera->K, camera->distCoeffs, imagePoints);
+    projectPoints(objectPoints, pose->rvec, pose->tvec, camera->cameraMatrix, camera->distCoeffs, imagePoints);
 
     // drawing
     line(inputImage, imagePoints[0], imagePoints[1], Scalar(0, 0, 255), 1);

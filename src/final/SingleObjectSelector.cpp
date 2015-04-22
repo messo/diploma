@@ -28,8 +28,8 @@ cv::Mat SingleObjectSelector::selectUsingConnectedComponents(const cv::Mat &img,
     return selection;
 }
 
-cv::Mat SingleObjectSelector::selectUsingContoursWithMaxArea(const cv::Mat &img, cv::Mat mask) {
-    vector<vector<Point> > contours;
+cv::Mat SingleObjectSelector::selectUsingContourWithMaxArea(const cv::Mat &img, cv::Mat mask) {
+    vector<vector<Point>> contours;
 
     findContours(mask, contours, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
 
@@ -59,7 +59,7 @@ cv::Mat SingleObjectSelector::selectUsingContoursWithMaxArea(const cv::Mat &img,
 }
 
 cv::Mat SingleObjectSelector::selectUsingContoursWithClosestCentroid(const cv::Mat &img, const cv::Mat &mask) {
-    vector<vector<Point> > contours;
+    vector<vector<Point>> contours;
 
     findContours(mask, contours, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
 

@@ -5,7 +5,7 @@
 using namespace cv;
 using namespace std;
 
-bool Calibration::acquireFrames() {
+bool Calibration::acquireFrame() {
     Mat frame;
     camera->read(frame);
 
@@ -49,7 +49,7 @@ bool Calibration::calibrate() {
     return true;
 }
 
-void Calibration::save(const std::string &calibrationFile) {
+void Calibration::save(const string &calibrationFile) {
     FileStorage fs;
     fs.open(calibrationFile, FileStorage::WRITE);
 

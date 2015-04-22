@@ -21,7 +21,7 @@ public:
     Calibration(cv::Ptr<Camera> camera) : camera(camera), boardSize(9, 6), squareSize(1.0f) {
     };
 
-    bool acquireFrames();
+    bool acquireFrame();
 
     bool calibrate();
 
@@ -30,6 +30,4 @@ public:
     void save(const std::string &filename);
 
 };
-
-
 

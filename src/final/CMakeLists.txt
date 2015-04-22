@@ -17,13 +17,13 @@ if (OPENMP_FOUND)
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 endif()
 
-set(CLASSES calibration/StereoCalibration.cpp camera/Camera.cpp camera/RealCamera.cpp camera/DummyCamera.cpp camera/StereoCamera.cpp calibration/Calibration.cpp calibration/CameraPoseCalculator.cpp camera/CameraPose.cpp OpenGLRenderer.cpp ObjectSelector.cpp optical_flow/OFReconstruction.cpp Triangulation.cpp Common.cpp optical_flow/OpticalFlowCalculator.cpp optical_flow/TemporalOpticalFlowCalculator.cpp optical_flow/SpatialOpticalFlowCalculator.cpp MultiView.cpp PclVisualization.cpp)
+set(CLASSES calibration/StereoCalibration.cpp camera/Camera.cpp camera/RealCamera.cpp camera/DummyCamera.cpp camera/StereoCamera.cpp calibration/Calibration.cpp calibration/CameraPoseCalculator.cpp camera/CameraPose.cpp OpenGLRenderer.cpp SingleObjectSelector.cpp optical_flow/OFReconstruction.cpp Triangulation.cpp Common.cpp optical_flow/OpticalFlowCalculator.cpp optical_flow/TemporalOpticalFlowCalculator.cpp optical_flow/SpatialOpticalFlowCalculator.cpp MultiView.cpp PclVisualization.cpp)
 
 add_executable(Final main.cpp ${CLASSES})
 target_compile_features(Final PRIVATE cxx_range_for)
 target_link_libraries(Final ${OPENGL_LIBRARIES} ${OpenCV_LIBS} ${GLUT_LIBRARIES} v4l2 ${PCL_COMMON_LIBRARIES} ${PCL_VISUALIZATION_LIBRARIES})
 
-add_executable(Diploma diploma.cpp ${CLASSES} locking.h MatVisualization.cpp MatVisualization.h)
+add_executable(Diploma diploma.cpp ${CLASSES} locking.h MatVisualization.cpp MatVisualization.h FPSCounter.cpp FPSCounter.h)
 target_compile_features(Diploma PRIVATE cxx_range_for)
 target_link_libraries(Diploma ${OPENGL_LIBRARIES} ${OpenCV_LIBS} ${GLUT_LIBRARIES} v4l2 ${PCL_COMMON_LIBRARIES} ${PCL_VISUALIZATION_LIBRARIES})
 
@@ -40,3 +40,7 @@ target_compile_features(TriTest PRIVATE cxx_range_for)
 target_link_libraries(TriTest ${OPENGL_LIBRARIES} ${OpenCV_LIBS} ${GLUT_LIBRARIES} v4l2 ${PCL_LIBRARIES})
 
 add_executable(OmpTest omp_test.cpp)
+
+add_executable(ForReport for_report.cpp)
+target_compile_features(ForReport PRIVATE cxx_range_for)
+target_link_libraries(ForReport ${OpenCV_LIBS} ${GLUT_LIBRARIES})

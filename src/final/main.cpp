@@ -10,7 +10,7 @@
 #include "calibration/StereoCalibration.hpp"
 #include "optical_flow/OFReconstruction.h"
 #include "optical_flow/TemporalOpticalFlowCalculator.h"
-#include "ObjectSelector.hpp"
+#include "SingleObjectSelector.hpp"
 #include "MultiView.h"
 #include "PclVisualization.h"
 
@@ -126,7 +126,7 @@ int main(int argc, char **argv) {
 
     std::vector<cv::Point> prevLastContour;
 
-    Ptr<ObjectSelector> objSelector(new ObjectSelector());
+    Ptr<SingleObjectSelector> objSelector(new SingleObjectSelector());
 
     TemporalOpticalFlowCalculator calc(camera);
     MultiView mv(camera);

@@ -11,7 +11,7 @@ bool CameraPoseCalculator::calculate() {
     float squareSize = 1.0f;
 
     Mat img;
-    if (!camera->K.empty()) {
+    if (!camera->cameraMatrix.empty()) {
         camera->readUndistorted(img);
     } else {
         camera->read(img);
@@ -57,7 +57,7 @@ bool CameraPoseCalculator::calculate() {
             objectPoints.push_back(Point3f(squareSize * j, squareSize * k, 0));
 
     cameraPose = Ptr<CameraPose>(new CameraPose());
-    solvePnP(objectPoints, imagePoints, camera->K, camera->distCoeffs, cameraPose->rvec, cameraPose->tvec);
+    solvePnP(objectPoints, imagePoints, camera->cameraMatrix, camera->distCoeffs, cameraPose->rvec, cameraPose->tvec);
 
     return true;
 }

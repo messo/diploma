@@ -9,7 +9,7 @@ class Camera {
 
 public:
 
-    cv::Mat K;
+    cv::Mat cameraMatrix;
     cv::Mat Kinv;
     cv::Mat distCoeffs;
 
@@ -33,7 +33,7 @@ public:
 
     double getHeight() { return 480.0; }
 
-    double getFocalLength() { return K.at<double>(0, 0); }
+    double getFocalLength() { return cameraMatrix.at<double>(0, 0); }
 
     virtual bool read(cv::OutputArray img) = 0;
 
