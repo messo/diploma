@@ -3,10 +3,10 @@
 #include <opencv2/calib3d.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
-#include "VirtualCamera.h"
+#include "camera/VirtualCamera.h"
 #include "Triangulation.h"
-#include "OFReconstruction.h"
-#include "FakeCamera.h"
+#include "optical_flow/OFReconstruction.h"
+#include "camera/FakeCamera.h"
 
 using namespace std;
 using namespace cv;
@@ -46,10 +46,10 @@ int main() {
     vector<Point2f> reprojected_pt_set1, reprojected_pt_set2;
 
     vc.addX(-4);
-    projectPoints(pt_3d, vc.getRVec(), vc.getTVec(), fc->K, fc->distCoeff, reprojected_pt_set1);
+    projectPoints(pt_3d, vc.getRVec(), vc.getTVec(), fc->cameraMatrix, fc->distCoeffs, reprojected_pt_set1);
     vc.addX(9);
     vc.rotZ(5);
-    projectPoints(pt_3d, vc.getRVec(), vc.getTVec(), fc->K, fc->distCoeff, reprojected_pt_set2);
+    projectPoints(pt_3d, vc.getRVec(), vc.getTVec(), fc->cameraMatrix, fc->distCoeffs, reprojected_pt_set2);
 
 
     Mat img1(480, 640, CV_8UC3, Scalar(0, 0, 0));
@@ -66,11 +66,36 @@ int main() {
 
     imshow("img2", img2);
 
-    char key = waitKey();
-
     OFReconstruction reconstruction(fc, 1, reprojected_pt_set1, 2, reprojected_pt_set2);
     reconstruction.reconstruct();
 
+    writeCloudPoints("cloud1.ply", reconstruction.resultingCloud.points);
+
+    // CV:TRIANGUALTE
+
+    cv::Mat points4D(1, reconstruction.resultingCloud.size(), CV_32FC4);
+    cv::triangulatePoints(fc->cameraMatrix * Mat(reconstruction.P1),
+                          fc->cameraMatrix * Mat(reconstruction.P2),
+                          Mat(reprojected_pt_set1).reshape(2, 1),
+                          Mat(reprojected_pt_set2).reshape(2, 1),
+                          points4D);
+
+    //std::cout << points4D;
+    //std::cout.flush();
+
+    cv::Mat points3D(1, reconstruction.resultingCloud.size(), CV_32FC3);
+    convertPointsFromHomogeneous(points4D.reshape(4, 1), points3D);
+
+    vector<CloudPoint> cloud2;
+    for(int i=0; i<reconstruction.resultingCloud.size(); i++) {
+        Vec3f v = points3D.at<Vec3f>(i);
+
+        CloudPoint cp;
+        cp.pt = Point3d(v[0], v[1], v[2]);
+        cloud2.push_back(cp);
+    }
+
+    writeCloudPoints("cloud2.ply", cloud2);
 
     return 0;
 }

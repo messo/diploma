@@ -58,7 +58,7 @@ void translate(std::vector<cv::Point> &input, cv::Point translation) {
 }
 
 Mat mergeImages(const Mat &left, const Mat &right) {
-    Mat result = Mat::zeros(left.rows, left.cols + right.cols, left.type());
+    Mat result = Mat::zeros(max(left.rows, right.rows), left.cols + right.cols, left.type());
 
     left.copyTo(result(Rect(0, 0, left.cols, left.rows)));
     right.copyTo(result(Rect(left.cols - 1, 0, right.cols, right.rows)));
@@ -192,11 +192,11 @@ bool FindPoseEstimation(
 
 void drawGridXY(cv::Mat &img, cv::Ptr<Camera> camera, cv::Ptr<CameraPose> cameraPose) {
     int minX = -2;
-    int maxX = 2;
+    int maxX = 4;
     int minY = -2;
     int maxY = 2;
     int maxZ = 0;
-    int step = 7;
+    int step = 8;
 
     std::vector<Point3f> gridPoints;
     for (int z = 0; z <= maxZ; z++) {
@@ -209,6 +209,9 @@ void drawGridXY(cv::Mat &img, cv::Ptr<Camera> camera, cv::Ptr<CameraPose> camera
             gridPoints.push_back(Point3f((maxX) * step, y * step, -z * step * 2));
         }
     }
+    gridPoints.push_back(Point3f(0, 0, 0));
+    gridPoints.push_back(Point3f(step, 0, 0));
+    gridPoints.push_back(Point3f(0, step, 0));
 
     std::vector<Point2f> gridImagePoints;
     projectPoints(gridPoints, cameraPose->rvec, cameraPose->tvec, camera->cameraMatrix, camera->distCoeffs, gridImagePoints);
@@ -216,22 +219,36 @@ void drawGridXY(cv::Mat &img, cv::Ptr<Camera> camera, cv::Ptr<CameraPose> camera
     Rect imageRect(0, 0, 640, 480);
     int i = 0;
     RNG rng;
+    Scalar color(0, 0, 0);
     for (int z = 0; z <= maxZ; z++) {
         int icolor = (unsigned) rng;
-        Scalar color(icolor & 255, (icolor >> 8) & 255, (icolor >> 16) & 255);
         for (int x = minX; x <= maxX; x++) {
             if (gridImagePoints[i].inside(imageRect) && gridImagePoints[i + 1].inside(imageRect)) {
-                line(img, gridImagePoints[i], gridImagePoints[i + 1], color, 2);
+                line(img, gridImagePoints[i], gridImagePoints[i + 1], color, 2, LINE_AA);
             }
             i += 2;
         }
         for (int y = minY; y <= maxY; y++) {
             if (gridImagePoints[i].inside(imageRect) && gridImagePoints[i + 1].inside(imageRect)) {
-                line(img, gridImagePoints[i], gridImagePoints[i + 1], color, 2);
+                line(img, gridImagePoints[i], gridImagePoints[i + 1], color, 2, LINE_AA);
             }
             i += 2;
         }
     }
+
+    Point2f offset(2, -6);
+
+    circle(img, gridImagePoints[gridImagePoints.size()-3], 2, Scalar(0,0, 255), 2, LINE_AA);
+    //putText(img, "(0,0,0)", gridImagePoints[gridImagePoints.size()-3] + Point2f(-100, -6), FONT_HERSHEY_PLAIN, 2.0, Scalar(0, 0, 0), 2, LINE_AA);
+    putText(img, "(0,0,0)", gridImagePoints[gridImagePoints.size()-3] + Point2f(-100, -6), FONT_HERSHEY_PLAIN, 2.0, Scalar(255, 255, 255), 2, LINE_AA);
+
+    circle(img, gridImagePoints[gridImagePoints.size()-2], 2, Scalar(0,0, 255), 2, LINE_AA);
+    putText(img, "(8,0,0)", gridImagePoints[gridImagePoints.size()-2] + offset, FONT_HERSHEY_PLAIN, 2.0, Scalar(255, 255, 255), 2, LINE_AA);
+    //putText(img, "(8,0,0)", gridImagePoints[gridImagePoints.size()-2] + offset, FONT_HERSHEY_PLAIN, 2.0, Scalar(255, 255, 255), 1, LINE_AA);
+
+    circle(img, gridImagePoints[gridImagePoints.size()-1], 2, Scalar(0,0, 255), 2, LINE_AA);
+    putText(img, "(0,8,0)", gridImagePoints[gridImagePoints.size()-1] + offset, FONT_HERSHEY_PLAIN, 2.0, Scalar(255, 255, 255), 2, LINE_AA);
+    //putText(img, "(0,8,0)", gridImagePoints[gridImagePoints.size()-1] + offset, FONT_HERSHEY_PLAIN, 2.0, Scalar(255, 255, 255), 1, LINE_AA);
 }
 
 void drawBoxOnChessboard(Mat inputImage, Ptr<Camera> camera, Ptr<CameraPose> pose) {
@@ -252,20 +269,20 @@ void drawBoxOnChessboard(Mat inputImage, Ptr<Camera> camera, Ptr<CameraPose> pos
     projectPoints(objectPoints, pose->rvec, pose->tvec, camera->cameraMatrix, camera->distCoeffs, imagePoints);
 
     // drawing
-    line(inputImage, imagePoints[0], imagePoints[1], Scalar(0, 0, 255), 1);
-    line(inputImage, imagePoints[1], imagePoints[2], Scalar(0, 0, 255), 1);
-    line(inputImage, imagePoints[2], imagePoints[3], Scalar(0, 0, 255), 1);
-    line(inputImage, imagePoints[3], imagePoints[0], Scalar(0, 0, 255), 1);
+    line(inputImage, imagePoints[0], imagePoints[1], Scalar(0, 0, 255), 1, LINE_AA);
+    line(inputImage, imagePoints[1], imagePoints[2], Scalar(0, 0, 255), 1, LINE_AA);
+    line(inputImage, imagePoints[2], imagePoints[3], Scalar(0, 0, 255), 1, LINE_AA);
+    line(inputImage, imagePoints[3], imagePoints[0], Scalar(0, 0, 255), 1, LINE_AA);
 
-    line(inputImage, imagePoints[4], imagePoints[5], Scalar(0, 0, 255), 1);
-    line(inputImage, imagePoints[5], imagePoints[6], Scalar(0, 0, 255), 1);
-    line(inputImage, imagePoints[6], imagePoints[7], Scalar(0, 0, 255), 1);
-    line(inputImage, imagePoints[7], imagePoints[4], Scalar(0, 0, 255), 1);
+    line(inputImage, imagePoints[4], imagePoints[5], Scalar(0, 0, 255), 1, LINE_AA);
+    line(inputImage, imagePoints[5], imagePoints[6], Scalar(0, 0, 255), 1, LINE_AA);
+    line(inputImage, imagePoints[6], imagePoints[7], Scalar(0, 0, 255), 1, LINE_AA);
+    line(inputImage, imagePoints[7], imagePoints[4], Scalar(0, 0, 255), 1, LINE_AA);
 
-    line(inputImage, imagePoints[0], imagePoints[4], Scalar(0, 0, 255), 1);
-    line(inputImage, imagePoints[1], imagePoints[5], Scalar(0, 0, 255), 1);
-    line(inputImage, imagePoints[2], imagePoints[6], Scalar(0, 0, 255), 1);
-    line(inputImage, imagePoints[3], imagePoints[7], Scalar(0, 0, 255), 1);
+    line(inputImage, imagePoints[0], imagePoints[4], Scalar(0, 0, 255), 1, LINE_AA);
+    line(inputImage, imagePoints[1], imagePoints[5], Scalar(0, 0, 255), 1, LINE_AA);
+    line(inputImage, imagePoints[2], imagePoints[6], Scalar(0, 0, 255), 1, LINE_AA);
+    line(inputImage, imagePoints[3], imagePoints[7], Scalar(0, 0, 255), 1, LINE_AA);
 }
 
 Point moveToTheCenter(Mat image, Mat mask) {
@@ -282,4 +299,57 @@ Point moveToTheCenter(Mat image, Mat mask) {
     shiftImage(mask_, boundingRect, translation, mask);
 
     return translation;
+}
+
+void dilateAndErode(Mat mask) {
+    int niters = 3;
+    dilate(mask, mask, Mat(), Point(-1, -1), niters);
+    erode(mask, mask, Mat(), Point(-1, -1), niters * 2);
+    dilate(mask, mask, Mat(), Point(-1, -1), niters);
+
+//    Mat small = getStructuringElement(MORPH_RECT, Size(2, 2));
+//    Mat bigger = getStructuringElement(MORPH_RECT, Size(5, 5));
+//    erode(mask, mask, small, Point(-1, -1), niters);
+//    dilate(mask, mask, bigger, Point(-1, -1), niters * 2);
+//    erode(mask, mask, bigger, Point(-1, -1), niters * 2);
+}
+
+void removeShadows(Mat mask) {
+    for (int y = 0; y < mask.rows; y++) {
+        for (int x = 0; x < mask.cols; x++) {
+            if (mask.at<uchar>(y, x) != 255) {
+                mask.at<uchar>(y, x) = 0;
+            }
+        }
+    }
+}
+
+std::vector<Mat> getFramesFromCameras(std::vector<Ptr<Camera>> &camera,
+                                      std::vector<Ptr<BackgroundSubtractorMOG2>> &bgSub,
+                                      std::vector<SingleObjectSelector> &objSelector,
+                                      double learningRate) {
+    std::vector<Mat> selected(2);
+#pragma omp parallel for
+    for (int i = 0; i < 2; i++) {
+        // std::cout << "CAP THREAD: " << omp_get_thread_num() << std::endl;
+        Mat image, mask;
+        camera[i]->read(image); // readUndistorted
+        bgSub[i]->apply(image, mask, learningRate);
+        removeShadows(mask);
+
+//        if (i == 0) {
+//            imshow("image", image);
+//            imwrite("/media/balint/Data/cucc/image" + std::to_string(counter) + ".png", image);
+//            imshow("mask", mask);
+//            imwrite("/media/balint/Data/cucc/mask" + std::to_string(counter) + ".png", mask);
+//            counter++;
+//        }
+
+        dilateAndErode(mask);
+        //drawGridXY(leftImage, leftCamera, leftCameraPose);
+
+        selected[i] = objSelector[i].selectUsingContourWithMaxArea(image, mask);
+    }
+
+    return selected;
 }

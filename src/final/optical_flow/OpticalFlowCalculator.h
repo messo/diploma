@@ -22,7 +22,7 @@ protected:
     cv::Point2f calcAverageMovement(const std::vector<cv::Point2f> &points1,
                                     const std::vector<cv::Point2f> &points2) const;
 
-    void collectMatchingPoints(const cv::Mat &flow, const cv::Mat &backFlow, const cv::Rect &roi,
+    virtual void collectMatchingPoints(const cv::Mat &flow, const cv::Mat &backFlow, const cv::Rect &roi,
                                std::vector<cv::Point2f> &points1, std::vector<cv::Point2f> &points2);
 
     /** VISUALIZATIONS */
@@ -38,10 +38,12 @@ protected:
 
     OpticalFlowCalculator(cv::Ptr<Camera> camera1, cv::Ptr<Camera> camera2) : camera1(camera1), camera2(camera2) { }
 
-    double calcOpticalFlow(cv::Point &translation);
+    virtual double calcOpticalFlow(cv::Point &translation);
 
 public:
     std::vector<cv::Point2f> points1;
     std::vector<cv::Point2f> points2;
 
+    void visualizeMatchesROI(cv::Mat const &img1, std::vector<cv::Point2f> const &points1, cv::Mat const &img2,
+                             std::vector<cv::Point2f> const &points2);
 };

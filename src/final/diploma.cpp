@@ -82,60 +82,7 @@ void calcPose(int cameraId, const std::string &calibrationFile, const std::strin
     }
 }
 
-void dilateAndErode(Mat mask) {
-    int niters = 3;
-    dilate(mask, mask, Mat(), Point(-1, -1), niters);
-    erode(mask, mask, Mat(), Point(-1, -1), niters * 2);
-    dilate(mask, mask, Mat(), Point(-1, -1), niters);
-
-//    Mat small = getStructuringElement(MORPH_RECT, Size(2, 2));
-//    Mat bigger = getStructuringElement(MORPH_RECT, Size(5, 5));
-//    erode(mask, mask, small, Point(-1, -1), niters);
-//    dilate(mask, mask, bigger, Point(-1, -1), niters * 2);
-//    erode(mask, mask, bigger, Point(-1, -1), niters * 2);
-}
-
 int counter = 0;
-
-void removeShadows(Mat mask) {
-    for (int y = 0; y < mask.rows; y++) {
-        for (int x = 0; x < mask.cols; x++) {
-            if (mask.at<uchar>(y, x) != 255) {
-                mask.at<uchar>(y, x) = 0;
-            }
-        }
-    }
-}
-
-std::vector<Mat> getFramesFromCameras(std::vector<Ptr<Camera>> &camera,
-                                      std::vector<Ptr<BackgroundSubtractorMOG2>> &bgSub,
-                                      std::vector<SingleObjectSelector> &objSelector,
-                                      double learningRate) {
-    std::vector<Mat> selected(2);
-#pragma omp parallel for
-    for (int i = 0; i < 2; i++) {
-        // std::cout << "CAP THREAD: " << omp_get_thread_num() << std::endl;
-        Mat image, mask;
-        camera[i]->readUndistorted(image);
-        bgSub[i]->apply(image, mask, learningRate);
-        removeShadows(mask);
-
-//        if (i == 0) {
-//            imshow("image", image);
-//            imwrite("/media/balint/Data/cucc/image" + std::to_string(counter) + ".png", image);
-//            imshow("mask", mask);
-//            imwrite("/media/balint/Data/cucc/mask" + std::to_string(counter) + ".png", mask);
-//            counter++;
-//        }
-
-        dilateAndErode(mask);
-        //drawGridXY(leftImage, leftCamera, leftCameraPose);
-
-        selected[i] = objSelector[i].selectUsingContourWithMaxArea(image, mask);
-    }
-
-    return selected;
-}
 
 int main(int argc, char **argv) {
 
@@ -153,10 +100,10 @@ int main(int argc, char **argv) {
 
     std::vector<CameraPose> cameraPose(2);
     cameraPose[Camera::LEFT].load("/media/balint/Data/Linux/diploma/src/final/pose_left.yml");
-    Matx34d leftP = cameraPose[Camera::LEFT].getProjectionMatrix();
+    Matx34d leftP = cameraPose[Camera::LEFT].getRT();
     //Matx44d leftPclP = cameraPose[Camera::LEFT].getPoseForPcl();
     cameraPose[Camera::RIGHT].load("/media/balint/Data/Linux/diploma/src/final/pose_right.yml");
-    Matx34d rightP = cameraPose[Camera::RIGHT].getProjectionMatrix();
+    Matx34d rightP = cameraPose[Camera::RIGHT].getRT();
     //Matx44d rightPclP = cameraPose[Camera::RIGHT].getPoseForPcl();
 
     std::vector<Ptr<BackgroundSubtractorMOG2>> bgSub(2);
@@ -175,6 +122,7 @@ int main(int argc, char **argv) {
 
     // PclVisualization vis;
     MatVisualization matVis(cameraPose[Camera::LEFT], camera[Camera::LEFT]->cameraMatrix);
+    MatVisualization matVis2(cameraPose[Camera::LEFT], camera[Camera::LEFT]->cameraMatrix);
 
     bool taskRunning = false;
 
@@ -252,6 +200,11 @@ int main(int argc, char **argv) {
                                           camera[Camera::RIGHT]->Kinv,
                                           leftP, rightP, pointcloud, cp);
 
+                        std::vector<CloudPoint> cvPointcloud;
+                        cvTriangulatePoints(ofCalculator.points1, camera[Camera::LEFT], cameraPose[Camera::LEFT],
+                                            ofCalculator.points2, camera[Camera::RIGHT], cameraPose[Camera::RIGHT],
+                                            cvPointcloud);
+
                         t = ((double) getTickCount() - t) / getTickFrequency();
                         std::cout << "## Done in " << t << "s" << std::endl;
                         std::cout.flush();
@@ -259,6 +212,8 @@ int main(int argc, char **argv) {
                         procCnter.tick();
                         std::cout << "Process: " << procCnter.get() << std::endl;
                         matVis.renderPointCloud(pointcloud);
+                        matVis2.renderPointCloud(cvPointcloud);
+
 // VISU
 //                        vis.init();
 //                        vis.addCamera(camera[Camera::LEFT], leftPclP, 1);
@@ -271,6 +226,7 @@ int main(int argc, char **argv) {
                 }
 
                 imshow("magic", matVis.getResult());
+                imshow("magicCV", matVis2.getResult());
             }
         }
     }

@@ -19,7 +19,7 @@ void MatVisualization::renderPointCloud(const std::vector<CloudPoint> &points) {
     Mat img(480, 640, CV_8UC3, Scalar(0, 0, 0));
 
     const double maxZ = 10.0;
-    const double minZ = -50.0;
+    const double minZ = -100.0;
 
     if (objectPoints.size() > 0) {
         projectPoints(objectPoints, cameraPose->rvec, cameraPose->tvec, cameraMatrix, cv::noArray(), imagePoints);

@@ -4,8 +4,10 @@
 #include <opencv2/core/types.hpp>
 #include <unordered_map>
 #include <map>
+#include <opencv2/video/background_segm.hpp>
 #include "camera/Camera.hpp"
 #include "camera/CameraPose.h"
+#include "SingleObjectSelector.hpp"
 
 struct CloudPoint {
     cv::Point3d pt;
@@ -97,3 +99,8 @@ void drawBoxOnChessboard(cv::Mat inputImage, cv::Ptr<Camera> camera, cv::Ptr<Cam
 void drawGridXY(cv::Mat &img, cv::Ptr<Camera> camera, cv::Ptr<CameraPose> cameraPose);
 
 cv::Point moveToTheCenter(cv::Mat image, cv::Mat mask);
+
+std::vector<cv::Mat> getFramesFromCameras(std::vector<cv::Ptr<Camera>> &camera,
+                                          std::vector<cv::Ptr<cv::BackgroundSubtractorMOG2>> &bgSub,
+                                          std::vector<SingleObjectSelector> &objSelector,
+                                          double learningRate);

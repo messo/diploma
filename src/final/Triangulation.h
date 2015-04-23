@@ -80,3 +80,7 @@ double TriangulatePoints(const std::vector<cv::Point2f> &pt_set1,
                          std::vector<cv::Point> &correspImg1Pt);
 
 bool TestTriangulation(const Cloud &pcloud, const cv::Matx34d &P, std::vector<uchar> &status);
+
+double cvTriangulatePoints(const std::vector<cv::Point2f> &points1, const cv::Ptr<Camera> &cam1, const CameraPose &p1,
+                           const std::vector<cv::Point2f> &points2, const cv::Ptr<Camera> &cam2, const CameraPose &p2,
+                           std::vector<CloudPoint> &pointcloud);

@@ -273,7 +273,7 @@ double TriangulatePoints(const vector<Point2f> &pt_set1,
 
     Scalar mse = mean(reproj_error);
     t = ((double) getTickCount() - t) / getTickFrequency();
-    cout << "Done. (" << pointcloud.size() << "points, " << t << "s, mean reproj err = " << mse[0] << ")" << endl;
+    cout << "ROY Done. (" << pointcloud.size() << "points, " << t << "s, mean reproj err = " << mse[0] << ")" << endl;
 
     return mse[0];
 }
@@ -329,4 +329,55 @@ bool TestTriangulation(const Cloud &pcloud, const Matx34d &P, vector<uchar> &sta
     }
 
     return true;
+}
+
+double cvTriangulatePoints(const vector<Point2f> &points1, const Ptr<Camera> &cam1, const CameraPose &pose1,
+                           const vector<Point2f> &points2, const Ptr<Camera> &cam2, const CameraPose &pose2,
+                           vector<CloudPoint> &pointcloud) {
+
+    cout << "Triangulating...";
+    double t = getTickCount();
+
+    int count = (int) points1.size();
+
+    if(count == 0) {
+        cout << "no points." << endl;
+        return -1.0;
+    }
+
+    Mat normalized1, normalized2;
+
+    undistortPoints(points1, normalized1, cam1->cameraMatrix, cam1->distCoeffs);
+    undistortPoints(points2, normalized2, cam2->cameraMatrix, cam2->distCoeffs);
+
+    cv::Mat points3D_h(4, count, CV_32FC1);
+    cv::triangulatePoints(Mat(pose1.getRT()), Mat(pose2.getRT()), normalized1, normalized2, points3D_h);
+    cv::Mat points3D;
+    convertPointsFromHomogeneous(Mat(points3D_h.t()).reshape(4, 1), points3D);
+
+    // reprojection
+
+    Mat reprojected1, reprojected2;
+    projectPoints(points3D, pose1.rvec, pose1.tvec, cam1->cameraMatrix, cam1->distCoeffs, reprojected1);
+    projectPoints(points3D, pose2.rvec, pose2.tvec, cam2->cameraMatrix, cam2->distCoeffs, reprojected2);
+
+    vector<double> reproj_error;
+    for (int i = 0; i < count; i++) {
+        double reprj_err1 = norm(reprojected1.at<Point2f>(i) - points1[i]);
+        double reprj_err2 = norm(reprojected2.at<Point2f>(i) - points2[i]);
+
+        CloudPoint cp;
+        const Point3f &pt3f = points3D.at<Point3f>(i);
+        cp.pt = Point3d(pt3f.x, pt3f.y, pt3f.z);
+        cp.reprojection_error = max(reprj_err1, reprj_err2);
+
+        reproj_error.push_back(cp.reprojection_error);
+        pointcloud.push_back(cp);
+    }
+
+    Scalar mse = mean(reproj_error);
+    t = ((double) getTickCount() - t) / getTickFrequency();
+    cout << "CV Done. (" << pointcloud.size() << "points, " << t << "s, mean reproj err = " << mse[0] << ")" << endl;
+
+    return mse[0];
 }

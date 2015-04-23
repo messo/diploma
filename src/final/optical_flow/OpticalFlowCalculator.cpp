@@ -248,7 +248,7 @@ void OpticalFlowCalculator::visualizeMatches(const Mat &img1, const vector<Point
         Point p1(points1[i]);
         Point p2(points2[i]);
 
-        if (p1.x % 10 == 0 && p1.y % 10 == 0) {
+        if (p1.x % 20 == 0 && p1.y % 20 == 0) {
             int icolor = (unsigned) rng;
             Scalar color(icolor & 255, (icolor >> 8) & 255, (icolor >> 16) & 255);
 
@@ -260,6 +260,37 @@ void OpticalFlowCalculator::visualizeMatches(const Mat &img1, const vector<Point
 
     imshow("restoredMatchesVis", vis);
 }
+
+
+void OpticalFlowCalculator::visualizeMatchesROI(cv::Mat const &img1, std::vector<cv::Point2f> const &points1,
+                                                cv::Mat const &img2, std::vector<cv::Point2f> const &points2) {
+    Rect br0 = boundingRect(masks[0]);
+    Rect br1 = boundingRect(masks[1]);
+
+    Mat vis = mergeImages(img1(br0), img2(br1));
+    if (vis.channels() != 3) {
+        cvtColor(vis, vis, cv::COLOR_GRAY2BGR);
+    }
+
+    RNG rng;
+    for (int i = 0; i < points1.size(); i++) {
+        Point p1(points1[i]);
+        Point p2(points2[i]);
+
+        if (p1.x % 20 == 0 && p1.y % 20 == 0) {
+            int icolor = (unsigned) rng;
+            Scalar color(icolor & 255, (icolor >> 8) & 255, (icolor >> 16) & 255);
+
+            line(vis, p1 - br0.tl(), p2 - br1.tl() + Point(br0.width, 0), color, 1, LINE_AA);
+            circle(vis, p1 - br0.tl(), 3, color, -1);
+            circle(vis, p2 - br1.tl() + Point(br0.width, 0), 3, color, -1);
+        }
+    }
+
+    imshow("restoredMatchesVis", vis);
+    imwrite("/media/balint/Data/Linux/diploma/vis_bad.png", vis);
+}
+
 
 cv::Point2f OpticalFlowCalculator::calcAverageMovement(const std::vector<cv::Point2f> &points1,
                                                        const std::vector<cv::Point2f> &points2) const {

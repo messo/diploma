@@ -18,7 +18,7 @@ void CameraPose::save(const std::string &fileName) const {
     fs << "tvec" << tvec;
 }
 
-cv::Matx34d CameraPose::getProjectionMatrix() const {
+cv::Matx34d CameraPose::getRT() const {
     cv::Matx33d R;
     cv::Rodrigues(this->rvec, R);
     return cv::Matx34d(R(0, 0), R(0, 1), R(0, 2), this->tvec.at<double>(0, 0),
