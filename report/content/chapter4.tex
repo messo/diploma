@@ -280,15 +280,51 @@ A következő lépésem, hogy a két képet az egész kép közepére mozgatom, 
 \caption{Közös középpontba mozgatás után (36 958 vektor) \label{fig:bad1}}
 \end{figure}
 
-Legyen két képkocka $K_1$ és $K_2$, valamint $F_{1, 2} = \mathcal{F}(K_1, K_2)$ és $F_{2, 1} = \mathcal{F}(K_2, K_1)$, ahol $\mathcal{F}$ jelöli két képkocka közti optikai-folyam operátort, melynek eredménye egy vektormező ($F_{1, 2}, F_{2, 1} : \mathbb{R}^2 \rightarrow \mathbb{R}^2$). A párosítást minőségét, pontosságát javítja ha megkövetelem, hogy ha $x\in K_1$ és $F_{1,2}(x) = v$, akkor $$
+Legyen két képkocka $K_1$ és $K_2$, valamint $F_{1, 2} = \mathcal{F}(K_1, K_2)$ és $F_{2, 1} = \mathcal{F}(K_2, K_1)$, ahol $\mathcal{F}$ jelöli két képkocka közti optikai-folyam operátort, melynek eredménye egy vektormező ($F_{1, 2}, F_{2, 1} : \mathbb{R}^2 \rightarrow \mathbb{R}^2$). Gondoljuk meg, hogy ha $x\in K_1$ és $x + F_{1,2}(x) = x' \in K_2$, akkor $x' + F_{1,2}(x') \approx x \in K_1$, vagyis ha egy $x$ pont $K_1$-ről $K_2$-re az $x'$ pontba mozog, akkor visszafelé nézve $x'$ pontnak ideális esetben $x$ pontba kell, hogy mozogjon. Ezt a kényszert felhasználva ugyan kétszer kell optikai folyamot számolnom, de az eredmény kiszűr sok helytelen párosítást: 10 066 vektor marad.
 
+Fontos figyelembe venni az objektumok textúrázottságát. Könnyű meggondolni, hogy azon területeken, ahol a pontok intenzitásai nagyon hasonló értéket vesznek fel, ott a kapott elmozdulás vektorok bizonytalanok. Ezen az optikai folyam rektifikációja segíthet. \cite{optical-flow-rectification}-ban két féle problémát vázolnak; egyik a textúrázatlanság, a másik pedig a kitakart pontok problémája. {\color{red} Utóbbit én az előző megközelítéssel orvosoltam}, míg az előbbire You Yang és társai egy bináris döntési függvényt javasolnak:
 
+\[
+    \zeta(\Omega_\mathbf{X})= 
+\begin{cases}
+    0,              & \text{ha } \sigma(I_{\forall \mathbf{Y}\in\Omega_\mathbf{X}} - I_\mathbf{X}) < \varepsilon_\Omega\\
+    1,              & \text{különben}
+\end{cases}
+\]
 
-esetén optikai folyamot számolunk $F_1$-ből $F_2$-be, és egy $x\in F_1$ képponthoz tartozó vektor $v$, azaz $x + v = x' \in F_2$, akkor az $F_2$-ből $F_1$-be számolt optikai folyam esetén $x' \in F_2$ képponthoz tartozó $v'$ vektor esetén: $x' + v' \approx x \in F_1$.
+ahol $\Omega_\mathbf{X}$ jelöli $\mathbf{X}$ képpont egy környezetét, $I_\mathbf{X}$ az $\mathbf{X}$ pont intenzitását, $\sigma(.)$ a szórás-operátor egy halmazra nézve, valamint $\varepsilon_\Omega$ egy küszöbértéket, ami konstans. Úgy találták, hogy $\varepsilon_\Omega = 6$ választással jó eredményeket értek el, így én is ezt használtam. A mintaképek pontjaira kiszámolve ezt a függvényt, \aref{fig:textures}. ábrán látható maszkokat kaptam. Ezzel 8 342-re csökkent a párok száma.
+
+\begin{figure}[tbh]
+\centering
+\includegraphics[width=300pt]{figures/textures.png}
+\caption{$\zeta$ függvény alkalmazva az objektum összes pontjára \label{fig:textures}}
+\end{figure}
+
+A meghagyott vektorok átlagos hossza $\approx 6,69$ pixel lett. Ha túl nagyok az elmozdulások, akkor az azt jelenti, hogy a két objektum egyező pontjai között túl nagy a távolság, és mivel az optikai folyam algoritmusok kicsi elmozdulásokra számítanak, ezért a kapott vektormező pontatlan lehet. Az ötlet, hogy ha az átlagos elmozdulás túl nagy (egy $\varepsilon_d$ küszöbértéknél nagyobb), akkor ezzel a vektorral eltolom az egyik képet, és újraszámolom a vektormezőt, valamint az átlagos elmozdulást, ezt addig folytatva, amíg a küszöbértéket nem haladja meg. \Aref{table:shifting}. táblázat mutatja az átlagos távolságokat, valamint a párosítások számát.
+
+\begin{table}[tbh]
+\centering
+\begin{tabular}{|r|r|}
+\hline
+\centering átlagos elmozdulás & talált párosítások \\\hline\hline
+ 6,6927 & 8342 \\\hline
+12,0811 & 19191 \\\hline
+ 6,3487 & 15324 \\\hline
+ 0,9173 & 15117 \\\hline
+\end{tabular}
+\caption{Mozgatás hatása az átlagos elmozdulásra és az elfogadott párosítások számára, $\varepsilon_d = 5$-öt választva. Megfigyelhető, hogy a 4 mérés közül pont annál fogadjuk a legtöbb párosítást, ahol a legnagyobb az átlagos elmozdulás. \label{table:shifting}}
+\end{table}
+
+{\color{red}NA MELYIK???} A következő alfejezet adhat választ arra a kérdésre, hogy ezek közül melyiket preferáljuk, tehát inkább a kisebb átlagos elmozdulásra (ha igen, mi az a küszöbérték, amit elérjünk), vagy a lehető legtöbb párosításra. Nem szabad figyelmen kívül hagyni azt sem, hogy minden egyes lépésnél újra kell számolnunk az optikai folyamot, aminek erőforrás igénye van.
+
 
 %----------------------------------------------------------------------------
 \section{Háromszögelés}
 %----------------------------------------------------------------------------
+
+Következő lépés, hogy a kiválasztott párosítások alapján meghatározzuk a pontok világbeli koordinátáját. Ez lényegében a kamera középpontokból a képpontokba húzott sugarak metszéspontjának meghatározását jelenti. Ez a gyakorlatban általában nem létezik, ezért különféle módszerek léteznek a legjobb megoldás megtalálására. Ahogy már \aref{sec:methods}. alfejezetben említettem egyik ezek közül az, amikor a kitérő egyenesek közötti legrövidebb szakasz középpontját tekintjük. Ugyanakkor projektív illetve affin helyreállításnál ez nem értelmezhető (nincs metrikus információnk az objektum térről) \cite{hartley-triangulation, HZ} és más megoldásokat kell találni. Hartley és Sturm \cite{hartley-triangulation} leírja az optimális megoldást, amennyiben a projekciós mátrixok vagy a fundamentális mátrix (amely egy képpontot átvisz a másik képen a hozzá tartozó epipoláris egyenesre) pontosan ismertek, valamint további lineáris algoritmusokat is leír.
+
+OpenCV-ben \texttt{cv::triangulatePoints} függvényben az egyik legegyszerűbb a \textit{Linear-LS} (lineáris legkisebb négyzetek módszere) van implementálva
 
 
 %----------------------------------------------------------------------------

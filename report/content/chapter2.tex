@@ -99,7 +99,7 @@ Tekintsünk két kamerát, ami ugyanazt a térrészt veszi más szögből, lásd
 \caption{Epipoláris geometria szemléltetése \label{fig:epipolar}}
 \end{figure}
 
-A $P$ pont az első kamera $I_1$ képén $p_1$-be, a második kamera $I_2$ képén $p_2$-be képződik le. Visszafele gondolkozva, ha megvan egy pontnak két képe a két képsíkon, akkor a kamera középpontjait összekötve ezekkel a képpontokkal két félegyenest (sugarat, az angol \textit{ray} szóból) kapunk, melyek metszéspontjában kereshető a valódi $P$ pont (háromszögelés). Fontos megjegyezni, hogy ilyen metszéspont csak ideális esetben létezik, a gyakorlatban nagyon ritkán. Ilyenkor a kitérő félegyenesek közti legrövidebb szakasz középpontját tekintjük a ,,metszéspontnak''.
+A $P$ pont az első kamera $I_1$ képén $p_1$-be, a második kamera $I_2$ képén $p_2$-be képződik le. Visszafele gondolkozva, ha megvan egy pontnak két képe a két képsíkon, akkor a kamera középpontjait összekötve ezekkel a képpontokkal két félegyenest (sugarat, az angol \textit{ray} szóból) kapunk, melyek metszéspontjában kereshető a valódi $P$ pont (háromszögelés). Fontos megjegyezni, hogy ilyen metszéspont csak ideális esetben létezik, a gyakorlatban nagyon ritkán. Különféle módszerek léteznek ennek feloldására, ezek egyik legegyszerűbbike, hogy a kitérő félegyenesek közti legrövidebb szakasz középpontját tekintjük a ,,metszéspontnak''.
 
 Nyilvánvaló, hogy $C_1$, $C_2$, $P$, valamint $p_1$ és $p_2$ egy síkon van rajta, ezt \textit{epipoláris sík}nak nevezzük, az ábrán $\pi$-vel jelölve (lásd pontozott vonal által határolt háromszög). Ezt felhasználva adódik, hogy egy $p_1$ pont párja a másik, $I_2$ képsíkon nem lehet máshol, mint $I_2$ és $\pi$ metszésvonalán. Ezeket, vagyis a képsíkok és az epipoláris síkok metszéspontját \textit{epipoláris egyeneseknek} nevezzük, melyeket szaggatott vonalak jelölnek az ábrán.
 
@@ -520,6 +520,17 @@ A választott algoritmus előnye, hogy az árnyékokat nagy valószínűséggel 
 
 A kapott előtér maszkot és az optika-folyamokat felhasználva már igen jó közelítéssel megkapjuk a mozgó objektumoknak megfelelő képszeleteket.
 
+
+%----------------------------------------------------------------------------
+\section{Háromszögelés \label{sec:triangulation}}
+%----------------------------------------------------------------------------
+
+
+
+
+
+%----------------------------------------------------------------------------
 \section{Összefoglaló}
+%----------------------------------------------------------------------------
 
 Ebben a fejezetben a több kamerából álló kamera-rendszerek során felmerülő és a dolgozat során is megoldandó problémákat, valamint ezek lehetséges megoldásait mutattam be. Kitértem a kamera-szinkronizációra, melyet több kamera esetén nem hagyhatunk figyelmen kívül, és leírtam két lényegében eltérő rekonstrukciós eljárást, és azok mögött meghúzódó elméleti hátteret. A fejezetet az objektum-detekció problémakörével zártam.
