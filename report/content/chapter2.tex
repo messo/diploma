@@ -4,25 +4,23 @@
 
 A kitűzött feladat szempontjából két fontos részproblémát kell több kamerából álló rendszerek esetén megoldani. Az első a kamerák szinkronizációjának problémája, ami akkor merül fel, ha a kamerák nem egy közös feldolgozó egységhez kapcsolódnak, hanem például a kamerák képeit egy videófolyamként kapjuk. A második pedig, hogy a kamerák képei alapján a háromdimenziós teret, vagy annak egy részét a lehető legjobban rekonstruáljuk. Ez a fejezet ezen két problémát járja körbe, valamint végül bemutat egy megoldást a mozgó objektumok detekciójára.
 
+
 %----------------------------------------------------------------------------
 \section{Kamerák szinkronizációja}
 %----------------------------------------------------------------------------
+
 
 Amennyiben a videófolyamba időpecséteket kódolunk, a kamerák szinkronizációja megoldható. A képsorokat a kódolt információ alapján egymáshoz tudjuk időzíteni, feltéve, hogy a kamerák óráit már előtte szinkronizáltuk.
 
 Amennyiben ilyen adat nem áll rendelkezésre a videófolyamban, egyéb módszert kell keresnünk. Megoldás lehet, ha a kamerák képsorain egy közös trigger-eseményt keresünk. Az Önálló laboratórium 1. című tárgy keretében \cite{onlab-1} egy lézerpontot kerestem mindegyik képen, és a felvillanás időpontját tekintettem referenciának. Ehhez nagyon hasonló a filmiparban használt \textit{clapperboard}, aminek összeütését használják szinkronizációra, de akár egy egyszerű taps is megfelelhet, amennyiben a kamerák hangot is rögzítenek.
 
+
 %----------------------------------------------------------------------------
-\section{A háromdimenziós tér rekonstrukciója \label{sec:methods}}
+\section{Epipoláris geometria \label{sec:epipolar}}
 %----------------------------------------------------------------------------
 
-A dolgozat során kettő, lényegében eltérő módszerre térek ki. Az első a sztereó-látás elvén alapszik, azaz a kamerákat párosával használva -- azokat sztereó-kalibrálva -- alkotunk mélységképet, mely segítségével a képpontokat mélységinformációval ruházzuk fel. A második eljárás az optikai-folyamok segítségével a kamerák képein meghatározza az egymásnak megfelelő pontokat, és ezekből a párosításokból háromszögelés után meghatározza a pontok világbeli koordinátáját.
+Az epipoláris geometria adja meg a kapcsolatot két kamera képe között \cite[9. fejezet]{HZ}. Tekintsük \aref{fig:epipolar}. ábrát. $C_1$ és $C_2$ pontok a kamerák középpontjai, és legyen $P$ egy pont a térben, mely az első kamera $I_1$ képén $p_1$-be, a második kamera $I_2$ képén $p_2$-be képződik le. $p_1$, $p_2$ és $P$ egy síkot határoz meg, jelöljük ezt $\pi$-vel. Ezen a síkon vannak rajta a kamerák középpontjaiból a képpontokon áthaladó félegyenesek is melyek $P$-ben metszik egymást. $\pi$-t a $P$-hez tartozó \textit{epipoláris sík}nak, a két kameraközéppontot összekötő egyenest \textit{bázis egyenes}nek, ennek metszéspontjait a képsíkokkal ($e_1$ és $e_2$) \textit{epipólus}oknak nevezzük. Gondoljuk meg, hogy ha $p_1$-t ismerjük és $p_2$-t szeretnénk meghatározni, akkor azt az epipoláris sík és az $I_2$ képsík metszésvonalán kell keresni, ezt a $p_1$-hez tartozó \textit{epipoláris egyenes}. Ezt a tulajdonságot tudjuk kihasználni ahhoz, hogy egy képpont párját a másik képen nem az egész síkon, hanem csak egy egyenesen kell keresnünk.
 
-\subsection{Sztereó-látás, sztereó-kalibráció}
-
-Sztereó-kalibráció \cite{camera-calib-3d} során egy már ismert háromdimenziós objektumot használunk fel, és attól függően, hogy az objektum ismert pontjait a két kamera képén hol látjuk, kiszámolhatjuk a kamerák belső és külső paramétereit (lásd előző fejezet), valamint a kamerák egymáshoz való viszonyát (eltolás, forgatás). 
-
-Tekintsünk két kamerát, ami ugyanazt a térrészt veszi más szögből, lásd \aref{fig:epipolar}. ábrát.
 
 \begin{figure}[tbh]
 \centering
@@ -99,11 +97,30 @@ Tekintsünk két kamerát, ami ugyanazt a térrészt veszi más szögből, lásd
 \caption{Epipoláris geometria szemléltetése \label{fig:epipolar}}
 \end{figure}
 
-A $P$ pont az első kamera $I_1$ képén $p_1$-be, a második kamera $I_2$ képén $p_2$-be képződik le. Visszafele gondolkozva, ha megvan egy pontnak két képe a két képsíkon, akkor a kamera középpontjait összekötve ezekkel a képpontokkal két félegyenest (sugarat, az angol \textit{ray} szóból) kapunk, melyek metszéspontjában kereshető a valódi $P$ pont (háromszögelés). Fontos megjegyezni, hogy ilyen metszéspont csak ideális esetben létezik, a gyakorlatban nagyon ritkán. Különféle módszerek léteznek ennek feloldására, ezek egyik legegyszerűbbike, hogy a kitérő félegyenesek közti legrövidebb szakasz középpontját tekintjük a ,,metszéspontnak''.
+Az $\mathbf{F}$ fundamentális mátrix az epipoláris geometria algebrai megfeleltetése, mely az előbb említett képpontból epipoláris egyenesre történő leképezést adja meg.
 
-Nyilvánvaló, hogy $C_1$, $C_2$, $P$, valamint $p_1$ és $p_2$ egy síkon van rajta, ezt \textit{epipoláris sík}nak nevezzük, az ábrán $\pi$-vel jelölve (lásd pontozott vonal által határolt háromszög). Ezt felhasználva adódik, hogy egy $p_1$ pont párja a másik, $I_2$ képsíkon nem lehet máshol, mint $I_2$ és $\pi$ metszésvonalán. Ezeket, vagyis a képsíkok és az epipoláris síkok metszéspontját \textit{epipoláris egyeneseknek} nevezzük, melyeket szaggatott vonalak jelölnek az ábrán.
+\[\mathbf{l}' = \mathbf{F}\mathbf{x}\]
 
-Ebből következik, hogy a képpontok párját a másik képen elég csak az epipoláris egyeneseken keresni, mert az előzőek alapján csak ott lehetnek. További egyszerűsítés, ha ezek az epipoláris egyenesek mindannyian párhuzamosak és vízszintesek, hiszen ekkor a képeken csak $x$ irányban kell keresni a pontok megfelelőit a másik képen. Gyakorlatban, nagyon nehéz így beállítani a kamerákat, ezért a kamerák képeit úgy transzformálják, hogy egy képzeletbeli közös síkba essenek a képsíkok, ahol már teljesül ez a feltétel. Ezt \textit{rektifikációnak} hívják, lásd \aref{fig:rectification}. ábrát.
+ahol $\mathbf{x}$ egy $X$ pont képe az egyik képsíkon, $\mathbf{l}'$ pedig a hozzátartozó epipoláris egyenes a másik képsíkon. Legyen $\mathbf{x}'$ az $X$ képe a másik képsíkon, mivel rajta van $\mathbf{l}'$-n ezért $\mathbf{x}'^T \mathbf{l}' = 0$, tehát:
+
+\[\mathbf{x}'^T\mathbf{F}\mathbf{x} = 0\]
+
+Ezen mátrixegyenletből kiindulva, egyező képpontpárokból kiszámolhatjuk $\mathbf{F}$-et, 8 pontpárból egy skála erejéig, 8-nál több esetén pedig legkisebb négyzetek módszerével (7 esetén pedig van nem-lineáris megoldás) \cite[10.1 alfejezet]{HZ}.
+
+%----------------------------------------------------------------------------
+\section{A háromdimenziós tér rekonstrukciója \label{sec:methods}}
+%----------------------------------------------------------------------------
+
+
+A dolgozat során kettő, lényegében eltérő módszerre térek ki. Az első a sztereó-látás elvén alapszik, azaz a kamerákat párosával használva -- azokat sztereó-kalibrálva -- alkotunk mélységképet, mely segítségével a képpontokat mélységinformációval ruházzuk fel. A második eljárás az optikai-folyamok segítségével a kamerák képein meghatározza az egymásnak megfelelő pontokat, és ezekből a párosításokból háromszögelés után meghatározza a pontok világbeli koordinátáját.
+
+\subsection{Sztereó-látás, sztereó-kalibráció}
+
+Sztereó-kalibráció \cite{camera-calib-3d} során egy már ismert háromdimenziós objektumot használunk fel, és attól függően, hogy az objektum ismert pontjait a két kamera képén hol látjuk, kiszámolhatjuk a kamerák belső és külső paramétereit (lásd előző fejezet), valamint a kamerák egymáshoz való viszonyát (eltolás, forgatás). 
+
+Amennyiben a két kamera képsíkja egybe esik, akkor a bázisegyenesek a képsíkokkal a végtelenben metszik egymást, ebből adódóan az epipoláris egyenesek párhuzamosak. Amennyiben a két kamera közötti transzformáció csak tisztán egy $x$ tengellyel párhuzamos eltolás (standard sztereókamerák), akkor az epipoláris egyenesek is párhuzamosak az $x$ tengellyel, tehát a pontpárok keresése pusztán a képkocka egy adott sorára korlátozódik.
+
+Mivel a gyakorlatban nehéz pontosan úgy elhelyezni a kamerákat, hogy csak víszintes irányú eltolás legyen köztük, ezért a kamerák képeit \textit{rektifikál}ni kell. Ekkor a kamerák képeit úgy transzformáljuk, hogy a képsíkok egy képzeletbeli közös síkba essenek, lásd \aref{fig:rectification}. ábrát.
 
 \begin{figure}[tbh]
 \centering
@@ -230,7 +247,7 @@ Ebből következik, hogy a képpontok párját a másik képen elég csak az epi
     \draw[red,thick] (0,0.140) -- (1,0.140);
     \draw[red,thick] (0,0.045) -- (1,0.045);
 \end{tikzpicture}
-  \caption{Rektifikáció után a két kamera képe \label{fig:stereo-calibration-after}}
+  \caption{Rektifikáció után a két kamera képe, pirossal jelölve néhány epipoláris egyenes \label{fig:stereo-calibration-after}}
 \end{figure}
 
 A rektifikált képpárokra pedig már léteznek algoritmusok \cite{SGBM, stereo-var}, melyek megtalálják a képeken az egymásnak megfelelő pontokat és az elmozdulásuk alapján megadják a pontok mélységértékeit. \Aref{fig:depth-showcase}. ábra segítségével könnyű látni, hogy a nagy elmozdulást mutató pontok közelebb, a kisebbek távolabb találhatóak a kamerától.
