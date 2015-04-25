@@ -61,7 +61,16 @@ Mat mergeImages(const Mat &left, const Mat &right) {
     Mat result = Mat::zeros(max(left.rows, right.rows), left.cols + right.cols, left.type());
 
     left.copyTo(result(Rect(0, 0, left.cols, left.rows)));
-    right.copyTo(result(Rect(left.cols - 1, 0, right.cols, right.rows)));
+    right.copyTo(result(Rect(left.cols, 0, right.cols, right.rows)));
+
+    return result;
+}
+
+Mat mergeImagesVertically(const Mat &left, const Mat &right) {
+    Mat result = Mat::zeros(left.rows + right.rows, max(left.cols, right.cols), left.type());
+
+    left.copyTo(result(Rect(0, 0, left.cols, left.rows)));
+    right.copyTo(result(Rect(0, left.rows, right.cols, right.rows)));
 
     return result;
 }
@@ -334,6 +343,13 @@ std::vector<Mat> getFramesFromCameras(std::vector<Ptr<Camera>> &camera,
         // std::cout << "CAP THREAD: " << omp_get_thread_num() << std::endl;
         Mat image, mask;
         camera[i]->read(image); // readUndistorted
+
+        Mat gray;
+        cvtColor(image, gray, COLOR_BGR2GRAY);
+
+        Mat equal;
+        equalizeHist(gray, equal);
+
         bgSub[i]->apply(image, mask, learningRate);
         removeShadows(mask);
 
@@ -348,7 +364,7 @@ std::vector<Mat> getFramesFromCameras(std::vector<Ptr<Camera>> &camera,
         dilateAndErode(mask);
         //drawGridXY(leftImage, leftCamera, leftCameraPose);
 
-        selected[i] = objSelector[i].selectUsingContourWithMaxArea(image, mask);
+        selected[i] = objSelector[i].selectUsingContourWithMaxArea(equal, mask);
     }
 
     return selected;

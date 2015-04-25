@@ -516,6 +516,48 @@ Ennél lényegesen eltérő felhasználási mód, ha az optikai-folyamokat nem e
 
 Az előbbi módszer, jól használható nagy felbontású képeknél, ahol az objektum a kép nagy részét teszi ki, így sok hasznos képpontot gyűjthetünk. A feladatom során éppen ellenkezőleg, a képek csak egy részén megjelenő és ott mozgó objektumokat kell rekonstruálni, így az utóbbi megközelítést valósítom meg.
 
+
+%----------------------------------------------------------------------------
+\subsection{Háromszögelés \label{sec:triangulation}}
+%----------------------------------------------------------------------------
+
+Legyen adott két kamera a belső és külső paramétereivel együtt, tehát ismerjük a kamerák $\mathbf{P}$ és $\mathbf{Q}$ projekciós mátrixukat. Amennyiben veszünk egy $P$ pontnak egy-egy képét a kamerák képein, akkor háromszögeléssel meghatározhatjuk ezen pont valóvilágbeli koordinátáit.
+
+Legyen a két egymásnak megfeleltetett képpont $\mathbf{u}$ és $\mathbf{u}'$. A megfeleltetés zajos jellege miatt, ezek általánosságban nem elégítik ki az epipoláris $\mathbf{u}'^T \mathbf{F} \mathbf{u} = 0$ kényszert, ahol $\mathbf{F}$ a két kamera fundamentális mátrixa. Ilyenkor ezek helyett olyan $\mathbf{\hat{u}} \leftrightarrow \mathbf{\hat{u}}'$ megfeleltetést keresünk, mely minimalizálja az alábbi
+
+\[d(\mathbf{u}, \mathbf{\hat{u}})^2 + d(\mathbf{u}', \mathbf{\hat{u}}')^2\]
+
+költségfüggvényt, ahol $d(., .)$ két pont euklideszi távolsága, és kielégíti az
+
+\[\mathbf{\hat{u}}'^T \mathbf{F} \mathbf{\hat{u}} = 0\]
+
+epipoláris kényszert \cite{hartley-triangulation}. Amikor megvan $\mathbf{\hat{u}}$ és $\mathbf{\hat{u}}'$ már meghatározhatjuk a kameraközéppontokból induló ezen pontokon átmenő sugarak metszéspontjait, hiszen biztosan létezni fog. Hartley és Sturm \cite{hartley-triangulation} megad Gauss-eloszlású zaj feltételezése esetén egy optimális polinomiális megoldást, mely a fenti költségfüggvényt minimalizálja.
+
+Ennek ellenére a gyakorlatban inkább lineáris háromszögelést szoktak alkalmazni \cite[5.1 szekció]{hartley-triangulation}. Legyen $\mathbf{x}$ egy pont és ennek vetülete az első kamera képén $\mathbf{u}$, vagyis $\mathbf{u} = \mathbf{P}\mathbf{x}$. Legyen $\mathbf{u}$ homogén koordinátákkal $\mathbf{u} = w_u(x_u, y_u, 1)^T$, tehát:
+
+\[w_u\left( \begin{array}{c} x_u \\ y_u \\ 1 \end{array} \right) = \left( \begin{array}{c} \mathbf{p}_1^T \\ \mathbf{p}_2^T \\ \mathbf{p}_3^T \end{array} \right) \mathbf{x}\]
+
+ahol $\mathbf{p}_i^T$ jelöli a $\mathbf{P}$ mátrix $i$. sorvektorát. Tehát összesen 3 egyenletet kapunk:
+
+\[w_ux_u = \mathbf{p}_1^T\mathbf{x} \quad w_uy_u = \mathbf{p}_2^T\mathbf{x} \quad w_u = \mathbf{p}_3^T\mathbf{x}\]
+
+Harmadik egyenlőséget felhasználva az első kettőnél, kapjuk, hogy:
+
+\[x_u\mathbf{p}_3^T\mathbf{x} = \mathbf{p}_1^T\mathbf{x}\]
+\[y_u\mathbf{p}_3^T\mathbf{x} = \mathbf{p}_2^T\mathbf{x}\]
+
+Ugyanezt levezetve $\mathbf{v} = w_v(x_v, y_v, 1)^T = \mathbf{Q}\mathbf{x}$ képpontra:
+
+\[x_v\mathbf{q}_3^T\mathbf{x} = \mathbf{q}_1^T\mathbf{x}\]
+\[y_v\mathbf{q}_3^T\mathbf{x} = \mathbf{q}_2^T\mathbf{x}\]
+
+A fenti négy egyenletet rendezve:
+
+\[\left( \begin{array}{c} x_u\mathbf{p}_3^T - \mathbf{p}_1^T \\ y_u\mathbf{p}_3^T - \mathbf{p}_2^T \\ x_v\mathbf{q}_3^T - \mathbf{q}_1^T \\ y_v\mathbf{q}_3^T - \mathbf{q}_2^T \end{array} \right) \mathbf{x} = 0\]
+
+Ez meghatározza $\mathbf{x}$-et egy faktor erejéig, és ennek nem-zérus megoldását keressük. Zajos adatokat feltételezve, ennek nem feltétlen lesz pontos megoldása, így közelítenünk kell. Ennek egy lehetséges megközelítése a \textit{Linear-LS} (lineáris, legkisebb négyzetek) módszer, mely $\mathbf{x}$-et $\mathbf{x} = (x, y, z, 1)^T$-re korlátozza és az egyenletrendszer legkisebb négyzetek megoldását keresi (pl. szinguláris érték szerinti felbontással (SVD) \cite{cs-svd}). 
+
+
 %----------------------------------------------------------------------------
 \section{Objektum-detekció \label{sec:obj_detection}}
 %----------------------------------------------------------------------------
@@ -539,15 +581,7 @@ A kapott előtér maszkot és az optika-folyamokat felhasználva már igen jó k
 
 
 %----------------------------------------------------------------------------
-\section{Háromszögelés \label{sec:triangulation}}
-%----------------------------------------------------------------------------
-
-
-
-
-
-%----------------------------------------------------------------------------
 \section{Összefoglaló}
 %----------------------------------------------------------------------------
 
-Ebben a fejezetben a több kamerából álló kamera-rendszerek során felmerülő és a dolgozat során is megoldandó problémákat, valamint ezek lehetséges megoldásait mutattam be. Kitértem a kamera-szinkronizációra, melyet több kamera esetén nem hagyhatunk figyelmen kívül, és leírtam két lényegében eltérő rekonstrukciós eljárást, és azok mögött meghúzódó elméleti hátteret. A fejezetet az objektum-detekció problémakörével zártam.
+Ebben a fejezetben a több kamerából álló kamera-rendszerek során felmerülő és a dolgozat során is megoldandó problémákat, valamint ezek lehetséges megoldásait mutattam be. Kitértem a kamerák szinkronizációjára, az epipoláris geometriára, mely kapcsolatot teremt a kamerák képei között, és leírtam két lényegében eltérő rekonstrukciós eljárást, és azok mögött meghúzódó elméleti hátteret. Bemutattam a háromszögelés elméleti hátterét, végül a fejezetet az objektum-detekció problémakörével zártam.

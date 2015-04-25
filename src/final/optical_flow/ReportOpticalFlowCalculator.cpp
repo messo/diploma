@@ -25,7 +25,7 @@ bool ReportOpticalFlowCalculator::feed(std::vector<cv::Mat> &frames, std::vector
         // move the frame2 and mask around a bit, so the main object's movement is not that big -- so OF will be okay
         //translations[i] = moveToTheCenter(this->frames[i], this->masks[i]);
 
-        // this->texturedRegions[i] = masks[i].clone();
+//         this->texturedRegions[i] = masks[i].clone();
         this->calcTexturedRegions(this->frames[i], this->masks[i], this->texturedRegions[i]);
     }
 
@@ -33,6 +33,10 @@ bool ReportOpticalFlowCalculator::feed(std::vector<cv::Mat> &frames, std::vector
     Point2i optimalShift = getOptimalShift();
 
     shiftFrame(1, -optimalShift);
+
+//    Rect unified = boundingRect(this->masks[0]) | boundingRect(this->masks[1]);
+//    Mat merged = mergeImagesVertically(this->frames[0](unified), this->frames[1](unified));
+//    imwrite("/media/balint/Data/Linux/diploma/after_shift.png", merged);
 
     imshow("frame1", this->frames[0]);
     imshow("frame2", this->frames[1]);

@@ -11,7 +11,7 @@ class MyMatcher {
     cv::Ptr<Camera> camera2;
 
     double ratio = 0.65;
-    double treshold = 0.1;
+    double treshold = 0.3;
 
     int ratioTest(std::vector<std::vector<cv::DMatch>> vector);
 

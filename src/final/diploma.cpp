@@ -151,7 +151,7 @@ int main(int argc, char **argv) {
                 frameCounter++;
 
 //                if (frameCounter < 500) {
-                    learningRate = -1.0;
+                    learningRate = 0.001;
 //                } else {
                     //std::cout << "LEARNING OFF" << std::endl;
 //                    learningRate = 0;
@@ -199,18 +199,18 @@ int main(int argc, char **argv) {
                         "s" << std::endl;
                         std::cout.flush();
 
-                        std::vector<CloudPoint> pointcloud;
-                        std::vector<Point> cp;
-                        TriangulatePoints(ofCalculator.points1, camera[Camera::LEFT]->cameraMatrix,
-                                          camera[Camera::LEFT]->Kinv,
-                                          ofCalculator.points2, camera[Camera::RIGHT]->cameraMatrix,
-                                          camera[Camera::RIGHT]->Kinv,
-                                          leftP, rightP, pointcloud, cp);
+//                        std::vector<CloudPoint> pointcloud;
+//                        std::vector<Point> cp;
+//                        TriangulatePoints(ofCalculator.points1, camera[Camera::LEFT]->cameraMatrix,
+//                                          camera[Camera::LEFT]->Kinv,
+//                                          ofCalculator.points2, camera[Camera::RIGHT]->cameraMatrix,
+//                                          camera[Camera::RIGHT]->Kinv,
+//                                          leftP, rightP, pointcloud, cp);
 
-//                        std::vector<CloudPoint> cvPointcloud;
-//                        cvTriangulatePoints(ofCalculator.points1, camera[Camera::LEFT], cameraPose[Camera::LEFT],
-//                                            ofCalculator.points2, camera[Camera::RIGHT], cameraPose[Camera::RIGHT],
-//                                            cvPointcloud);
+                        std::vector<CloudPoint> cvPointcloud;
+                        cvTriangulatePoints(ofCalculator.points1, camera[Camera::LEFT], cameraPose[Camera::LEFT],
+                                            ofCalculator.points2, camera[Camera::RIGHT], cameraPose[Camera::RIGHT],
+                                            cvPointcloud);
 
                         t = ((double) getTickCount() - t) / getTickFrequency();
                         std::cout << "## Done in " << t << "s" << std::endl;
@@ -218,8 +218,8 @@ int main(int argc, char **argv) {
 
                         procCnter.tick();
                         std::cout << "Process: " << procCnter.get() << std::endl;
-                        matVis.renderPointCloud(pointcloud);
-//                        matVis2.renderPointCloud(cvPointcloud);
+//                        matVis.renderPointCloud(pointcloud);
+                        matVis2.renderPointCloud(cvPointcloud);
 
 //                        imwrite("__left.png", frame0);
 //                        imwrite("__right.png", frame1);
@@ -237,8 +237,8 @@ int main(int argc, char **argv) {
                     }
                 }
 
-                imshow("magic", matVis.getResult());
-//                imshow("magicCV", matVis2.getResult());
+//                imshow("magic", matVis.getResult());
+                imshow("magicCV", matVis2.getResult());
             }
         }
     }

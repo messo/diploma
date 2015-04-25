@@ -131,10 +131,10 @@ double OpticalFlowCalculator::calcOpticalFlow(Point &translation) {
 //    } else { //if (length >= 1.0) {*/
 //        this->visualizeMatches(points1, points2);
 
-        // reconstruction
+    // reconstruction
 //        currentReconstruction = Ptr<OFReconstruction>(new OFReconstruction(camera, points1, points2));
 //        currentReconstruction->reconstruct();
-        //} else {
+    //} else {
 //        imshow("prev", prevFrame);
 //        imshow("this", currentFrame);
 //    }
@@ -292,7 +292,7 @@ void OpticalFlowCalculator::visualizeMatchesROI(cv::Mat const &img1, std::vector
     }
 
     imshow("restoredMatchesVis", vis);
-    imwrite("/media/balint/Data/Linux/diploma/vis_bad.png", vis);
+//    imwrite("/media/balint/Data/Linux/diploma/vis_full.png", vis);
 }
 
 
@@ -318,33 +318,47 @@ Point2i OpticalFlowCalculator::getOptimalShift() {
     images[0] = frames[0](unified);
     images[1] = frames[1](unified);
 
+//    Mat merged = mergeImagesVertically(images[0], images[1]);
+//    imwrite("/media/balint/Data/Linux/diploma/before_shift.png", merged);
+
     vector<Mat> masks(2);
     masks[0] = this->masks[0](unified);
     masks[1] = this->masks[1](unified);
 
     SURFFeatureExtractor extractor(images, masks);
 
-    if(extractor.descriptors[0].empty() || extractor.descriptors[1].empty()) {
-        std::cout << extractor.descriptors[0] << std::endl;
-        std::cout << extractor.descriptors[1] << std::endl;
-        std::cout.flush();
-
+    if (extractor.descriptors[0].empty() || extractor.descriptors[1].empty()) {
         return Point2i(0, 0);
     }
 
     vector<DMatch> matches;
     MyMatcher matcher(camera1, camera2);
+
+    // shift back the points to their original location
+    for (int i = 0; i < extractor.keypoints.size(); i++) {
+        for (int j = 0; j < extractor.keypoints[i].size(); j++) {
+            extractor.keypoints[i][j].pt += Point2f(unified.tl());
+        }
+    }
+
     vector<pair<Point2f, Point2f>> points = matcher.match(extractor, matches, F);
 
-    if(points.size() < 1) {
+    if (points.size() < 1) {
         return Point2i(0, 0);
     }
 
     //-- Draw matches
+    // move them back for the sake of display
+    for (int i = 0; i < extractor.keypoints.size(); i++) {
+        for (int j = 0; j < extractor.keypoints[i].size(); j++) {
+            extractor.keypoints[i][j].pt -= Point2f(unified.tl());
+        }
+    }
     Mat img_matches;
     drawMatches(images[0], extractor.keypoints[0], images[1], extractor.keypoints[1], matches, img_matches,
                 Scalar::all(-1), Scalar::all(-1), std::vector<char>(), DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);
     imshow("Matches", img_matches);
+//    imwrite("/media/balint/Data/Linux/diploma/matches_f.png", img_matches);
     // -----------
 
     // MAGIC

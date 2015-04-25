@@ -1,4 +1,5 @@
 #include <iostream>
+#include <opencv2/highgui.hpp>
 
 #include "SURFFeatureExtractor.h"
 
@@ -27,4 +28,8 @@ SURFFeatureExtractor::SURFFeatureExtractor(const vector<cv::Mat> &images, const 
 //        (*extractor)(_m, GpuMat(), imgpts[i], descriptors[i], false);
 
     }
+
+//    Mat vis;
+//    drawKeypoints(images[0], keypoints[0], vis, Scalar::all(-1), DrawMatchesFlags::DRAW_RICH_KEYPOINTS);
+//    imshow("vis", vis);
 }

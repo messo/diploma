@@ -26,7 +26,7 @@ Legyen $B = \{\mathbf{b_1}, \mathbf{b_2}, \ldots, \mathbf{b_n}\}$ bázis $\mathb
 
 Ekkor $\mathbf{v}$ koordinátái a $B$ bázisban:
 
-\[[\mathbf{v}]_B = \left[\begin{array}{c} \lambda_1\\ \lambda_2\\ \vdots\\ \lambda_n\end{array}\right]\]
+\[[\mathbf{v}]_B = \left(\begin{array}{c} \lambda_1\\ \lambda_2\\ \vdots\\ \lambda_n\end{array}\right)\]
 
 $\mathcal{F}: \mathbb{R}^n \rightarrow \mathbb{R}^n$ lineáris transzformáció, amennyiben tetszőleges $\mathbf{v}, \mathbf{w} \in \mathbb{R}^n$ és $\lambda \in \mathbb{R}$-re teljesül az alábbi:
 
@@ -42,11 +42,11 @@ Az $M$ mátrixot az $\mathcal{F}$  lineáris transzformáció mátrixának hívj
 
 Az $\sigma$ síkon vett affin transzformáción egy olyan $\phi : \sigma \rightarrow \sigma$ bijekciót értünk, amely minden $e\in\sigma$ egyenest $e'\in\sigma$ egyenesbe képez le. A lineáris algebra eszközeinek felhasználásával, egy tetszőleges $P(x, y)$ pont $P'(x', y')$ affin képe felírható az alábbi mátrix-egyenlettel:
 
-\[\left[\begin{array}{c}x' \\y'\end{array}\right] = \left[\begin{array}{cc}a_{11} & a_{12}\\a_{21} & a_{22}\\\end{array}\right] \cdot \left[\begin{array}{c}x \\y\end{array}\right] + \left[\begin{array}{c}b_1 \\b_2\end{array}\right] \qquad \hbox{ahol} \qquad  \left|\begin{array}{cc}a_{11} & a_{12}\\a_{21} & a_{22}\\\end{array}\right| \neq 0\]
+\[\left(\begin{array}{c}x' \\y'\end{array}\right) = \left(\begin{array}{cc}a_{11} & a_{12}\\a_{21} & a_{22}\\\end{array}\right) \cdot \left(\begin{array}{c}x \\y\end{array}\right) + \left(\begin{array}{c}b_1 \\b_2\end{array}\right) \qquad \hbox{ahol} \qquad  \left|\begin{array}{cc}a_{11} & a_{12}\\a_{21} & a_{22}\\\end{array}\right| \neq 0\]
 
 Vagyis egy affin transzformáció leírható egy lineáris transzformáció és egy eltolás egymásutánjával. Homogenizált alakban -- azaz a pontokat homogén koordinátarendszerben felírva -- az alábbi formát ölti:
 
-\[\left[\begin{array}{c}x' \\y'\\ 1\end{array}\right] = \left[\begin{array}{ccc}a_{11} & a_{12} & b_1\\a_{21} & a_{22} & b_2\\0 & 0 & 1\end{array}\right] \cdot \left[\begin{array}{c}x \\ y\\ 1\end{array}\right]\]
+\[\left(\begin{array}{c}x' \\y'\\ 1\end{array}\right) = \left(\begin{array}{ccc}a_{11} & a_{12} & b_1\\a_{21} & a_{22} & b_2\\0 & 0 & 1\end{array}\right) \cdot \left(\begin{array}{c}x \\ y\\ 1\end{array}\right)\]
 
 %----------------------------------------------------------------------------
 \section{A háromdimenziós tér alapvető transzformációi}
@@ -58,25 +58,25 @@ A következőkben 4 alapvető affin transzformáció kerül bemutatásra a térb
 
 Legyen $\mathbf{v}(v_x, v_y, v_z), \mathbf{t}(t_x, t_y, t_z)\in\mathbb{R}^3$, ekkor $\mathbf{v}$ vektor $\mathbf{t}$ eltoltja:
 
-\[\left[\begin{array}{c}v_x' \\v_y'\\ v_z'\\ 1 \end{array}\right] = \left[\begin{array}{cccc}1 & 0 & 0 & t_x\\0 & 1 & 0 & t_y\\ 0 & 0 & 1 & t_z\\ 0 & 0 & 0 & 1\end{array}\right] \cdot \left[\begin{array}{c}v_x \\v_y\\ v_z\\ 1 \end{array}\right]\]
+\[\left(\begin{array}{c}v_x' \\v_y'\\ v_z'\\ 1 \end{array}\right) = \left(\begin{array}{cccc}1 & 0 & 0 & t_x\\0 & 1 & 0 & t_y\\ 0 & 0 & 1 & t_z\\ 0 & 0 & 0 & 1\end{array}\right) \cdot \left(\begin{array}{c}v_x \\v_y\\ v_z\\ 1 \end{array}\right)\]
 
 \subsection{Forgatás}
 
 Legyen $\mathbf{v}(v_x, v_y, v_z)\in\mathbb{R}^3$ és $\theta\in\mathbb{R}$, ekkor $\mathbf{v}$ vektor $x$ tengely körüli $\theta$ szöggel való (jobb-kéz szabályt használva) elforgatottja:
 
-\[\left[\begin{array}{c}v_x' \\v_y' \\v_z' \\ 1 \end{array}\right] = \left[\begin{array}{cccc}1 & 0 & 0 & 0\\0 & \cos (\theta) & -\sin (\theta) & 0\\ 0 & \sin(\theta) & \cos(\theta) & 0 \\ 0 & 0 & 0 & 1\end{array}\right] \cdot \left[\begin{array}{c}v_x\\ v_y\\ v_z\\ 1\end{array}\right]\]
+\[\left(\begin{array}{c}v_x' \\v_y' \\v_z' \\ 1 \end{array}\right) = \left(\begin{array}{cccc}1 & 0 & 0 & 0\\0 & \cos (\theta) & -\sin (\theta) & 0\\ 0 & \sin(\theta) & \cos(\theta) & 0 \\ 0 & 0 & 0 & 1\end{array}\right) \cdot \left(\begin{array}{c}v_x\\ v_y\\ v_z\\ 1\end{array}\right)\]
 
 \subsection{Skálázás}
 
 Legyen $\mathbf{v}(v_x, v_y, v_z), \mathbf{s}(s_x, s_y, s_z)\in\mathbb{R}^3$, ekkor $\mathbf{v}$ vektor origóból történő skálázása $\mathbf{s}$-sel:
 
-\[\left[\begin{array}{c}v_x' \\v_y' \\v_z' \\ 1 \end{array}\right] = \left[\begin{array}{cccc}s_x & 0 & 0 & 0\\0 & s_y & 0 & 0\\ 0 & 0 & s_z & 0\\ 0 & 0 & 0 & 1\end{array}\right] \cdot \left[\begin{array}{c}v_x\\ v_y\\ v_z\\ 1\end{array}\right]\]
+\[\left(\begin{array}{c}v_x' \\v_y' \\v_z' \\ 1 \end{array}\right) = \left(\begin{array}{cccc}s_x & 0 & 0 & 0\\0 & s_y & 0 & 0\\ 0 & 0 & s_z & 0\\ 0 & 0 & 0 & 1\end{array}\right) \cdot \left(\begin{array}{c}v_x\\ v_y\\ v_z\\ 1\end{array}\right)\]
 
 \subsection{Nyírás}
 
 A térbeli nyírás a tér $P$ pontjainak egy fix síkkal történő párhuzamos csúsztatása. Legyen $\mathbf{v}(v_x, v_y, v_z)\in\mathbb{R}^3$ és $\lambda\in\mathbb{R}$, ekkor a $\mathbf{v}$ vektor $x$ tengely irányában az $x-y$ sík mentén vett nyírása:
 
-\[\left[\begin{array}{c}v_x' \\v_y' \\v_z' \\ 1 \end{array}\right] = \left[\begin{array}{cccc}1 & \lambda & 0 & 0\\0 & 1 & 0 & 0\\ 0 & 0 & 1 & 0\\ 0 & 0 & 0 & 1\end{array}\right] \cdot \left[\begin{array}{c}v_x\\ v_y\\ v_z\\ 1\end{array}\right] = \left[\begin{array}{c}v_x + \lambda\cdot v_y\\ v_y\\ v_z\\ 1\end{array}\right]\]
+\[\left(\begin{array}{c}v_x' \\v_y' \\v_z' \\ 1 \end{array}\right) = \left(\begin{array}{cccc}1 & \lambda & 0 & 0\\0 & 1 & 0 & 0\\ 0 & 0 & 1 & 0\\ 0 & 0 & 0 & 1\end{array}\right) \cdot \left(\begin{array}{c}v_x\\ v_y\\ v_z\\ 1\end{array}\right) = \left(\begin{array}{c}v_x + \lambda\cdot v_y\\ v_y\\ v_z\\ 1\end{array}\right)\]
 
 \subsection{Transzformációk egymásutánja}
 
@@ -172,39 +172,39 @@ A kamerák a valós világot képezik le egy adott nézőpontból. A lyukkamera-
 
 Tegyük fel, hogy az optikai tengely párhuzamos a $z$ tengellyel, és az optikai középpont a 3D-s koordinátarendszer origójában van. Ekkor az alábbi egyenlettel írható fel a projekció:
 
-\[s \left[\begin{array}{c}
+\[s \left(\begin{array}{c}
 u \\ 
 v \\
 1
-\end{array}\right] = \left[\begin{array}{cccc}
+\end{array}\right) = \left(\begin{array}{cccc}
 f & 0 & 0 & 0 \\ 
 0 & f & 0 & 0\\
 0 & 0 & 1 & 0
-\end{array}\right] \left[\begin{array}{c}
+\end{array}\right) \left(\begin{array}{c}
 X \\ 
 Y \\
 Z \\
 1
-\end{array}\right]\]
+\end{array}\right)\]
 
 ahol $f$ a fókusztávolság ($C$ és a képsík távolsága), $s = Z$ pedig a skálázis tényező.
 
 A manapság használt képalkotó rendszerek a képsík origójának nem a főpontot, hanem a kép balfelső sarkát tekintik, így a fenti egyenlet a következő  alakot ölti, amennyiben a főpont koordinátája $(o_x, o_y)$:
 
-\[s \left[\begin{array}{c}
+\[s \left(\begin{array}{c}
 u \\ 
 v \\
 1
-\end{array}\right] = \left[\begin{array}{cccc}
+\end{array}\right) = \left(\begin{array}{cccc}
 f & 0 & o_x & 0 \\ 
 0 & f & o_y & 0 \\
 0 & 0 & 1 & 0
-\end{array}\right] \left[\begin{array}{c}
+\end{array}\right) \left(\begin{array}{c}
 X \\ 
 Y \\
 Z \\
 1
-\end{array}\right]\]
+\end{array}\right)\]
 
 Valódi kamerák használata esetén számolni kell azzal, hogy a lencséknek van radiális (lásd \aref{fig:radial-distortion}. ábra) és tangenciális torzításuk (ami abból adódik, hogy a lencse és a képalkotó sík nem párhuzamos). Mivel ezek csak a konkrét kamerától függnek, ezért mértékük kalibrációval meghatározhatóak és megszüntethetőek. 
 
@@ -230,7 +230,7 @@ Valódi kamerák használata esetén számolni kell azzal, hogy a lencséknek va
 
 A gyakorlatban gyakran használt modell, hogy a radiális torzítás esetében a torzított és a javított pontok között egy polinomfüggvény teremt kapcsolatot:
 
-\[\left[\begin{array}{c}x_{\hbox{\small jav}}\\ y_{\hbox{\small jav}}\end{array}\right] = (1 + k_1r^2 + k_2r^4 + k_3r^6) \left[\begin{array}{c}x\\y\end{array}\right]\]
+\[\left(\begin{array}{c}x_{\hbox{\small jav}}\\ y_{\hbox{\small jav}}\end{array}\right) = (1 + k_1r^2 + k_2r^4 + k_3r^6) \left(\begin{array}{c}x\\y\end{array}\right)\]
 
 ahol $(x,y)$ volt az eredeti kép egy pixelének koordinátája, és $(x_{\hbox{\small jav}}, y_{\hbox{\small jav}})$ pedig az új koordináta a korrigált képen. Tangenciális torzítás pedig a következő egyenletek segítségével javítható:
 \[x_{\hbox{\small jav}} = x + \Big(2p_1xy + p_2(r^2+2x^2)\Big)\]
@@ -256,80 +256,80 @@ Kalibrálás során ezeket az együtthatókat határozzuk meg. A képen szerepl�
 
 Az előzőekben a kamera \textit{belső paramétereit} vizsgáltuk, melyeket a kamera lencséi és fókusztávolsága határoznak meg. Azonban szükséges beszélnük a \textit{külső paraméterekről} is, amely a kamera pozícióját és irányát mutatja a világ-koordinátához képest.
 
-A gyakorlatban a kamera helyét és irányát egy $\mathbf{c}(c_1, c_2, c_3)$ vektorral és egy $\mathbf{R}$ forgatási mátrixszal adjuk meg. Így ahhoz, hogy egy 3D-s pont képét megkapjuk, először a kamerát el kell tolni a világkoordináta-rendszer origójába, majd forgatni, vagyis:
+A gyakorlatban a kamera helyét és irányát egy $\mathbf{c} = (c_1, c_2, c_3)^T$ vektorral és egy $\mathbf{R}$ forgatási mátrixszal adjuk meg. Így ahhoz, hogy egy 3D-s pont képét megkapjuk, először a kamerát el kell tolni a világkoordináta-rendszer origójába, majd forgatni, vagyis:
 
-\[s \left[\begin{array}{c}
+\[s \left(\begin{array}{c}
 u \\ 
 v \\
 1
-\end{array}\right] = \left[\begin{array}{cccc}
+\end{array}\right) = \left(\begin{array}{cccc}
 f & 0 & o_x & 0 \\ 
 0 & f & o_y & 0 \\
 0 & 0 & 1 & 0
-\end{array}\right] \left[\begin{array}{cccc}
+\end{array}\right) \left(\begin{array}{cccc}
 r_{11} & r_{12} & r_{13} & 0 \\ 
 r_{21} & r_{22} & r_{23} & 0 \\ 
 r_{31} & r_{32} & r_{33} & 0 \\ 
 0 & 0 & 0 & 1 \\ 
-\end{array}\right] \left[\begin{array}{cccc}
+\end{array}\right) \left(\begin{array}{cccc}
 1 & 0 & 0 & -c_1 \\ 
 0 & 1 & 0 & -c_2 \\ 
 0 & 0 & 1 & -c_3 \\ 
 0 & 0 & 0 & 1 \\ 
-\end{array}\right] \left[\begin{array}{c}
+\end{array}\right) \left(\begin{array}{c}
 X \\ 
 Y \\
 Z \\
 1
-\end{array}\right]\]
+\end{array}\right)\]
 
 A két transzformácó összevonása után:
 
-\[s \left[\begin{array}{c}
+\[s \left(\begin{array}{c}
 u \\ 
 v \\
 1
-\end{array}\right] = \left[\begin{array}{cccc}
+\end{array}\right) = \left(\begin{array}{cccc}
 f & 0 & o_x & 0 \\ 
 0 & f & o_y & 0 \\
 0 & 0 & 1 & 0
-\end{array}\right] \left[\begin{array}{cc}
-\mathbf{R} & -\mathbf{R} \mathbf{c}^T \\ 
+\end{array}\right) \left(\begin{array}{cc}
+\mathbf{R} & -\mathbf{R} \mathbf{c} \\ 
 \mathbf{0} & 1 \\ 
-\end{array}\right] \left[\begin{array}{c}
+\end{array}\right) \left(\begin{array}{c}
 X \\ 
 Y \\
 Z \\
 1
-\end{array}\right]\]
+\end{array}\right)\]
 
-$\mathbf{t}^T = -\mathbf{R}\mathbf{c}^T$ helyettesítéssel, valamint a fókusztávolságot az effektív pixelméretekkel beszorozva kapjuk \cite{camera-calib}-ben is található egyenletet:
+$\mathbf{t} = -\mathbf{R}\mathbf{c}$ helyettesítéssel, valamint a fókusztávolságot az effektív pixelméretekkel beszorozva kapjuk \cite{camera-calib}-ben is található egyenletet:
 
-\[s \left[\begin{array}{c}
+\[s \left(\begin{array}{c}
 u \\ 
 v \\
 1
-\end{array}\right] = \underbrace{\left[\begin{array}{ccc}
+\end{array}\right) = \underbrace{\left(\begin{array}{ccc}
 f_x & 0 & o_x \\ 
 0 & f_y & o_y \\
 0 & 0 & 1
-\end{array}\right]}_{\mathbf{A}} \left[\begin{array}{ccc|cc}
+\end{array}\right)}_{\mathbf{A}} \left(\begin{array}{ccc|cc}
 r_{11} & r_{12} & r_{13} & t_1 \\ 
 r_{21} & r_{22} & r_{23} & t_2 \\
 \undermat{\mathbf{R}}{r_{31} & r_{32} & r_{33}} & t_3 \\
-\end{array}\right] \left[\begin{array}{c}
+\end{array}\right) \left(\begin{array}{c}
 X \\ 
 Y \\
 Z \\
 1
-\end{array}\right]\]
+\end{array}\right)\]
 ahol:
 \begin{itemize}[itemsep=0pt]
 \item $s$ a homogén skálázási tényező
 \item $\mathbf{A}$ a kamera-mátrix (\textit{belső paraméterek mátrixa})
 \item $(o_x, o_y)$ a főpont képsíkbeli koordinátája, amely általában a kép közepe
 \item $(f_x, f_y)$ pedig a fókusztávolságok pixelekben kifejezve
-\item $\mathbf{R}$ a forgatási mátrix és $\mathbf{t} = (t_1, t_2, t_3)$ az eltolás-vektor -- együttesen $\Big[\,\mathbf{R}\,|\,\mathbf{t}^T\,\Big]$ a forgatás-eltolás mátrix, mely a \textit{külső paraméterek mátrixa}; azt határozza meg, hogy a statikus világhoz képest a kamera hol helyezkedik el, vagy fordítva, a statikus kamerához a világ hogyan van pozícionálva.
+\item $\mathbf{R}$ a forgatási mátrix és $\mathbf{t} = (t_1, t_2, t_3)^T$ az eltolás-vektor -- együttesen $\Big(\,\mathbf{R}\,|\,\mathbf{t}\,\Big)$ a forgatás-eltolás mátrix, mely a \textit{külső paraméterek mátrixa}; azt határozza meg, hogy a statikus világhoz képest a kamera hol helyezkedik el, vagy fordítva, a statikus kamerához a világ hogyan van pozícionálva.
 \end{itemize}
 
 A kamera külső paramétereit, a belső paraméterekhez hasonlóan kalibrálással kapjuk meg. Ehhez egy ismert objektumot használunk fel, az előzőeknek megfelelően egy sakktáblát: a sarokpontokat a világ-koordinátarend\-szerben koordinátázzuk például úgy, hogy azok az $x$-$y$ síkba essenek, 3. koordinátájukat pedig fixen zérusnak választjuk. Ezeket a világbeli koordinátákat a képpontoknak megfeleltetve meghatározható $\mathbf{R}$ és $\mathbf{t}$ \cite{camera-calib}, feltéve, hogy a használt kamerát már az előbbiek alapján rektifikáltuk.

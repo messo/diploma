@@ -411,6 +411,8 @@ int main(int argc, char **argv) {
     imshow("magic", matVis.getResult());
     imshow("magicCV", matVis2.getResult());
 
+    writeCloudPoints(pointcloud);
+
     char ch = (char) waitKey();
     return 0;
 }
