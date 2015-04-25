@@ -1,9 +1,13 @@
+#include "ReportOpticalFlowCalculator.h"
+#include "SpatialOpticalFlowCalculator.h"
 #include <opencv2/video/tracking.hpp>
 #include <opencv2/highgui.hpp>
 #include <omp.h>
 #include "OpticalFlowCalculator.h"
 #include "../Common.h"
 #include "OFReconstruction.h"
+#include "../SURFFeatureExtractor.h"
+#include "../MyMatcher.h"
 
 using namespace cv;
 using namespace std;
@@ -101,30 +105,30 @@ double OpticalFlowCalculator::calcOpticalFlow(Point &translation) {
     cout << avgMovement << ": " << length << endl;
     cout.flush();
 
-    if (length > 10.0) {
-        // we consider this as "too big" displacement, so we shift the current image further, and do this again
-
-        Point newTranslation(-avgMovement);
-
-        Rect currentBoundingRect(boundingRect(masks[1]));
-
-        // translate the image
-        Mat _currentFrame;
-        frames[1].copyTo(_currentFrame);
-        shiftImage(_currentFrame, currentBoundingRect, newTranslation, frames[1]);
-        // translate the mask
-        Mat _currentMask;
-        masks[1].copyTo(_currentMask);
-        shiftImage(_currentMask, currentBoundingRect, newTranslation, masks[1]);
-        // translate the textured regions
-        Mat _currentTexturedRegions;
-        texturedRegions[1].copyTo(_currentTexturedRegions);
-        shiftImage(_currentTexturedRegions, currentBoundingRect, newTranslation, texturedRegions[1]);
-
-        translation += newTranslation;
-
-        length = this->calcOpticalFlow(translation);
-    } else { //if (length >= 1.0) {*/
+//    if (length > 10.0) {
+//        // we consider this as "too big" displacement, so we shift the current image further, and do this again
+//
+//        Point newTranslation(-avgMovement);
+//
+//        Rect currentBoundingRect(boundingRect(masks[1]));
+//
+//        // translate the image
+//        Mat _currentFrame;
+//        frames[1].copyTo(_currentFrame);
+//        shiftImage(_currentFrame, currentBoundingRect, newTranslation, frames[1]);
+//        // translate the mask
+//        Mat _currentMask;
+//        masks[1].copyTo(_currentMask);
+//        shiftImage(_currentMask, currentBoundingRect, newTranslation, masks[1]);
+//        // translate the textured regions
+//        Mat _currentTexturedRegions;
+//        texturedRegions[1].copyTo(_currentTexturedRegions);
+//        shiftImage(_currentTexturedRegions, currentBoundingRect, newTranslation, texturedRegions[1]);
+//
+//        translation += newTranslation;
+//
+//        length = this->calcOpticalFlow(translation);
+//    } else { //if (length >= 1.0) {*/
 //        this->visualizeMatches(points1, points2);
 
         // reconstruction
@@ -133,7 +137,7 @@ double OpticalFlowCalculator::calcOpticalFlow(Point &translation) {
         //} else {
 //        imshow("prev", prevFrame);
 //        imshow("this", currentFrame);
-    }
+//    }
 
     return 2.0; //length;
 }
@@ -302,4 +306,70 @@ cv::Point2f OpticalFlowCalculator::calcAverageMovement(const std::vector<cv::Poi
     }
 
     return sum / ((int) points1.size());
+}
+
+Point2i OpticalFlowCalculator::getOptimalShift() {
+
+    Rect rect0(boundingRect(masks[0]));
+    Rect rect1(boundingRect(masks[1]));
+    Rect unified(rect0 | rect1);
+
+    vector<Mat> images(2);
+    images[0] = frames[0](unified);
+    images[1] = frames[1](unified);
+
+    vector<Mat> masks(2);
+    masks[0] = this->masks[0](unified);
+    masks[1] = this->masks[1](unified);
+
+    SURFFeatureExtractor extractor(images, masks);
+
+    if(extractor.descriptors[0].empty() || extractor.descriptors[1].empty()) {
+        std::cout << extractor.descriptors[0] << std::endl;
+        std::cout << extractor.descriptors[1] << std::endl;
+        std::cout.flush();
+
+        return Point2i(0, 0);
+    }
+
+    vector<DMatch> matches;
+    MyMatcher matcher(camera1, camera2);
+    vector<pair<Point2f, Point2f>> points = matcher.match(extractor, matches, F);
+
+    if(points.size() < 1) {
+        return Point2i(0, 0);
+    }
+
+    //-- Draw matches
+    Mat img_matches;
+    drawMatches(images[0], extractor.keypoints[0], images[1], extractor.keypoints[1], matches, img_matches,
+                Scalar::all(-1), Scalar::all(-1), std::vector<char>(), DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);
+    imshow("Matches", img_matches);
+    // -----------
+
+    // MAGIC
+    vector<Point2f> vectors;
+    for (int i = 0; i < points.size(); i++) {
+        vectors.push_back(points[i].second - points[i].first);
+    }
+    Point2f v = magicVector(vectors);
+    //Point2f v(0, 0);
+
+    return Point2i(cvRound(v.x), cvRound(v.y));
+}
+
+void OpticalFlowCalculator::shiftFrame(int i, Point shift) {
+    Rect currentBoundingRect(boundingRect(this->masks[i]));
+    Mat _currentFrame;
+    this->frames[i].copyTo(_currentFrame);
+    shiftImage(_currentFrame, currentBoundingRect, shift, this->frames[i]);
+    // translate the mask
+    Mat _currentMask;
+    this->masks[i].copyTo(_currentMask);
+    shiftImage(_currentMask, currentBoundingRect, shift, this->masks[i]);
+    // translate the textured regions
+    Mat _currentTexturedRegions;
+    texturedRegions[i].copyTo(_currentTexturedRegions);
+    shiftImage(_currentTexturedRegions, currentBoundingRect, shift, texturedRegions[i]);
+
 }

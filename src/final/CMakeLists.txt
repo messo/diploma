@@ -23,7 +23,7 @@ add_executable(Final main.cpp ${CLASSES})
 target_compile_features(Final PRIVATE cxx_range_for)
 target_link_libraries(Final ${OPENGL_LIBRARIES} ${OpenCV_LIBS} ${GLUT_LIBRARIES} v4l2 ${PCL_COMMON_LIBRARIES} ${PCL_VISUALIZATION_LIBRARIES})
 
-add_executable(Diploma diploma.cpp ${CLASSES} locking.h MatVisualization.cpp MatVisualization.h FPSCounter.cpp FPSCounter.h)
+add_executable(Diploma diploma.cpp ${CLASSES} locking.h MatVisualization.cpp FPSCounter.cpp SURFFeatureExtractor.cpp MyMatcher.cpp MyMatcher.h)
 target_compile_features(Diploma PRIVATE cxx_range_for)
 target_link_libraries(Diploma ${OPENGL_LIBRARIES} ${OpenCV_LIBS} ${GLUT_LIBRARIES} v4l2 ${PCL_COMMON_LIBRARIES} ${PCL_VISUALIZATION_LIBRARIES})
 
@@ -41,6 +41,6 @@ target_link_libraries(TriTest ${OPENGL_LIBRARIES} ${OpenCV_LIBS} ${GLUT_LIBRARIE
 
 add_executable(OmpTest omp_test.cpp)
 
-add_executable(ForReport for_report.cpp camera/Camera.cpp camera/RealCamera.cpp calibration/CameraPoseCalculator.cpp camera/CameraPose.cpp Common.cpp SingleObjectSelector.cpp optical_flow/OpticalFlowCalculator.cpp optical_flow/SpatialOpticalFlowCalculator.cpp optical_flow/ReportOpticalFlowCalculator.cpp)
+add_executable(ForReport for_report.cpp camera/Camera.cpp camera/RealCamera.cpp calibration/CameraPoseCalculator.cpp camera/CameraPose.cpp Common.cpp SingleObjectSelector.cpp optical_flow/OpticalFlowCalculator.cpp optical_flow/SpatialOpticalFlowCalculator.cpp optical_flow/ReportOpticalFlowCalculator.cpp MatVisualization.cpp Triangulation.cpp SURFFeatureExtractor.cpp MyMatcher.cpp)
 target_compile_features(ForReport PRIVATE cxx_range_for)
 target_link_libraries(ForReport ${OpenCV_LIBS} ${GLUT_LIBRARIES} v4l2)

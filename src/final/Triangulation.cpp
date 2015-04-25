@@ -340,15 +340,31 @@ double cvTriangulatePoints(const vector<Point2f> &points1, const Ptr<Camera> &ca
 
     int count = (int) points1.size();
 
-    if(count == 0) {
+    if (count == 0) {
         cout << "no points." << endl;
         return -1.0;
     }
 
-    Mat normalized1, normalized2;
+    Mat undistorted1, undistorted2;
 
-    undistortPoints(points1, normalized1, cam1->cameraMatrix, cam1->distCoeffs);
-    undistortPoints(points2, normalized2, cam2->cameraMatrix, cam2->distCoeffs);
+    undistortPoints(points1, undistorted1, cam1->cameraMatrix, cam1->distCoeffs, cam1->cameraMatrix);
+    undistortPoints(points2, undistorted2, cam2->cameraMatrix, cam2->distCoeffs, cam2->cameraMatrix);
+
+    FileStorage fs;
+    fs.open("/media/balint/Data/Linux/diploma/F.yml", FileStorage::READ);
+
+    Mat cvF;
+    Mat myF;
+
+    fs["cvF"] >> cvF;
+    fs["myF"] >> myF;
+
+    Mat fixedpoints1, fixedpoints2;
+    correctMatches(myF, undistorted1, undistorted2, fixedpoints1, fixedpoints2);
+
+    Mat normalized1, normalized2;
+    undistortPoints(fixedpoints1, normalized1, cam1->cameraMatrix, Mat());
+    undistortPoints(fixedpoints2, normalized2, cam2->cameraMatrix, Mat());
 
     cv::Mat points3D_h(4, count, CV_32FC1);
     cv::triangulatePoints(Mat(pose1.getRT()), Mat(pose2.getRT()), normalized1, normalized2, points3D_h);

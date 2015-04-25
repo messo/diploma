@@ -11,7 +11,7 @@ void MatVisualization::renderPointCloud(const std::vector<CloudPoint> &points) {
 
     // FIXME -- inefficient?
     for (int i = 0; i < points.size(); i++) {
-        if (points[i].reprojection_error < 5.0) {
+        if (points[i].reprojection_error < 25.0) {
             objectPoints.push_back(points[i].pt);
         }
     }

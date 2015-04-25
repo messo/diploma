@@ -2,6 +2,7 @@
 #include <opencv2/highgui.hpp>
 #include "../Common.h"
 #include "SpatialOpticalFlowCalculator.h"
+#include "../SURFFeatureExtractor.h"
 
 using namespace cv;
 using namespace std;
@@ -23,10 +24,16 @@ bool SpatialOpticalFlowCalculator::feed(std::vector<cv::Mat> &frames, std::vecto
         this->masks[i] = masks[i].clone();
 
         // move the frame2 and mask around a bit, so the main object's movement is not that big -- so OF will be okay
-        translations[i] = moveToTheCenter(this->frames[i], this->masks[i]);
+        //translations[i] = moveToTheCenter(this->frames[i], this->masks[i]);
 
         this->calcTexturedRegions(this->frames[i], this->masks[i], this->texturedRegions[i]);
     }
+
+    Point2i optimalShift = getOptimalShift();
+
+    std::cout << "SHIFT: " << optimalShift << std::endl;
+
+    shiftFrame(1, -optimalShift);
 
     t0 = ((double) getTickCount() - t0) / getTickFrequency();
     std::cout << "Feed init done in " << t0 << "s" << std::endl;
@@ -38,11 +45,12 @@ bool SpatialOpticalFlowCalculator::feed(std::vector<cv::Mat> &frames, std::vecto
 
     // move the points to their original location
     for (int i = 0; i < points1.size(); i++) {
-        points1[i] -= Point2f(translations[0]);
-        points2[i] -= Point2f(translations[1]);
+        //points1[i] -= Point2f(translations[0]);
+        points2[i] += Point2f(optimalShift);
     }
 
 //    this->visualizeMatches(frames[0], points1, frames[1], points2);
 
     return true;
 }
+

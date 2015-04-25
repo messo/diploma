@@ -17,7 +17,7 @@ public:
     long prevFrameId;
     long currentFrameId;
 
-    TemporalOpticalFlowCalculator(cv::Ptr<Camera> camera) : OpticalFlowCalculator(camera, camera) { }
+    TemporalOpticalFlowCalculator(cv::Ptr<Camera> camera) : OpticalFlowCalculator(camera, camera, cv::Mat()) { }
 
     bool feed(long frameId, const cv::Mat &image, const cv::Mat &lastMask, const cv::Rect &boundingRect,
               const std::vector<cv::Point> &vector);

@@ -23,23 +23,33 @@ bool ReportOpticalFlowCalculator::feed(std::vector<cv::Mat> &frames, std::vector
         this->masks[i] = masks[i].clone();
 
         // move the frame2 and mask around a bit, so the main object's movement is not that big -- so OF will be okay
-        // translations[i] = moveToTheCenter(this->frames[i], this->masks[i]);
+        //translations[i] = moveToTheCenter(this->frames[i], this->masks[i]);
 
         // this->texturedRegions[i] = masks[i].clone();
         this->calcTexturedRegions(this->frames[i], this->masks[i], this->texturedRegions[i]);
     }
 
-    Rect br0 = boundingRect(this->masks[0]);
-    Rect br1 = boundingRect(this->masks[1]);
-    Rect uni = br0 | br1;
-    Mat frame0 = frames[0].clone();
-    Mat frame1 = frames[1].clone();
-    rectangle(frame0, uni.tl(), uni.br(), Scalar(0, 0, 255), 2, LINE_AA);
-    rectangle(frame0, br0.tl(), br0.br(), Scalar(0, 255, 255), 1, LINE_AA);
-    rectangle(frame1, uni.tl(), uni.br(), Scalar(0, 0, 255), 2, LINE_AA);
-    rectangle(frame1, br1.tl(), br1.br(), Scalar(0, 255, 255), 1, LINE_AA);
-    imwrite("/media/balint/Data/Linux/diploma/of_img_left_framed.png", frame0);
-    imwrite("/media/balint/Data/Linux/diploma/of_img_right_framed.png", frame1);
+    // SHIFTING....
+    Point2i optimalShift = getOptimalShift();
+
+    shiftFrame(1, -optimalShift);
+
+    imshow("frame1", this->frames[0]);
+    imshow("frame2", this->frames[1]);
+
+    // --------------------
+
+//    Rect br0 = boundingRect(this->masks[0]);
+//    Rect br1 = boundingRect(this->masks[1]);
+//    Rect uni = br0 | br1;
+//    Mat frame0 = frames[0].clone();
+//    Mat frame1 = frames[1].clone();
+//    rectangle(frame0, uni.tl(), uni.br(), Scalar(0, 0, 255), 2, LINE_AA);
+//    rectangle(frame0, br0.tl(), br0.br(), Scalar(0, 255, 255), 1, LINE_AA);
+//    rectangle(frame1, uni.tl(), uni.br(), Scalar(0, 0, 255), 2, LINE_AA);
+//    rectangle(frame1, br1.tl(), br1.br(), Scalar(0, 255, 255), 1, LINE_AA);
+//    imwrite("/media/balint/Data/Linux/diploma/of_img_left_framed.png", frame0);
+//    imwrite("/media/balint/Data/Linux/diploma/of_img_right_framed.png", frame1);
 
 
     // texturazott cuccok...
@@ -60,8 +70,7 @@ bool ReportOpticalFlowCalculator::feed(std::vector<cv::Mat> &frames, std::vector
 
     // move the points to their original location
     for (int i = 0; i < points1.size(); i++) {
-        points1[i] -= Point2f(translations[0]);
-        points2[i] -= Point2f(translations[1]);
+        points2[i] += Point2f(optimalShift);
     }
 
 //    this->visualizeMatches(frames[0], points1, frames[1], points2);
@@ -83,12 +92,14 @@ double ReportOpticalFlowCalculator::calcOpticalFlow(cv::Point &translation) {
         //std::cout << "THREAD: " << omp_get_thread_num() << std::endl;
         calcOpticalFlowFarneback(frames[i](unified), frames[(i + 1) % 2](unified), _flows[i], 0.75, 6, 21, 10, 7, 1.5,
                                  OPTFLOW_FARNEBACK_GAUSSIAN);
-//        this->visualizeOpticalFlow(frame1, mask1, frame2, mask2, flow12, "flow12");
 
         // put the flows back into the full matrix
         flows[i] = Mat::zeros(frames[0].rows, frames[0].cols, CV_32FC2);
         _flows[i].copyTo(flows[i](unified));
     }
+
+//    this->visualizeOpticalFlow(frames[0], masks[0], frames[1], masks[1], flows[0], "flow12");
+//    this->visualizeOpticalFlow(frames[1], masks[1], frames[0], masks[0], flows[1], "flow21");
 
     // trying to smooth the vectorfield
     //Mat smoothedFlow;
@@ -107,10 +118,11 @@ double ReportOpticalFlowCalculator::calcOpticalFlow(cv::Point &translation) {
     cout << avgMovement << ": " << length << endl;
     cout.flush();
 
-//    if (points1.size() < 18000) {
+//    if(points1.size() < 10000) {
+//    if (length > 5.0) {
 //        // we consider this as "too big" displacement, so we shift the current image further, and do this again
 //
-//        Point newTranslation(-avgMovement);
+//        Point newTranslation(-avgMovement * 0.75);
 //
 //        Rect currentBoundingRect(boundingRect(masks[1]));
 //
@@ -131,7 +143,7 @@ double ReportOpticalFlowCalculator::calcOpticalFlow(cv::Point &translation) {
 //
 //        length = this->calcOpticalFlow(translation);
 //    } else {
-        visualizeMatchesROI(frames[0], points1, frames[1], points2);
+    visualizeMatchesROI(frames[0], points1, frames[1], points2);
 //    }
 
     return 2.0; //length;
@@ -175,3 +187,4 @@ void ReportOpticalFlowCalculator::collectMatchingPoints(const cv::Mat &flow, con
         }
     }
 }
+

@@ -11,16 +11,16 @@ bool CameraPoseCalculator::calculate() {
     float squareSize = 1.0f;
 
     Mat img;
-    if (!camera->cameraMatrix.empty()) {
-        camera->readUndistorted(img);
-    } else {
-        camera->read(img);
-    }
+//    if (!camera->cameraMatrix.empty()) {
+//        camera->readUndistorted(img);
+//    } else {
+    camera->read(img);
+//    }
 
     Mat grayscale;
     cvtColor(img, grayscale, COLOR_BGR2GRAY);
 
-    std::vector<Point2f> imagePoints;
+    imagePoints.clear();
 
     int maxScale = 3;
     bool found = false;

@@ -104,3 +104,5 @@ std::vector<cv::Mat> getFramesFromCameras(std::vector<cv::Ptr<Camera>> &camera,
                                           std::vector<cv::Ptr<cv::BackgroundSubtractorMOG2>> &bgSub,
                                           std::vector<SingleObjectSelector> &objSelector,
                                           double learningRate);
+
+cv::Point2f magicVector(const std::vector<cv::Point2f> &vector);

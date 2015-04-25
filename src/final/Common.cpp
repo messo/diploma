@@ -353,3 +353,22 @@ std::vector<Mat> getFramesFromCameras(std::vector<Ptr<Camera>> &camera,
 
     return selected;
 }
+
+Point2f magicVector(const std::vector<Point2f> &vector) {
+    Mat_<double> A(vector.size() * 2, 2);
+    Mat_<double> B(vector.size() * 2, 1);
+
+    for (int i = 0; i < vector.size(); i++) {
+        A(2 * i, 0) = 1;
+        A(2 * i, 1) = 0;
+        A(2 * i + 1, 0) = 0;
+        A(2 * i + 1, 1) = 1;
+
+        B(i * 2, 0) = vector[i].x;
+        B(i * 2 + 1, 0) = vector[i].y;
+    }
+
+    Mat_<double> X(2, 1);
+    solve(A, B, X, DECOMP_SVD);
+    return Point2f(X(0), X(1));
+}

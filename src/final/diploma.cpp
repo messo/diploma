@@ -110,7 +110,11 @@ int main(int argc, char **argv) {
     bgSub[Camera::LEFT] = createBackgroundSubtractorMOG2(300, 25.0, true);
     bgSub[Camera::RIGHT] = createBackgroundSubtractorMOG2(300, 25.0, true);
 
-    SpatialOpticalFlowCalculator ofCalculator(camera[Camera::LEFT], camera[Camera::RIGHT]);
+    FileStorage fs;
+    fs.open("/media/balint/Data/Linux/diploma/F.yml", FileStorage::READ);
+    Mat F;
+    fs["myF"] >> F;
+    SpatialOpticalFlowCalculator ofCalculator(camera[Camera::LEFT], camera[Camera::RIGHT], F);
 
     int focus = 80;
     static_cast<RealCamera *>(camera[Camera::LEFT].get())->focus(focus);
@@ -147,8 +151,9 @@ int main(int argc, char **argv) {
                 frameCounter++;
 
 //                if (frameCounter < 500) {
-                learningRate = -1.0;
+                    learningRate = -1.0;
 //                } else {
+                    //std::cout << "LEARNING OFF" << std::endl;
 //                    learningRate = 0;
 //                }
 
@@ -156,12 +161,14 @@ int main(int argc, char **argv) {
 
                 Mat leftRight = mergeImages(selected[Camera::LEFT], selected[Camera::RIGHT]);
                 dispCnter.tick();
-                std::cout << "Display: " << dispCnter.get() << std::endl;
+                // std::cout << "Display: " << dispCnter.get() << std::endl;
                 imshow("input", leftRight);
 
                 char ch = (char) waitKey(1);
                 if (ch == 27) {
                     break;
+                } else if (ch == ' ') {
+                    taskRunning = false;
                 }
 
                 // copy the current data if it's needed.
@@ -200,10 +207,10 @@ int main(int argc, char **argv) {
                                           camera[Camera::RIGHT]->Kinv,
                                           leftP, rightP, pointcloud, cp);
 
-                        std::vector<CloudPoint> cvPointcloud;
-                        cvTriangulatePoints(ofCalculator.points1, camera[Camera::LEFT], cameraPose[Camera::LEFT],
-                                            ofCalculator.points2, camera[Camera::RIGHT], cameraPose[Camera::RIGHT],
-                                            cvPointcloud);
+//                        std::vector<CloudPoint> cvPointcloud;
+//                        cvTriangulatePoints(ofCalculator.points1, camera[Camera::LEFT], cameraPose[Camera::LEFT],
+//                                            ofCalculator.points2, camera[Camera::RIGHT], cameraPose[Camera::RIGHT],
+//                                            cvPointcloud);
 
                         t = ((double) getTickCount() - t) / getTickFrequency();
                         std::cout << "## Done in " << t << "s" << std::endl;
@@ -212,7 +219,12 @@ int main(int argc, char **argv) {
                         procCnter.tick();
                         std::cout << "Process: " << procCnter.get() << std::endl;
                         matVis.renderPointCloud(pointcloud);
-                        matVis2.renderPointCloud(cvPointcloud);
+//                        matVis2.renderPointCloud(cvPointcloud);
+
+//                        imwrite("__left.png", frame0);
+//                        imwrite("__right.png", frame1);
+//                        imwrite("__mask_left.png", mask0);
+//                        imwrite("__mask_right.png", mask1);
 
 // VISU
 //                        vis.init();
@@ -226,7 +238,7 @@ int main(int argc, char **argv) {
                 }
 
                 imshow("magic", matVis.getResult());
-                imshow("magicCV", matVis2.getResult());
+//                imshow("magicCV", matVis2.getResult());
             }
         }
     }
