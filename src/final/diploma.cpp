@@ -11,7 +11,7 @@
 #include "Triangulator.h"
 #include "PclVisualization.h"
 #include "locking.h"
-#include "MatVisualization.h"
+#include "Visualization.h"
 #include "FPSCounter.h"
 
 using namespace cv;
@@ -128,8 +128,8 @@ int main(int argc, char **argv) {
     double learningRate;
 
     // PclVisualization vis;
-    MatVisualization matVis(cameraPose[Camera::LEFT], camera[Camera::LEFT]->cameraMatrix);
-    MatVisualization matVis2(cameraPose[Camera::LEFT], camera[Camera::LEFT]->cameraMatrix);
+    Visualization matVis(cameraPose[Camera::LEFT], camera[Camera::LEFT]->cameraMatrix);
+    Visualization matVis2(cameraPose[Camera::LEFT], camera[Camera::LEFT]->cameraMatrix);
 
     bool taskRunning = false;
 
@@ -219,8 +219,8 @@ int main(int argc, char **argv) {
 
                         procCnter.tick();
                         std::cout << "Process: " << procCnter.get() << std::endl;
-//                        matVis.renderPointCloud(pointcloud);
-                        matVis2.renderPointCloud(cvPointcloud);
+//                        matVis.renderWithDepth(pointcloud);
+                        matVis2.renderWithDepth(cvPointcloud);
 
 //                        imwrite("__left.png", frame0);
 //                        imwrite("__right.png", frame1);

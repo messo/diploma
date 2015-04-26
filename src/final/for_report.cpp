@@ -3,13 +3,14 @@
 #include <opencv2/imgproc.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/calib3d.hpp>
+#include <Eigen/Geometry>
 #include "camera/Camera.hpp"
 #include "camera/RealCamera.hpp"
 #include "calibration/CameraPoseCalculator.h"
 #include "Common.h"
 #include "optical_flow/ReportOpticalFlowCalculator.h"
 #include "Triangulator.h"
-#include "MatVisualization.h"
+#include "Visualization.h"
 
 using namespace cv;
 using namespace std;
@@ -333,6 +334,8 @@ int main(int argc, char **argv) {
 
     ReportOpticalFlowCalculator ofCalculator(camera[Camera::LEFT], camera[Camera::RIGHT], F);
 
+    Mat originalImage = imread("/media/balint/Data/Linux/diploma/of_img_left.png");
+
     Mat left = imread("/media/balint/Data/Linux/diploma/of_img_left.png", IMREAD_GRAYSCALE); // of_img_left
     Mat right = imread("/media/balint/Data/Linux/diploma/of_img_right.png", IMREAD_GRAYSCALE); // of_img_right
     Mat maskLeft = imread("/media/balint/Data/Linux/diploma/of_mask_left.png", IMREAD_GRAYSCALE);
@@ -396,20 +399,54 @@ int main(int argc, char **argv) {
     std::vector<CloudPoint> cvPointcloud;
     triangulator.triangulateCv(ofCalculator.points1, ofCalculator.points2, cvPointcloud);
 
-    MatVisualization matVis(cameraPose[Camera::LEFT], camera[Camera::LEFT]->cameraMatrix);
-    MatVisualization matVis2(cameraPose[Camera::LEFT], camera[Camera::LEFT]->cameraMatrix);
+//    Visualization matVis(cameraPose[Camera::LEFT], camera[Camera::LEFT]->cameraMatrix);
 
-    matVis.renderPointCloud(pointcloud);
-    matVis2.renderPointCloud(cvPointcloud);
+//    matVis.renderWithDepth(pointcloud);
 
-    imshow("magic", matVis.getResult());
-    imshow("magicCV", matVis2.getResult());
+    namedWindow("Result", 1);
 
-    imwrite("/media/balint/Data/Linux/diploma/visu_left.png", matVis2.getResult());
+    //imshow("magic", matVis.getResult());
 
-    writeCloudPoints("cloud_cv.ply", cvPointcloud);
-    writeCloudPoints("cloud_roy.ply", pointcloud);
+    CameraPose virtualPose;
+    Mat virtualCameraMatrix = (Mat_<double>(3, 3) << 540, 0, 320, 0, 540, 240, 0, 0, 1);
+    cameraPose[Camera::LEFT].copyTo(virtualPose);
 
-    char ch = (char) waitKey();
+    int pos = 0;
+    char const *xTrackbar = "Váltás kamerák között";
+    createTrackbar(xTrackbar, "Result", &pos, 100);
+
+    bool usePixels = false;
+
+    while (true) {
+        // calculate the relative position.
+        double ratio = ((double) pos) / 100;
+        virtualPose.tvec = (1 - ratio) * cameraPose[Camera::LEFT].tvec + ratio * cameraPose[Camera::RIGHT].tvec;
+        virtualPose.rvec = slerp(cameraPose[Camera::LEFT].rvec, cameraPose[Camera::RIGHT].rvec, ratio);
+
+        Visualization matVis2(virtualPose, virtualCameraMatrix);
+        if (usePixels) {
+            matVis2.renderWithColors(cvPointcloud, ofCalculator.points1, originalImage);
+        } else {
+            //matVis2.renderWithDepth(cvPointcloud);
+            matVis2.renderWithContours(cvPointcloud);
+        }
+        imshow("Result", matVis2.getResult());
+
+        char ch = (char) waitKey(33);
+        if (ch == 27) {
+            break;
+        } else if (ch == 'd') {
+            cameraPose[Camera::RIGHT].copyTo(virtualPose);
+            pos = 100;
+            setTrackbarPos(xTrackbar, "Result", pos);
+        } else if (ch == 'a') {
+            cameraPose[Camera::LEFT].copyTo(virtualPose);
+            pos = 0;
+            setTrackbarPos(xTrackbar, "Result", pos);
+        } else if (ch == 'c') {
+            usePixels = !usePixels;
+        }
+    }
+
     return 0;
 }

@@ -14,4 +14,6 @@ public:
     cv::Matx34d getRT() const;
 
     cv::Matx44d getPoseForPcl() const;
+
+    void copyTo(CameraPose& to) const;
 };

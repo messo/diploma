@@ -1,13 +1,14 @@
+#include "camera/Camera.hpp"
 #include "camera/CameraPose.h"
 #include "camera/RealCamera.hpp"
-#include <opencv2/highgui.hpp>
 #include "Common.h"
-#include "camera/Camera.hpp"
 
 #include <fstream>
+#include <opencv2/highgui.hpp>
 #include <opencv2/core/mat.hpp>
 #include <opencv2/calib3d.hpp>
 #include <opencv2/imgproc.hpp>
+#include <Eigen/Geometry>
 
 using namespace cv;
 using namespace std;
@@ -223,7 +224,8 @@ void drawGridXY(cv::Mat &img, cv::Ptr<Camera> camera, cv::Ptr<CameraPose> camera
     gridPoints.push_back(Point3f(0, step, 0));
 
     std::vector<Point2f> gridImagePoints;
-    projectPoints(gridPoints, cameraPose->rvec, cameraPose->tvec, camera->cameraMatrix, camera->distCoeffs, gridImagePoints);
+    projectPoints(gridPoints, cameraPose->rvec, cameraPose->tvec, camera->cameraMatrix, camera->distCoeffs,
+                  gridImagePoints);
 
     Rect imageRect(0, 0, 640, 480);
     int i = 0;
@@ -247,16 +249,19 @@ void drawGridXY(cv::Mat &img, cv::Ptr<Camera> camera, cv::Ptr<CameraPose> camera
 
     Point2f offset(2, -6);
 
-    circle(img, gridImagePoints[gridImagePoints.size()-3], 2, Scalar(0,0, 255), 2, LINE_AA);
+    circle(img, gridImagePoints[gridImagePoints.size() - 3], 2, Scalar(0, 0, 255), 2, LINE_AA);
     //putText(img, "(0,0,0)", gridImagePoints[gridImagePoints.size()-3] + Point2f(-100, -6), FONT_HERSHEY_PLAIN, 2.0, Scalar(0, 0, 0), 2, LINE_AA);
-    putText(img, "(0,0,0)", gridImagePoints[gridImagePoints.size()-3] + Point2f(-100, -6), FONT_HERSHEY_PLAIN, 2.0, Scalar(255, 255, 255), 2, LINE_AA);
+    putText(img, "(0,0,0)", gridImagePoints[gridImagePoints.size() - 3] + Point2f(-100, -6), FONT_HERSHEY_PLAIN, 2.0,
+            Scalar(255, 255, 255), 2, LINE_AA);
 
-    circle(img, gridImagePoints[gridImagePoints.size()-2], 2, Scalar(0,0, 255), 2, LINE_AA);
-    putText(img, "(8,0,0)", gridImagePoints[gridImagePoints.size()-2] + offset, FONT_HERSHEY_PLAIN, 2.0, Scalar(255, 255, 255), 2, LINE_AA);
+    circle(img, gridImagePoints[gridImagePoints.size() - 2], 2, Scalar(0, 0, 255), 2, LINE_AA);
+    putText(img, "(8,0,0)", gridImagePoints[gridImagePoints.size() - 2] + offset, FONT_HERSHEY_PLAIN, 2.0,
+            Scalar(255, 255, 255), 2, LINE_AA);
     //putText(img, "(8,0,0)", gridImagePoints[gridImagePoints.size()-2] + offset, FONT_HERSHEY_PLAIN, 2.0, Scalar(255, 255, 255), 1, LINE_AA);
 
-    circle(img, gridImagePoints[gridImagePoints.size()-1], 2, Scalar(0,0, 255), 2, LINE_AA);
-    putText(img, "(0,8,0)", gridImagePoints[gridImagePoints.size()-1] + offset, FONT_HERSHEY_PLAIN, 2.0, Scalar(255, 255, 255), 2, LINE_AA);
+    circle(img, gridImagePoints[gridImagePoints.size() - 1], 2, Scalar(0, 0, 255), 2, LINE_AA);
+    putText(img, "(0,8,0)", gridImagePoints[gridImagePoints.size() - 1] + offset, FONT_HERSHEY_PLAIN, 2.0,
+            Scalar(255, 255, 255), 2, LINE_AA);
     //putText(img, "(0,8,0)", gridImagePoints[gridImagePoints.size()-1] + offset, FONT_HERSHEY_PLAIN, 2.0, Scalar(255, 255, 255), 1, LINE_AA);
 }
 
@@ -387,4 +392,36 @@ Point2f magicVector(const std::vector<Point2f> &vector) {
     Mat_<double> X(2, 1);
     solve(A, B, X, DECOMP_SVD);
     return Point2f(X(0), X(1));
+}
+
+Mat slerp(Mat rvec1, Mat rvec2, double ratio) {
+    Mat R1, R2;
+    Rodrigues(rvec1, R1);
+    Rodrigues(rvec2, R2);
+
+    Eigen::Matrix<double, 3, 3> r1;
+    Eigen::Matrix<double, 3, 3> r2;
+
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            r1(i, j) = R1.at<double>(i, j);
+            r2(i, j) = R2.at<double>(i, j);
+        }
+    }
+
+    Eigen::Quaterniond q1(r1);
+    Eigen::Quaterniond q2(r2);
+    Eigen::Matrix<double, 3, 3> R = q1.slerp(ratio, q2).toRotationMatrix();
+
+    Mat rot(3, 3, CV_64FC1);
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            rot.at<double>(i, j) = R(i, j);
+        }
+    }
+
+    Mat rvec;
+    Rodrigues(rot, rvec);
+
+    return rvec;
 }

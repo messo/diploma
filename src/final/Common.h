@@ -107,3 +107,5 @@ std::vector<cv::Mat> getFramesFromCameras(std::vector<cv::Ptr<Camera>> &camera,
                                           double learningRate);
 
 cv::Point2f magicVector(const std::vector<cv::Point2f> &vector);
+
+cv::Mat slerp(cv::Mat rvec1, cv::Mat rvec2, double ratio);

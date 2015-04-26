@@ -35,3 +35,8 @@ cv::Matx44d CameraPose::getPoseForPcl() const {
 
     return affine.rotate(magic).matrix;
 }
+
+void CameraPose::copyTo(CameraPose &to) const {
+    rvec.copyTo(to.rvec);
+    tvec.copyTo(to.tvec);
+}
