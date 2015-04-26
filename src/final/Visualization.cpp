@@ -106,7 +106,7 @@ void Visualization::renderWithContours(const std::vector<CloudPoint> &points) {
     for (int i = 0; i < contours.size(); i++) {
         double area = contourArea(contours[i]);
         if (area > 100.0) {
-            drawContours(contourImg, contours, i, Scalar(255), -1, LINE_AA);
+            drawContours(contourImg, contours, i, Scalar(255), 2, LINE_AA);
         }
     }
 

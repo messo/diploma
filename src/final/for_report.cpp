@@ -304,6 +304,10 @@ int main_SAVE(int argc, char **argv) {
     }
 }
 
+enum VIS_TYPE {
+    PIXELS, DEPTH, CONTORUS
+};
+
 int main(int argc, char **argv) {
 
     vector<Ptr<Camera>> camera(2);
@@ -415,7 +419,7 @@ int main(int argc, char **argv) {
     char const *xTrackbar = "Váltás kamerák között";
     createTrackbar(xTrackbar, "Result", &pos, 100);
 
-    bool usePixels = false;
+    VIS_TYPE type = VIS_TYPE::DEPTH;
 
     while (true) {
         // calculate the relative position.
@@ -424,10 +428,11 @@ int main(int argc, char **argv) {
         virtualPose.rvec = slerp(cameraPose[Camera::LEFT].rvec, cameraPose[Camera::RIGHT].rvec, ratio);
 
         Visualization matVis2(virtualPose, virtualCameraMatrix);
-        if (usePixels) {
+        if (type == VIS_TYPE::DEPTH) {
+            matVis2.renderWithDepth(cvPointcloud);
+        } else if (type == VIS_TYPE::PIXELS) {
             matVis2.renderWithColors(cvPointcloud, ofCalculator.points1, originalImage);
         } else {
-            //matVis2.renderWithDepth(cvPointcloud);
             matVis2.renderWithContours(cvPointcloud);
         }
         imshow("Result", matVis2.getResult());
@@ -443,8 +448,14 @@ int main(int argc, char **argv) {
             cameraPose[Camera::LEFT].copyTo(virtualPose);
             pos = 0;
             setTrackbarPos(xTrackbar, "Result", pos);
-        } else if (ch == 'c') {
-            usePixels = !usePixels;
+        } else if (ch == '1') {
+            type = VIS_TYPE::DEPTH;
+        } else if (ch == '2') {
+            type = VIS_TYPE::PIXELS;
+        } else if (ch == '3') {
+            type = VIS_TYPE::CONTORUS;
+        } else if (ch == 'f') {
+            imwrite("/media/balint/Data/Linux/diploma/visualization.png", matVis2.getResult()(Rect(165, 145, 315, 315)));
         }
     }
 

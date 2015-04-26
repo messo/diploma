@@ -30,6 +30,3 @@ public:
 
     cv::Mat getResult();
 };
-
-
-
