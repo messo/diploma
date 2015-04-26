@@ -555,12 +555,14 @@ A fenti négy egyenletet rendezve:
 
 \[\left( \begin{array}{c} x_u\mathbf{p}_3^T - \mathbf{p}_1^T \\ y_u\mathbf{p}_3^T - \mathbf{p}_2^T \\ x_v\mathbf{q}_3^T - \mathbf{q}_1^T \\ y_v\mathbf{q}_3^T - \mathbf{q}_2^T \end{array} \right) \mathbf{x} = 0\]
 
-Ez meghatározza $\mathbf{x}$-et egy faktor erejéig, és ennek nem-zérus megoldását keressük. Zajos adatokat feltételezve, ennek nem feltétlen lesz pontos megoldása, így közelítenünk kell. Ennek egy lehetséges megközelítése a \textit{Linear-LS} (lineáris, legkisebb négyzetek) módszer, mely $\mathbf{x}$-et $\mathbf{x} = (x, y, z, 1)^T$-re korlátozza és az egyenletrendszer legkisebb négyzetek megoldását keresi (pl. szinguláris érték szerinti felbontással (SVD) \cite{cs-svd}). 
+Ez meghatározza $\mathbf{x}$-et egy faktor erejéig, és ennek nem-zérus megoldását keressük. Zajos adatokat feltételezve, ennek nem feltétlen lesz pontos megoldása, így közelítenünk kell. Egy lehetséges megközelítés a \textit{Linear-LS} (lineáris, legkisebb négyzetek) módszer, mely $\mathbf{x} = (x, y, z, 1)^T$ alakú megoldások között keresi az egyenletrendszer legkisebb négyzetek megoldását (pl. szinguláris érték szerinti felbontással (SVD) \cite{cs-svd}). 
 
+Általános esetben a talált $\mathbf{x}$ nem pontos megoldása a fenti egyenleteknek, azaz egy $\varepsilon = x_u\mathbf{p}_3^T\mathbf{x} - \mathbf{p}_1^T\mathbf{x}$ hibával számolhatunk az egyenletrendszer első egyenleténél. Mi nem ezt, hanem $x_u$ és $\mathbf{x}$ vetületének első koordinátája közötti eltérését szeretnénk minimalizálni, azaz $\varepsilon' = \frac{\varepsilon}{\mathbf{p}_3^T\mathbf{x}} = x_u - \frac{\mathbf{p}_1^T\mathbf{x}}{\mathbf{p}_3^T\mathbf{x}}$. Tehát, ha az egyenletet $1 / \mathbf{p}_3^T\mathbf{x}$-szel súlyoztuk volna, akkor az úgy kapott hiba pont az általunk minimalizálandó hiba lett volna. Természetesen ezt nem tudjuk megcsinálni, hiszen $\mathbf{x}$ még nem ismert, csak miután megoldottuk az egyenletrendszert, de egy iteratív megközelítést tudunk alkalmazni. Minden iteráció végén újrasúlyozzuk a megfelelő sorokat $1 / \mathbf{p}_3^T\mathbf{x}_i$, valamint $1 / \mathbf{q}_3^T\mathbf{x}_i$-vel, ahol $\mathbf{x}_i$ az $i$. iteráció végén kapott megoldás. Ha a lépéseknél az aktuális megoldást az előbbi \textit{Linear-LS}-sel keressük, akkor az így kapott eljárást \textit{Iterative-LS}-nek hívjuk. \cite[5.2 szekció]{hartley-triangulation}-ben úgy találták, hogy az esetek 95\%-ban a megoldás konvergens (epipólus melletti pontokra volt divergens), és amikor az új súly már csak kis mértékben változik az előzőhöz képest, megszakíthatjuk az iterációt.
 
 %----------------------------------------------------------------------------
 \section{Objektum-detekció \label{sec:obj_detection}}
 %----------------------------------------------------------------------------
+
 
 A feladat megoldása során mozgó objektumokat kell követnem, azokat modelleznem, így szükség van ezeknek az egymás utáni képkockákon történő azonosítására.
 
