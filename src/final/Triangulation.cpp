@@ -121,40 +121,8 @@ double TriangulatePoints(long frameId, const vector<Point2f> &pt_set1,
     vector<double> reproj_error;
     unsigned int pts_size = pt_set1.size();
 
-#if 0
-    //Using OpenCV's triangulation
-    //convert to Point2f
+    vector<Point3d> points3D(pts_size);
 
-    //undistort
-    Mat pt_set1_pt, pt_set2_pt;
-    undistortPoints(pt_set1, pt_set1_pt, K, distcoeff);
-    undistortPoints(pt_set2, pt_set2_pt, K, distcoeff);
-
-    //triangulate
-    Mat pt_set1_pt_2r = pt_set1_pt.reshape(1, 2);
-    Mat pt_set2_pt_2r = pt_set2_pt.reshape(1, 2);
-    Mat pt_3d_h(1, pts_size, CV_32FC4);
-    cv::triangulatePoints(P, P1, pt_set1_pt_2r, pt_set2_pt_2r, pt_3d_h);
-
-    //calculate reprojection
-    vector<Point3f> pt_3d;
-    convertPointsHomogeneous(pt_3d_h.reshape(4, 1), pt_3d);
-    cv::Mat_<double> R = (cv::Mat_<double>(3, 3) << P(0, 0), P(0, 1), P(0, 2), P(1, 0), P(1, 1), P(1, 2), P(2, 0), P(2, 1), P(2, 2));
-    Vec3d rvec;
-    Rodrigues(R, rvec);
-    Vec3d tvec(P(0, 3), P(1, 3), P(2, 3));
-    vector<Point2f> reprojected_pt_set1;
-    projectPoints(pt_3d, rvec, tvec, K, distcoeff, reprojected_pt_set1);
-
-    for (unsigned int i = 0; i < pts_size; i++) {
-        CloudPoint cp;
-        cp.pt = pt_3d[i];
-        pointcloud.push_back(cp);
-        correspImg1Pt.push_back(pt_set1[i]);
-        reproj_error.push_back(norm(pt_set1[i] - reprojected_pt_set1[i]));
-    }
-
-#else
     Mat_<double> KP1 = K * Mat(P1);
 #pragma omp parallel for
     for (int i = 0; i < pts_size; i++) {
@@ -174,16 +142,10 @@ double TriangulatePoints(long frameId, const vector<Point2f> &pt_set1,
 
         Mat_<double> X = IterativeLinearLSTriangulation(u, P, u1, P1);
 
-//		cout << "3D Point: " << X << endl;
-//		Mat_<double> x = Mat(P1) * X;
-//		cout <<	"P1 * Point: " << x << endl;
-//		Mat_<double> xPt = (Mat_<double>(3,1) << x(0),x(1),x(2));
-//		cout <<	"Point: " << xPt << endl;
         Mat_<double> xPt_img = KP1 * X;                //reproject
-//		cout <<	"Point * K: " << xPt_img << endl;
         Point2f xPt_img_(xPt_img(0) / xPt_img(2), xPt_img(1) / xPt_img(2));
-
         double reprj_err = norm(xPt_img_ - kp1);
+
         CloudPoint cp;
         cp.pt = Point3d(X(0), X(1), X(2));
         cp.reprojection_error = reprj_err;
@@ -195,85 +157,10 @@ double TriangulatePoints(long frameId, const vector<Point2f> &pt_set1,
             correspImg1Pt.push_back(pt_set1[i]);
         }
     }
-#endif
 
     Scalar mse = mean(reproj_error);
     t = ((double) getTickCount() - t) / getTickFrequency();
     cout << "Done. (" << pointcloud.size() << "points, " << t << "s, mean reproj err = " << mse[0] << ")" << endl;
-
-    return mse[0];
-}
-
-double TriangulatePoints(const vector<Point2f> &pt_set1,
-                         const Mat &K1,
-                         const Mat &Kinv1,
-                         const vector<Point2f> &pt_set2,
-                         const Mat &K2,
-                         const Mat &Kinv2,
-
-                         const Matx34d &P,
-                         const Matx34d &P1,
-                         vector<CloudPoint> &pointcloud,
-                         vector<Point> &correspImg1Pt) {
-
-    pointcloud.clear();
-    correspImg1Pt.clear();
-
-    Matx44d P1_(P1(0, 0), P1(0, 1), P1(0, 2), P1(0, 3),
-                P1(1, 0), P1(1, 1), P1(1, 2), P1(1, 3),
-                P1(2, 0), P1(2, 1), P1(2, 2), P1(2, 3),
-                0, 0, 0, 1);
-    Matx44d P1inv(P1_.inv());
-
-    cout << "Triangulating...";
-    double t = getTickCount();
-    vector<double> reproj_error;
-    unsigned int pts_size = pt_set1.size();
-
-    Mat_<double> KP1 = K2 * Mat(P1);
-#pragma omp parallel for
-    for (int i = 0; i < pts_size; i++) {
-        Point2f kp = pt_set1[i];
-        Point3d u(kp.x, kp.y, 1.0);
-        Mat_<double> um = Kinv1 * Mat_<double>(u);
-        u.x = um(0);
-        u.y = um(1);
-        u.z = um(2);
-
-        Point2f kp1 = pt_set2[i];
-        Point3d u1(kp1.x, kp1.y, 1.0);
-        Mat_<double> um1 = Kinv2 * Mat_<double>(u1);
-        u1.x = um1(0);
-        u1.y = um1(1);
-        u1.z = um1(2);
-
-        Mat_<double> X = IterativeLinearLSTriangulation(u, P, u1, P1);
-
-//		cout << "3D Point: " << X << endl;
-//		Mat_<double> x = Mat(P1) * X;
-//		cout <<	"P1 * Point: " << x << endl;
-//		Mat_<double> xPt = (Mat_<double>(3,1) << x(0),x(1),x(2));
-//		cout <<	"Point: " << xPt << endl;
-        Mat_<double> xPt_img = KP1 * X;                //reproject
-//		cout <<	"Point * K: " << xPt_img << endl;
-        Point2f xPt_img_(xPt_img(0) / xPt_img(2), xPt_img(1) / xPt_img(2));
-
-        double reprj_err = norm(xPt_img_ - kp1);
-        CloudPoint cp;
-        cp.pt = Point3d(X(0), X(1), X(2));
-        cp.reprojection_error = reprj_err;
-
-#pragma omp critical
-        {
-            reproj_error.push_back(reprj_err);
-            pointcloud.push_back(cp);
-            correspImg1Pt.push_back(pt_set1[i]);
-        }
-    }
-
-    Scalar mse = mean(reproj_error);
-    t = ((double) getTickCount() - t) / getTickFrequency();
-    cout << "ROY Done. (" << pointcloud.size() << "points, " << t << "s, mean reproj err = " << mse[0] << ")" << endl;
 
     return mse[0];
 }
@@ -331,6 +218,67 @@ bool TestTriangulation(const Cloud &pcloud, const Matx34d &P, vector<uchar> &sta
     return true;
 }
 
+double TriangulatePoints(const vector<Point2f> &points1, const Ptr<Camera> &cam1, const CameraPose &pose1,
+                         const vector<Point2f> &points2, const Ptr<Camera> &cam2, const CameraPose &pose2,
+                         vector<CloudPoint> &pointcloud) {
+
+    cout << "Triangulating...";
+    double t = getTickCount();
+
+    unsigned long pts_size = points1.size();
+
+    if (pts_size == 0) {
+        cout << "no points." << endl;
+        return -1.0;
+    }
+
+    vector<Point2f> normalized1, normalized2;
+
+    undistortPoints(points1, normalized1, cam1->cameraMatrix, cam1->distCoeffs, Mat());
+    undistortPoints(points2, normalized2, cam2->cameraMatrix, cam2->distCoeffs, Mat());
+
+    Matx34d P = pose1.getRT();
+    Matx34d P1 = pose2.getRT();
+
+    vector<Point3f> points3D(pts_size);
+
+#pragma omp parallel for
+    for (int i = 0; i < pts_size; i++) {
+        Point3d u(normalized1[i].x, normalized1[i].y, 1.0);
+        Point3d u1(normalized2[i].x, normalized2[i].y, 1.0);
+
+        Mat_<double> X = IterativeLinearLSTriangulation(u, P, u1, P1);
+        points3D[i] = Point3f(X(0), X(1), X(2));
+    }
+
+    Mat reprojected1, reprojected2;
+    projectPoints(points3D, pose1.rvec, pose1.tvec, cam1->cameraMatrix, cam1->distCoeffs, reprojected1);
+    projectPoints(points3D, pose2.rvec, pose2.tvec, cam2->cameraMatrix, cam2->distCoeffs, reprojected2);
+
+    vector<double> reproj_error(pts_size);
+    pointcloud.clear();
+    pointcloud.resize(pts_size);
+
+#pragma omp parallel for
+    for (int i = 0; i < pts_size; i++) {
+        double reprj_err1 = norm(reprojected1.at<Point2f>(i) - points1[i]);
+        double reprj_err2 = norm(reprojected2.at<Point2f>(i) - points2[i]);
+
+        CloudPoint cp;
+        cp.pt = Point3d(points3D[i].x, points3D[i].y, points3D[i].z);
+        cp.reprojection_error = max(reprj_err1, reprj_err2);
+
+        reproj_error[i] = cp.reprojection_error;
+        pointcloud[i] = cp;
+    }
+
+    Scalar mse = mean(reproj_error);
+    t = ((double) getTickCount() - t) / getTickFrequency();
+    cout << "ROY Done. (" << pointcloud.size() << "points, " << t << "s, mean reproj err = " << mse[0] << ")" << endl;
+
+    return mse[0];
+}
+
 double cvTriangulatePoints(const vector<Point2f> &points1, const Ptr<Camera> &cam1, const CameraPose &pose1,
                            const vector<Point2f> &points2, const Ptr<Camera> &cam2, const CameraPose &pose2,
                            vector<CloudPoint> &pointcloud) {
@@ -353,7 +301,7 @@ double cvTriangulatePoints(const vector<Point2f> &points1, const Ptr<Camera> &ca
 //
 //    undistortPoints(points1, undistorted1, cam1->cameraMatrix, cam1->distCoeffs, cam1->cameraMatrix);
 //    undistortPoints(points2, undistorted2, cam2->cameraMatrix, cam2->distCoeffs, cam2->cameraMatrix);
-
+//
 //    FileStorage fs;
 //    fs.open("/media/balint/Data/Linux/diploma/F.yml", FileStorage::READ);
 //

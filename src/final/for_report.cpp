@@ -389,12 +389,9 @@ int main(int argc, char **argv) {
 
 
     std::vector<CloudPoint> pointcloud;
-    std::vector<Point> cp;
-    TriangulatePoints(ofCalculator.points1, camera[Camera::LEFT]->cameraMatrix,
-                      camera[Camera::LEFT]->Kinv,
-                      ofCalculator.points2, camera[Camera::RIGHT]->cameraMatrix,
-                      camera[Camera::RIGHT]->Kinv,
-                      cameraPose[Camera::LEFT].getRT(), cameraPose[Camera::RIGHT].getRT(), pointcloud, cp);
+    TriangulatePoints(ofCalculator.points1, camera[Camera::LEFT], cameraPose[Camera::LEFT],
+                      ofCalculator.points2, camera[Camera::RIGHT], cameraPose[Camera::RIGHT],
+                      pointcloud);
 
     std::vector<CloudPoint> cvPointcloud;
     cvTriangulatePoints(ofCalculator.points1, camera[Camera::LEFT], cameraPose[Camera::LEFT],
@@ -411,7 +408,10 @@ int main(int argc, char **argv) {
     imshow("magic", matVis.getResult());
     imshow("magicCV", matVis2.getResult());
 
-    writeCloudPoints(pointcloud);
+    imwrite("/media/balint/Data/Linux/diploma/visu_left.png", matVis2.getResult());
+
+    writeCloudPoints("cloud_cv.ply", cvPointcloud);
+    writeCloudPoints("cloud_roy.ply", pointcloud);
 
     char ch = (char) waitKey();
     return 0;
