@@ -1,4 +1,4 @@
-#include "Triangulation.h"
+#include "Triangulator.h"
 
 #include <iostream>
 
@@ -63,10 +63,35 @@ Mat_<double> IterativeLinearLSTriangulation(Point3d u,    //homogenous image poi
     X(1) = X_(1);
     X(2) = X_(2);
     X(3) = 1.0;
+
+    Mat AA = (Mat_<double>(4, 3) << (u.x * P(2, 0) - P(0, 0)) / wi, (u.x * P(2, 1) - P(0, 1)) / wi,
+            (u.x * P(2, 2) - P(0, 2)) / wi,
+            (u.y * P(2, 0) - P(1, 0)) / wi, (u.y * P(2, 1) - P(1, 1)) / wi, (u.y * P(2, 2) - P(1, 2)) / wi,
+            (u1.x * P1(2, 0) - P1(0, 0)) / wi1, (u1.x * P1(2, 1) - P1(0, 1)) / wi1,
+            (u1.x * P1(2, 2) - P1(0, 2)) / wi1,
+            (u1.y * P1(2, 0) - P1(1, 0)) / wi1, (u1.y * P1(2, 1) - P1(1, 1)) / wi1,
+            (u1.y * P1(2, 2) - P1(1, 2)) / wi1
+    );
+    Mat BB = (Mat_<double>(4, 1) << -(u.x * P(2, 3) - P(0, 3)) / wi,
+            -(u.y * P(2, 3) - P(1, 3)) / wi,
+            -(u1.x * P1(2, 3) - P1(0, 3)) / wi1,
+            -(u1.y * P1(2, 3) - P1(1, 3)) / wi1
+    );
+
     for (int i = 0; i < 10; i++) { //Hartley suggests 10 iterations at most
         //recalculate weights
         double p2x = Mat_<double>(Mat_<double>(P).row(2) * X)(0);
         double p2x1 = Mat_<double>(Mat_<double>(P1).row(2) * X)(0);
+
+        AA.row(0) *= (wi / p2x);
+        AA.row(1) *= (wi / p2x);
+        AA.row(2) *= (wi1 / p2x1);
+        AA.row(3) *= (wi1 / p2x1);
+
+        BB.row(0) *= (wi / p2x);
+        BB.row(1) *= (wi / p2x);
+        BB.row(2) *= (wi1 / p2x1);
+        BB.row(3) *= (wi1 / p2x1);
 
         //breaking point
         if (fabsf(wi - p2x) <= EPSILON && fabsf(wi1 - p2x1) <= EPSILON) break;
@@ -74,21 +99,7 @@ Mat_<double> IterativeLinearLSTriangulation(Point3d u,    //homogenous image poi
         wi = p2x;
         wi1 = p2x1;
 
-        //reweight equations and solve
-        Matx43d A((u.x * P(2, 0) - P(0, 0)) / wi, (u.x * P(2, 1) - P(0, 1)) / wi, (u.x * P(2, 2) - P(0, 2)) / wi,
-                  (u.y * P(2, 0) - P(1, 0)) / wi, (u.y * P(2, 1) - P(1, 1)) / wi, (u.y * P(2, 2) - P(1, 2)) / wi,
-                  (u1.x * P1(2, 0) - P1(0, 0)) / wi1, (u1.x * P1(2, 1) - P1(0, 1)) / wi1,
-                  (u1.x * P1(2, 2) - P1(0, 2)) / wi1,
-                  (u1.y * P1(2, 0) - P1(1, 0)) / wi1, (u1.y * P1(2, 1) - P1(1, 1)) / wi1,
-                  (u1.y * P1(2, 2) - P1(1, 2)) / wi1
-        );
-        Mat_<double> B = (Mat_<double>(4, 1) << -(u.x * P(2, 3) - P(0, 3)) / wi,
-                -(u.y * P(2, 3) - P(1, 3)) / wi,
-                -(u1.x * P1(2, 3) - P1(0, 3)) / wi1,
-                -(u1.y * P1(2, 3) - P1(1, 3)) / wi1
-        );
-
-        solve(A, B, X_, DECOMP_SVD);
+        solve(AA, BB, X_, DECOMP_SVD);
         X(0) = X_(0);
         X(1) = X_(1);
         X(2) = X_(2);
@@ -218,9 +229,9 @@ bool TestTriangulation(const Cloud &pcloud, const Matx34d &P, vector<uchar> &sta
     return true;
 }
 
-double TriangulatePoints(const vector<Point2f> &points1, const Ptr<Camera> &cam1, const CameraPose &pose1,
-                         const vector<Point2f> &points2, const Ptr<Camera> &cam2, const CameraPose &pose2,
-                         vector<CloudPoint> &pointcloud) {
+double Triangulator::triangulateIteratively(const std::vector<cv::Point2f> &points1,
+                                            const std::vector<cv::Point2f> &points2,
+                                            std::vector<CloudPoint> &pointcloud) {
 
     cout << "Triangulating...";
     double t = getTickCount();
@@ -234,8 +245,8 @@ double TriangulatePoints(const vector<Point2f> &points1, const Ptr<Camera> &cam1
 
     vector<Point2f> normalized1, normalized2;
 
-    undistortPoints(points1, normalized1, cam1->cameraMatrix, cam1->distCoeffs, Mat());
-    undistortPoints(points2, normalized2, cam2->cameraMatrix, cam2->distCoeffs, Mat());
+    undistortPoints(points1, normalized1, camera1->cameraMatrix, camera1->distCoeffs, Mat());
+    undistortPoints(points2, normalized2, camera2->cameraMatrix, camera2->distCoeffs, Mat());
 
     Matx34d P = pose1.getRT();
     Matx34d P1 = pose2.getRT();
@@ -252,8 +263,8 @@ double TriangulatePoints(const vector<Point2f> &points1, const Ptr<Camera> &cam1
     }
 
     Mat reprojected1, reprojected2;
-    projectPoints(points3D, pose1.rvec, pose1.tvec, cam1->cameraMatrix, cam1->distCoeffs, reprojected1);
-    projectPoints(points3D, pose2.rvec, pose2.tvec, cam2->cameraMatrix, cam2->distCoeffs, reprojected2);
+    projectPoints(points3D, pose1.rvec, pose1.tvec, camera1->cameraMatrix, camera1->distCoeffs, reprojected1);
+    projectPoints(points3D, pose2.rvec, pose2.tvec, camera2->cameraMatrix, camera2->distCoeffs, reprojected2);
 
     vector<double> reproj_error(pts_size);
     pointcloud.clear();
@@ -279,9 +290,8 @@ double TriangulatePoints(const vector<Point2f> &points1, const Ptr<Camera> &cam1
     return mse[0];
 }
 
-double cvTriangulatePoints(const vector<Point2f> &points1, const Ptr<Camera> &cam1, const CameraPose &pose1,
-                           const vector<Point2f> &points2, const Ptr<Camera> &cam2, const CameraPose &pose2,
-                           vector<CloudPoint> &pointcloud) {
+double Triangulator::triangulateCv(const std::vector<cv::Point2f> &points1, const std::vector<cv::Point2f> &points2,
+                                   std::vector<CloudPoint> &pointcloud) {
 
     cout << "Triangulating...";
     double t = getTickCount();
@@ -294,8 +304,8 @@ double cvTriangulatePoints(const vector<Point2f> &points1, const Ptr<Camera> &ca
     }
 
     Mat normalized1, normalized2;
-    undistortPoints(points1, normalized1, cam1->cameraMatrix, cam1->distCoeffs);
-    undistortPoints(points2, normalized2, cam2->cameraMatrix, cam2->distCoeffs);
+    undistortPoints(points1, normalized1, camera1->cameraMatrix, camera1->distCoeffs);
+    undistortPoints(points2, normalized2, camera2->cameraMatrix, camera2->distCoeffs);
 
 //    Mat undistorted1, undistorted2;
 //
@@ -326,8 +336,8 @@ double cvTriangulatePoints(const vector<Point2f> &points1, const Ptr<Camera> &ca
     // reprojection
 
     Mat reprojected1, reprojected2;
-    projectPoints(points3D, pose1.rvec, pose1.tvec, cam1->cameraMatrix, cam1->distCoeffs, reprojected1);
-    projectPoints(points3D, pose2.rvec, pose2.tvec, cam2->cameraMatrix, cam2->distCoeffs, reprojected2);
+    projectPoints(points3D, pose1.rvec, pose1.tvec, camera1->cameraMatrix, camera1->distCoeffs, reprojected1);
+    projectPoints(points3D, pose2.rvec, pose2.tvec, camera2->cameraMatrix, camera2->distCoeffs, reprojected2);
 
     vector<double> reproj_error;
     for (int i = 0; i < count; i++) {

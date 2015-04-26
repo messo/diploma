@@ -2,7 +2,7 @@
 #include <opencv2/core/utility.hpp>
 #include <opencv2/calib3d.hpp>
 #include "OFReconstruction.h"
-#include "../Triangulation.h"
+#include "../Triangulator.h"
 
 using namespace cv;
 using namespace std;

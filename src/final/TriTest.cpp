@@ -4,7 +4,7 @@
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 #include "camera/VirtualCamera.h"
-#include "Triangulation.h"
+#include "Triangulator.h"
 #include "optical_flow/OFReconstruction.h"
 #include "camera/FakeCamera.h"
 

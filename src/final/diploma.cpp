@@ -8,7 +8,7 @@
 #include "optical_flow/SpatialOpticalFlowCalculator.h"
 #include "SingleObjectSelector.hpp"
 #include "camera/DummyCamera.hpp"
-#include "Triangulation.h"
+#include "Triangulator.h"
 #include "PclVisualization.h"
 #include "locking.h"
 #include "MatVisualization.h"
@@ -122,6 +122,9 @@ int main(int argc, char **argv) {
 
     std::vector<SingleObjectSelector> objSelector(2);
 
+    Triangulator triangulator(camera[Camera::LEFT], camera[Camera::RIGHT],
+                              cameraPose[Camera::LEFT], cameraPose[Camera::RIGHT]);
+
     double learningRate;
 
     // PclVisualization vis;
@@ -151,9 +154,9 @@ int main(int argc, char **argv) {
                 frameCounter++;
 
 //                if (frameCounter < 500) {
-                    learningRate = 0.001;
+                learningRate = 0.001;
 //                } else {
-                    //std::cout << "LEARNING OFF" << std::endl;
+                //std::cout << "LEARNING OFF" << std::endl;
 //                    learningRate = 0;
 //                }
 
@@ -208,9 +211,7 @@ int main(int argc, char **argv) {
 //                                          leftP, rightP, pointcloud, cp);
 
                         std::vector<CloudPoint> cvPointcloud;
-                        cvTriangulatePoints(ofCalculator.points1, camera[Camera::LEFT], cameraPose[Camera::LEFT],
-                                            ofCalculator.points2, camera[Camera::RIGHT], cameraPose[Camera::RIGHT],
-                                            cvPointcloud);
+                        triangulator.triangulateCv(ofCalculator.points1, ofCalculator.points2, cvPointcloud);
 
                         t = ((double) getTickCount() - t) / getTickFrequency();
                         std::cout << "## Done in " << t << "s" << std::endl;

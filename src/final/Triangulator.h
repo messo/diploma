@@ -37,6 +37,29 @@
 #include <vector>
 #include "Common.h"
 
+#define EPSILON 0.0001
+
+class Triangulator {
+
+    cv::Ptr<Camera> camera1;
+    cv::Ptr<Camera> camera2;
+
+    const CameraPose &pose1;
+    const CameraPose &pose2;
+
+public:
+
+    Triangulator(const cv::Ptr<Camera> &cam1, const cv::Ptr<Camera> &cam2, const CameraPose &p1, const CameraPose &p2) :
+            camera1(cam1), camera2(cam2), pose1(p1), pose2(p2) { }
+
+    double triangulateIteratively(const std::vector<cv::Point2f> &points1, const std::vector<cv::Point2f> &points2,
+                                  std::vector<CloudPoint> &pointcloud);
+
+    double triangulateCv(const std::vector<cv::Point2f> &points1, const std::vector<cv::Point2f> &points2,
+                         std::vector<CloudPoint> &pointcloud);
+
+};
+
 /**
  From "Triangulation", Hartley, R.I. and Sturm, P., Computer vision and image understanding, 1997
  */
@@ -45,8 +68,6 @@ cv::Mat_<double> LinearLSTriangulation(cv::Point3d u,        //homogenous image 
                                        cv::Point3d u1,       //homogenous image point in 2nd camera
                                        cv::Matx34d P1        //camera 2 matrix
 );
-
-#define EPSILON 0.0001
 
 /**
  From "Triangulation", Hartley, R.I. and Sturm, P., Computer vision and image understanding, 1997
@@ -67,12 +88,4 @@ double TriangulatePoints(long frameId, const std::vector<cv::Point2f> &pt_set1,
                          Cloud &pointcloud,
                          std::vector<cv::Point> &correspImg1Pt);
 
-double TriangulatePoints(const std::vector<cv::Point2f> &points1, const cv::Ptr<Camera> &cam1, const CameraPose &p1,
-                         const std::vector<cv::Point2f> &points2, const cv::Ptr<Camera> &cam2, const CameraPose &p2,
-                         std::vector<CloudPoint> &pointcloud);
-
 bool TestTriangulation(const Cloud &pcloud, const cv::Matx34d &P, std::vector<uchar> &status);
-
-double cvTriangulatePoints(const std::vector<cv::Point2f> &points1, const cv::Ptr<Camera> &cam1, const CameraPose &p1,
-                           const std::vector<cv::Point2f> &points2, const cv::Ptr<Camera> &cam2, const CameraPose &p2,
-                           std::vector<CloudPoint> &pointcloud);

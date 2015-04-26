@@ -8,7 +8,7 @@
 #include "calibration/CameraPoseCalculator.h"
 #include "Common.h"
 #include "optical_flow/ReportOpticalFlowCalculator.h"
-#include "Triangulation.h"
+#include "Triangulator.h"
 #include "MatVisualization.h"
 
 using namespace cv;
@@ -387,17 +387,14 @@ int main(int argc, char **argv) {
 
     ofCalculator.feed(frames, masks);
 
+    Triangulator triangulator(camera[Camera::LEFT], camera[Camera::RIGHT],
+                              cameraPose[Camera::LEFT], cameraPose[Camera::RIGHT]);
 
     std::vector<CloudPoint> pointcloud;
-    TriangulatePoints(ofCalculator.points1, camera[Camera::LEFT], cameraPose[Camera::LEFT],
-                      ofCalculator.points2, camera[Camera::RIGHT], cameraPose[Camera::RIGHT],
-                      pointcloud);
+    triangulator.triangulateIteratively(ofCalculator.points1, ofCalculator.points2, pointcloud);
 
     std::vector<CloudPoint> cvPointcloud;
-    cvTriangulatePoints(ofCalculator.points1, camera[Camera::LEFT], cameraPose[Camera::LEFT],
-                        ofCalculator.points2, camera[Camera::RIGHT], cameraPose[Camera::RIGHT],
-                        cvPointcloud);
-
+    triangulator.triangulateCv(ofCalculator.points1, ofCalculator.points2, cvPointcloud);
 
     MatVisualization matVis(cameraPose[Camera::LEFT], camera[Camera::LEFT]->cameraMatrix);
     MatVisualization matVis2(cameraPose[Camera::LEFT], camera[Camera::LEFT]->cameraMatrix);

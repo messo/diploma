@@ -1,5 +1,5 @@
 #include "MultiView.h"
-#include "Triangulation.h"
+#include "Triangulator.h"
 
 using namespace std;
 using namespace cv;
@@ -63,7 +63,7 @@ void MultiView::reconstructNext(long frameId1, const vector<Point2f> &points1,
     cout << Pmats[frameId1] << endl;
     cout << Pmats[frameId2] << endl;
 
-    // triangulate new points
+    // triangulateIteratively new points
 
     Cloud pc;
     vector<Point> correspond;

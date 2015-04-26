@@ -17,7 +17,7 @@ if (OPENMP_FOUND)
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 endif()
 
-set(CLASSES calibration/StereoCalibration.cpp camera/Camera.cpp camera/RealCamera.cpp camera/DummyCamera.cpp camera/StereoCamera.cpp calibration/Calibration.cpp calibration/CameraPoseCalculator.cpp camera/CameraPose.cpp OpenGLRenderer.cpp SingleObjectSelector.cpp optical_flow/OFReconstruction.cpp Triangulation.cpp Common.cpp optical_flow/OpticalFlowCalculator.cpp optical_flow/TemporalOpticalFlowCalculator.cpp optical_flow/SpatialOpticalFlowCalculator.cpp MultiView.cpp PclVisualization.cpp)
+set(CLASSES calibration/StereoCalibration.cpp camera/Camera.cpp camera/RealCamera.cpp camera/DummyCamera.cpp camera/StereoCamera.cpp calibration/Calibration.cpp calibration/CameraPoseCalculator.cpp camera/CameraPose.cpp OpenGLRenderer.cpp SingleObjectSelector.cpp optical_flow/OFReconstruction.cpp Triangulator.cpp Common.cpp optical_flow/OpticalFlowCalculator.cpp optical_flow/TemporalOpticalFlowCalculator.cpp optical_flow/SpatialOpticalFlowCalculator.cpp MultiView.cpp PclVisualization.cpp)
 
 add_executable(Final main.cpp ${CLASSES})
 target_compile_features(Final PRIVATE cxx_range_for)
@@ -41,6 +41,6 @@ target_link_libraries(TriTest ${OPENGL_LIBRARIES} ${OpenCV_LIBS} ${GLUT_LIBRARIE
 
 add_executable(OmpTest omp_test.cpp)
 
-add_executable(ForReport for_report.cpp camera/Camera.cpp camera/RealCamera.cpp calibration/CameraPoseCalculator.cpp camera/CameraPose.cpp Common.cpp SingleObjectSelector.cpp optical_flow/OpticalFlowCalculator.cpp optical_flow/SpatialOpticalFlowCalculator.cpp optical_flow/ReportOpticalFlowCalculator.cpp MatVisualization.cpp Triangulation.cpp SURFFeatureExtractor.cpp MyMatcher.cpp)
+add_executable(ForReport for_report.cpp camera/Camera.cpp camera/RealCamera.cpp calibration/CameraPoseCalculator.cpp camera/CameraPose.cpp Common.cpp SingleObjectSelector.cpp optical_flow/OpticalFlowCalculator.cpp optical_flow/SpatialOpticalFlowCalculator.cpp optical_flow/ReportOpticalFlowCalculator.cpp MatVisualization.cpp Triangulator.cpp SURFFeatureExtractor.cpp MyMatcher.cpp)
 target_compile_features(ForReport PRIVATE cxx_range_for)
 target_link_libraries(ForReport ${OpenCV_LIBS} ${GLUT_LIBRARIES} v4l2)
