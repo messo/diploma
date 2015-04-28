@@ -13,6 +13,8 @@
 #include "locking.h"
 #include "Visualization.h"
 #include "FPSCounter.h"
+#include "mask/MOG2ForegroundMaskCalculator.h"
+#include "mask/OFForegroundMaskCalculator.h"
 
 using namespace cv;
 
@@ -106,9 +108,11 @@ int main(int argc, char **argv) {
     Matx34d rightP = cameraPose[Camera::RIGHT].getRT();
     //Matx44d rightPclP = cameraPose[Camera::RIGHT].getPoseForPcl();
 
-    std::vector<Ptr<BackgroundSubtractorMOG2>> bgSub(2);
-    bgSub[Camera::LEFT] = createBackgroundSubtractorMOG2(300, 25.0, true);
-    bgSub[Camera::RIGHT] = createBackgroundSubtractorMOG2(300, 25.0, true);
+    std::vector<Ptr<ForegroundMaskCalculator>> maskCalculators(2);
+    maskCalculators[Camera::LEFT] = Ptr<ForegroundMaskCalculator>(
+            new OFForegroundMaskCalculator()); //new MOG2ForegroundMaskCalculator());
+    maskCalculators[Camera::RIGHT] = Ptr<ForegroundMaskCalculator>(
+            new OFForegroundMaskCalculator()); //new MOG2ForegroundMaskCalculator());
 
     FileStorage fs;
     fs.open("/media/balint/Data/Linux/diploma/F.yml", FileStorage::READ);
@@ -160,7 +164,7 @@ int main(int argc, char **argv) {
 //                    learningRate = 0;
 //                }
 
-                std::vector<Mat> selected = getFramesFromCameras(camera, bgSub, objSelector, learningRate);
+                std::vector<Mat> selected = getFramesFromCameras(camera, maskCalculators, objSelector);
 
                 Mat leftRight = mergeImages(selected[Camera::LEFT], selected[Camera::RIGHT]);
                 dispCnter.tick();

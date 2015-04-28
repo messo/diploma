@@ -5,7 +5,6 @@
 
 #include <fstream>
 #include <opencv2/highgui.hpp>
-#include <opencv2/core/mat.hpp>
 #include <opencv2/calib3d.hpp>
 #include <opencv2/imgproc.hpp>
 #include <Eigen/Geometry>
@@ -315,48 +314,20 @@ Point moveToTheCenter(Mat image, Mat mask) {
     return translation;
 }
 
-void dilateAndErode(Mat mask) {
-    int niters = 3;
-    dilate(mask, mask, Mat(), Point(-1, -1), niters);
-    erode(mask, mask, Mat(), Point(-1, -1), niters * 2);
-    dilate(mask, mask, Mat(), Point(-1, -1), niters);
-
-//    Mat small = getStructuringElement(MORPH_RECT, Size(2, 2));
-//    Mat bigger = getStructuringElement(MORPH_RECT, Size(5, 5));
-//    erode(mask, mask, small, Point(-1, -1), niters);
-//    dilate(mask, mask, bigger, Point(-1, -1), niters * 2);
-//    erode(mask, mask, bigger, Point(-1, -1), niters * 2);
-}
-
-void removeShadows(Mat mask) {
-    for (int y = 0; y < mask.rows; y++) {
-        for (int x = 0; x < mask.cols; x++) {
-            if (mask.at<uchar>(y, x) != 255) {
-                mask.at<uchar>(y, x) = 0;
-            }
-        }
-    }
-}
-
-std::vector<Mat> getFramesFromCameras(std::vector<Ptr<Camera>> &camera,
-                                      std::vector<Ptr<BackgroundSubtractorMOG2>> &bgSub,
-                                      std::vector<SingleObjectSelector> &objSelector,
-                                      double learningRate) {
+std::vector<Mat> getFramesFromCameras(std::vector<Ptr<Camera>> &cameras,
+                                      std::vector<Ptr<ForegroundMaskCalculator>> &maskCalculators,
+                                      std::vector<SingleObjectSelector> &objSelectors) {
     std::vector<Mat> selected(2);
 #pragma omp parallel for
     for (int i = 0; i < 2; i++) {
         // std::cout << "CAP THREAD: " << omp_get_thread_num() << std::endl;
         Mat image, mask;
-        camera[i]->read(image); // readUndistorted
+        cameras[i]->read(image); // readUndistorted
+        mask = maskCalculators[i]->calculate(image);
 
-        Mat gray;
+        Mat gray, equalized;
         cvtColor(image, gray, COLOR_BGR2GRAY);
-
-        Mat equal;
-        equalizeHist(gray, equal);
-
-        bgSub[i]->apply(image, mask, learningRate);
-        removeShadows(mask);
+        equalizeHist(gray, equalized);
 
 //        if (i == 0) {
 //            imshow("image", image);
@@ -366,10 +337,9 @@ std::vector<Mat> getFramesFromCameras(std::vector<Ptr<Camera>> &camera,
 //            counter++;
 //        }
 
-        dilateAndErode(mask);
         //drawGridXY(leftImage, leftCamera, leftCameraPose);
 
-        selected[i] = objSelector[i].selectUsingContourWithMaxArea(equal, mask);
+        selected[i] = objSelectors[i].selectUsingContourWithMaxArea(equalized, mask);
     }
 
     return selected;

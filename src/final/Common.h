@@ -8,6 +8,7 @@
 #include "camera/Camera.hpp"
 #include "camera/CameraPose.h"
 #include "SingleObjectSelector.hpp"
+#include "mask/ForegroundMaskCalculator.h"
 
 struct CloudPoint {
     cv::Point3d pt;
@@ -78,6 +79,7 @@ void translate(const std::vector<cv::Point> &input, cv::Point translation, std::
 void translate(std::vector<cv::Point> &input, cv::Point translation);
 
 cv::Mat mergeImages(const cv::Mat &left, const cv::Mat &right);
+
 cv::Mat mergeImagesVertically(const cv::Mat &left, const cv::Mat &right);
 
 void shiftImage(const cv::Mat &input, const cv::Rect &boundingRect,
@@ -101,10 +103,9 @@ void drawGridXY(cv::Mat &img, cv::Ptr<Camera> camera, cv::Ptr<CameraPose> camera
 
 cv::Point moveToTheCenter(cv::Mat image, cv::Mat mask);
 
-std::vector<cv::Mat> getFramesFromCameras(std::vector<cv::Ptr<Camera>> &camera,
-                                          std::vector<cv::Ptr<cv::BackgroundSubtractorMOG2>> &bgSub,
-                                          std::vector<SingleObjectSelector> &objSelector,
-                                          double learningRate);
+std::vector<cv::Mat> getFramesFromCameras(std::vector<cv::Ptr<Camera>> &cameras,
+                                          std::vector<cv::Ptr<ForegroundMaskCalculator>> &maskCalculators,
+                                          std::vector<SingleObjectSelector> &objSelectors);
 
 cv::Point2f magicVector(const std::vector<cv::Point2f> &vector);
 

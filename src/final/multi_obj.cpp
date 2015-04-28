@@ -13,6 +13,7 @@
 #include "Visualization.h"
 #include "MultiObjectSelector.h"
 #include "optical_flow/MultiObjectOpticalFlowCalculator.h"
+#include "mask/OFForegroundMaskCalculator.h"
 
 using namespace cv;
 using namespace std;
@@ -40,9 +41,8 @@ void _removeShadows(Mat mask) {
     }
 }
 
-std::vector<std::vector<Mat>> getMasks(std::vector<Ptr<Camera>> &camera,
-                                       std::vector<Ptr<BackgroundSubtractorMOG2>> &bgSub,
-                                       double learningRate) {
+std::vector<std::vector<Mat>> getMasks(std::vector<Ptr<Camera>> &cameras,
+                                       std::vector<Ptr<ForegroundMaskCalculator>> &maskCalculators) {
 
     std::vector<std::vector<Mat>> selected(2);
 
@@ -53,17 +53,12 @@ std::vector<std::vector<Mat>> getMasks(std::vector<Ptr<Camera>> &camera,
     for (int i = 0; i < 2; i++) {
         // std::cout << "CAP THREAD: " << omp_get_thread_num() << std::endl;
         Mat image, mask;
-        camera[i]->read(image); // readUndistorted
+        cameras[i]->read(image); // readUndistorted
+        mask = maskCalculators[i]->calculate(image);
 
-        Mat gray;
+        Mat gray, equal;
         cvtColor(image, gray, COLOR_BGR2GRAY);
-
-        Mat equal;
         equalizeHist(gray, equal);
-
-        bgSub[i]->apply(image, mask, learningRate);
-        _removeShadows(mask);
-        _dilateAndErode(mask);
 
         selected[0][i] = equal;
         selected[1][i] = mask;
@@ -88,9 +83,9 @@ int main(int argc, char **argv) {
     cameraPose[Camera::LEFT].load("/media/balint/Data/Linux/diploma/src/final/pose_left.yml");
     cameraPose[Camera::RIGHT].load("/media/balint/Data/Linux/diploma/src/final/pose_right.yml");
 
-    std::vector<Ptr<BackgroundSubtractorMOG2>> bgSub(2);
-    bgSub[Camera::LEFT] = createBackgroundSubtractorMOG2(300, 25.0, true);
-    bgSub[Camera::RIGHT] = createBackgroundSubtractorMOG2(300, 25.0, true);
+    std::vector<Ptr<ForegroundMaskCalculator>> maskCalculators(2);
+    maskCalculators[Camera::LEFT] = Ptr<ForegroundMaskCalculator>(new OFForegroundMaskCalculator());
+    maskCalculators[Camera::RIGHT] = Ptr<ForegroundMaskCalculator>(new OFForegroundMaskCalculator());
 
     int focus = 80;
     static_cast<RealCamera *>(camera[Camera::LEFT].get())->focus(focus);
@@ -111,15 +106,17 @@ int main(int argc, char **argv) {
 //
 //        frame++;
 //
-//        std::vector<std::vector<Mat>> frames = getMasks(camera, bgSub, (frame < 100) ? -1 : 0.001);
+//        std::vector<std::vector<Mat>> frames = getMasks(camera, maskCalculators);
 //
-//        imshow("mask1", frames[0][0]);
-//        imshow("mask2", frames[0][1]);
+//        imshow("frame1", frames[0][0]);
+//        imshow("frame2", frames[0][1]);
+//        imshow("mask1", frames[1][0]);
+//        imshow("mask2", frames[1][1]);
 //
 //        char ch = (char) waitKey(33);
 //        if (ch == 27) {
 //            break;
-//        } else if (frame % 100 == 0) {
+//        } else if (frame % 20 == 0) {
 //            imwrite("/media/balint/Data/Linux/multi_left.png", frames[0][0]);
 //            imwrite("/media/balint/Data/Linux/multi_right.png", frames[0][1]);
 //
@@ -129,12 +126,12 @@ int main(int argc, char **argv) {
 //    }
 
     std::vector<Mat> frames(2);
-    frames[0] = imread("/media/balint/Data/Linux/_multi_left.png", IMREAD_GRAYSCALE);
-    frames[1] = imread("/media/balint/Data/Linux/_multi_right.png", IMREAD_GRAYSCALE);
+    frames[0] = imread("/media/balint/Data/Linux/multi_left.png", IMREAD_GRAYSCALE);
+    frames[1] = imread("/media/balint/Data/Linux/multi_right.png", IMREAD_GRAYSCALE);
 
     std::vector<Mat> masks(2);
-    masks[0] = imread("/media/balint/Data/Linux/_multi_left_mask.png", IMREAD_GRAYSCALE);
-    masks[1] = imread("/media/balint/Data/Linux/_multi_right_mask.png", IMREAD_GRAYSCALE);
+    masks[0] = imread("/media/balint/Data/Linux/multi_left_mask.png", IMREAD_GRAYSCALE);
+    masks[1] = imread("/media/balint/Data/Linux/multi_right_mask.png", IMREAD_GRAYSCALE);
 
     //while (true) {
     objSelector.selectObjects(frames, masks);
@@ -199,64 +196,64 @@ int main(int argc, char **argv) {
     }
 
 
-//    Visualization matVis(cameraPose[Camera::LEFT], camera[Camera::LEFT]->cameraMatrix);
-//    matVis.renderWithDepth(finalResult);
-//    imshow("FinalResult", matVis.getResult());
-//    writeCloudPoints(finalResult);
+    Visualization matVis(cameraPose[Camera::LEFT], camera[Camera::LEFT]->cameraMatrix);
+    matVis.renderWithDepth(finalResult);
+    imshow("FinalResult", matVis.getResult());
+    writeCloudPoints(finalResult);
 
 
-    namedWindow("Result", 1);
-
-    //imshow("magic", matVis.getResult());
-
-    CameraPose virtualPose;
-    Mat virtualCameraMatrix = (Mat_<double>(3, 3) << 540, 0, 320, 0, 540, 240, 0, 0, 1);
-    cameraPose[Camera::LEFT].copyTo(virtualPose);
-
-    int pos = 0;
-    char const *xTrackbar = "Váltás kamerák között";
-    createTrackbar(xTrackbar, "Result", &pos, 100);
-
-    VIS_TYPE type = VIS_TYPE::DEPTH;
-
-    while (true) {
-        // calculate the relative position.
-        double ratio = ((double) pos) / 100;
-        virtualPose.tvec = (1 - ratio) * cameraPose[Camera::LEFT].tvec + ratio * cameraPose[Camera::RIGHT].tvec;
-        virtualPose.rvec = slerp(cameraPose[Camera::LEFT].rvec, cameraPose[Camera::RIGHT].rvec, ratio);
-
-        Visualization matVis2(virtualPose, virtualCameraMatrix);
-        if (type == VIS_TYPE::DEPTH) {
-            matVis2.renderWithDepth(finalResult);
-        } else if (type == VIS_TYPE::PIXELS) {
-            matVis2.renderWithGrayscale(finalResult, totalPoints, frames[0]);
-        } else {
-            matVis2.renderWithContours(finalResult);
-        }
-        imshow("Result", matVis2.getResult());
-
-        char ch = (char) waitKey(33);
-        if (ch == 27) {
-            break;
-        } else if (ch == 'd') {
-            cameraPose[Camera::RIGHT].copyTo(virtualPose);
-            pos = 100;
-            setTrackbarPos(xTrackbar, "Result", pos);
-        } else if (ch == 'a') {
-            cameraPose[Camera::LEFT].copyTo(virtualPose);
-            pos = 0;
-            setTrackbarPos(xTrackbar, "Result", pos);
-        } else if (ch == '1') {
-            type = VIS_TYPE::DEPTH;
-        } else if (ch == '2') {
-            type = VIS_TYPE::PIXELS;
-        } else if (ch == '3') {
-            type = VIS_TYPE::CONTORUS;
-        } else if (ch == 'f') {
-            imwrite("/media/balint/Data/Linux/diploma/visualization.png",
-                    matVis2.getResult()(Rect(165, 145, 315, 315)));
-        }
-    }
+//    namedWindow("Result", 1);
+//
+//    //imshow("magic", matVis.getResult());
+//
+//    CameraPose virtualPose;
+//    Mat virtualCameraMatrix = (Mat_<double>(3, 3) << 540, 0, 320, 0, 540, 240, 0, 0, 1);
+//    cameraPose[Camera::LEFT].copyTo(virtualPose);
+//
+//    int pos = 0;
+//    char const *xTrackbar = "Váltás kamerák között";
+//    createTrackbar(xTrackbar, "Result", &pos, 100);
+//
+//    VIS_TYPE type = VIS_TYPE::DEPTH;
+//
+//    while (true) {
+//        // calculate the relative position.
+//        double ratio = ((double) pos) / 100;
+//        virtualPose.tvec = (1 - ratio) * cameraPose[Camera::LEFT].tvec + ratio * cameraPose[Camera::RIGHT].tvec;
+//        virtualPose.rvec = slerp(cameraPose[Camera::LEFT].rvec, cameraPose[Camera::RIGHT].rvec, ratio);
+//
+//        Visualization matVis2(virtualPose, virtualCameraMatrix);
+//        if (type == VIS_TYPE::DEPTH) {
+//            matVis2.renderWithDepth(finalResult);
+//        } else if (type == VIS_TYPE::PIXELS) {
+//            matVis2.renderWithGrayscale(finalResult, totalPoints, frames[0]);
+//        } else {
+//            matVis2.renderWithContours(finalResult);
+//        }
+//        imshow("Result", matVis2.getResult());
+//
+//        char ch = (char) waitKey(33);
+//        if (ch == 27) {
+//            break;
+//        } else if (ch == 'd') {
+//            cameraPose[Camera::RIGHT].copyTo(virtualPose);
+//            pos = 100;
+//            setTrackbarPos(xTrackbar, "Result", pos);
+//        } else if (ch == 'a') {
+//            cameraPose[Camera::LEFT].copyTo(virtualPose);
+//            pos = 0;
+//            setTrackbarPos(xTrackbar, "Result", pos);
+//        } else if (ch == '1') {
+//            type = VIS_TYPE::DEPTH;
+//        } else if (ch == '2') {
+//            type = VIS_TYPE::PIXELS;
+//        } else if (ch == '3') {
+//            type = VIS_TYPE::CONTORUS;
+//        } else if (ch == 'f') {
+//            imwrite("/media/balint/Data/Linux/diploma/visualization.png",
+//                    matVis2.getResult()(Rect(165, 145, 315, 315)));
+//        }
+//    }
 
 
 
