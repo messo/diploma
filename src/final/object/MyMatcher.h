@@ -1,9 +1,8 @@
 #pragma once
 
-
-#include <opencv2/core/mat.hpp>
+#include <opencv2/core.hpp>
 #include "SURFFeatureExtractor.h"
-#include "camera/Camera.hpp"
+#include "../camera/Camera.hpp"
 
 class MyMatcher {
 
@@ -19,13 +18,15 @@ class MyMatcher {
                       const std::vector<std::vector<cv::DMatch>> &matches2,
                       std::vector<cv::DMatch> &symmMatches);
 
-    std::vector<std::pair<cv::Point2f, cv::Point2f>> filterWithF(const std::vector<std::vector<cv::KeyPoint>> &keypoints,
-                     const std::vector<cv::DMatch> &before,
-                     std::vector<cv::DMatch> &after,
-                     cv::Mat F);
+    std::vector<std::pair<cv::Point2f, cv::Point2f>> filterWithF(
+            const std::vector<std::vector<cv::KeyPoint>> &keypoints,
+            const std::vector<cv::DMatch> &before,
+            std::vector<cv::DMatch> &after,
+            cv::Mat F);
 
 public:
     MyMatcher(cv::Ptr<Camera> camera1, cv::Ptr<Camera> camera2) : camera1(camera1), camera2(camera2) { }
 
-    std::vector<std::pair<cv::Point2f, cv::Point2f>> match(SURFFeatureExtractor extractor, std::vector<cv::DMatch> &matches, cv::Mat F);
+    std::vector<std::pair<cv::Point2f, cv::Point2f>> match(SURFFeatureExtractor extractor,
+                                                           std::vector<cv::DMatch> &matches, cv::Mat F);
 };

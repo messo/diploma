@@ -6,8 +6,8 @@
 #include "OpticalFlowCalculator.h"
 #include "../Common.h"
 #include "OFReconstruction.h"
-#include "../SURFFeatureExtractor.h"
-#include "../MyMatcher.h"
+#include "../object/SURFFeatureExtractor.h"
+#include "../object/MyMatcher.h"
 
 using namespace cv;
 using namespace std;

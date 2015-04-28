@@ -4,42 +4,21 @@
 #include <opencv2/highgui.hpp>
 #include <opencv2/calib3d.hpp>
 #include <Eigen/Geometry>
+
+#include "Common.h"
 #include "camera/Camera.hpp"
 #include "camera/RealCamera.hpp"
 #include "calibration/CameraPoseCalculator.h"
-#include "Common.h"
+#include "mask/OFForegroundMaskCalculator.h"
+#include "object/MultiObjectSelector.h"
 #include "optical_flow/ReportOpticalFlowCalculator.h"
+#include "optical_flow/MultiObjectOpticalFlowCalculator.h"
 #include "Triangulator.h"
 #include "Visualization.h"
-#include "MultiObjectSelector.h"
-#include "optical_flow/MultiObjectOpticalFlowCalculator.h"
-#include "mask/OFForegroundMaskCalculator.h"
 
 using namespace cv;
 using namespace std;
 
-void _dilateAndErode(Mat mask) {
-    int niters = 3;
-    dilate(mask, mask, Mat(), Point(-1, -1), niters);
-    erode(mask, mask, Mat(), Point(-1, -1), niters * 2);
-    dilate(mask, mask, Mat(), Point(-1, -1), niters);
-
-//    Mat small = getStructuringElement(MORPH_RECT, Size(2, 2));
-//    Mat bigger = getStructuringElement(MORPH_RECT, Size(5, 5));
-//    erode(mask, mask, small, Point(-1, -1), niters);
-//    dilate(mask, mask, bigger, Point(-1, -1), niters * 2);
-//    erode(mask, mask, bigger, Point(-1, -1), niters * 2);
-}
-
-void _removeShadows(Mat mask) {
-    for (int y = 0; y < mask.rows; y++) {
-        for (int x = 0; x < mask.cols; x++) {
-            if (mask.at<uchar>(y, x) != 255) {
-                mask.at<uchar>(y, x) = 0;
-            }
-        }
-    }
-}
 
 std::vector<std::vector<Mat>> getMasks(std::vector<Ptr<Camera>> &cameras,
                                        std::vector<Ptr<ForegroundMaskCalculator>> &maskCalculators) {
@@ -68,7 +47,7 @@ std::vector<std::vector<Mat>> getMasks(std::vector<Ptr<Camera>> &cameras,
 }
 
 enum VIS_TYPE {
-    PIXELS, DEPTH, CONTORUS
+    PIXELS, DEPTH, CONTOURS
 };
 
 int main(int argc, char **argv) {

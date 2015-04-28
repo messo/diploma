@@ -2,7 +2,6 @@
 #include <opencv2/highgui.hpp>
 #include "../Common.h"
 #include "SpatialOpticalFlowCalculator.h"
-#include "../SURFFeatureExtractor.h"
 
 using namespace cv;
 using namespace std;

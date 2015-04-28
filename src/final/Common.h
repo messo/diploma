@@ -7,7 +7,7 @@
 #include <opencv2/video/background_segm.hpp>
 #include "camera/Camera.hpp"
 #include "camera/CameraPose.h"
-#include "SingleObjectSelector.hpp"
+#include "object/SingleObjectSelector.hpp"
 #include "mask/ForegroundMaskCalculator.h"
 
 struct CloudPoint {

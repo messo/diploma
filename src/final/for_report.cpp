@@ -11,6 +11,7 @@
 #include "optical_flow/ReportOpticalFlowCalculator.h"
 #include "Triangulator.h"
 #include "Visualization.h"
+#include "object/SingleObjectSelector.hpp"
 
 using namespace cv;
 using namespace std;
@@ -305,7 +306,7 @@ int main_SAVE(int argc, char **argv) {
 }
 
 enum VIS_TYPE {
-    PIXELS, DEPTH, CONTORUS
+    PIXELS, DEPTH, CONTOURS
 };
 
 int main(int argc, char **argv) {
@@ -453,9 +454,10 @@ int main(int argc, char **argv) {
         } else if (ch == '2') {
             type = VIS_TYPE::PIXELS;
         } else if (ch == '3') {
-            type = VIS_TYPE::CONTORUS;
+            type = VIS_TYPE::CONTOURS;
         } else if (ch == 'f') {
-            imwrite("/media/balint/Data/Linux/diploma/visualization.png", matVis2.getResult()(Rect(165, 145, 315, 315)));
+            imwrite("/media/balint/Data/Linux/diploma/visualization.png",
+                    matVis2.getResult()(Rect(165, 145, 315, 315)));
         }
     }
 
