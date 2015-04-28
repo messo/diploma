@@ -61,10 +61,12 @@ vector<pair<Point2f, Point2f>> MyMatcher::match(SURFFeatureExtractor extractor, 
     //-- PS.- radiusMatch can also be used here.
     std::vector<DMatch> good_matches;
 
+    std::cout << "Matches before distnace selection: " << symMatches.size() << std::endl;
+
     for (int i = 0; i < extractor.descriptors[0].rows; i++) {
-        if (symMatches[i].distance <= max(2 * min_dist, 0.02)) {
-            good_matches.push_back(symMatches[i]);
-        }
+//        if (symMatches[i].distance <= max(2 * min_dist, 0.35)) {
+        good_matches.push_back(symMatches[i]);
+//        }
     }
 
     return filterWithF(extractor.keypoints, good_matches, resultMatches, F);

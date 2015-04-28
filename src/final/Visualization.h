@@ -26,6 +26,10 @@ public:
                           const std::vector<cv::Point2f> &originalPoints,
                           const cv::Mat &image);
 
+    void renderWithGrayscale(const std::vector<CloudPoint> &points,
+                             const std::vector<cv::Point2f> &originalPoints,
+                             const cv::Mat &image);
+
     void renderWithContours(const std::vector<CloudPoint> &points);
 
     cv::Mat getResult();

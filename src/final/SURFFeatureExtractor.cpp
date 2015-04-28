@@ -9,6 +9,8 @@ using namespace std;
 
 SURFFeatureExtractor::SURFFeatureExtractor(const vector<cv::Mat> &images, const vector<cv::Mat> &masks) {
 
+    double t0 = getTickCount();
+
     extractor = Ptr<SURF>(new SURF());
 
     keypoints.resize(images.size());
@@ -28,6 +30,10 @@ SURFFeatureExtractor::SURFFeatureExtractor(const vector<cv::Mat> &images, const 
 //        (*extractor)(_m, GpuMat(), imgpts[i], descriptors[i], false);
 
     }
+
+    t0 = ((double) getTickCount() - t0) / getTickFrequency();
+    std::cout << "SURF extracting done in " << t0 << "s" << std::endl;
+    std::cout.flush();
 
 //    Mat vis;
 //    drawKeypoints(images[0], keypoints[0], vis, Scalar::all(-1), DrawMatchesFlags::DRAW_RICH_KEYPOINTS);

@@ -76,6 +76,35 @@ void Visualization::renderWithColors(const std::vector<CloudPoint> &points,
     img.copyTo(result);
 }
 
+void Visualization::renderWithGrayscale(const std::vector<CloudPoint> &points,
+                                        const std::vector<cv::Point2f> &originalPoints,
+                                        const cv::Mat &image) {
+    std::vector<cv::Point3f> objectPoints;
+    std::vector<cv::Point2f> imagePoints;
+
+    // FIXME -- inefficient?
+    std::vector<uchar> colors;
+    for (int i = 0; i < points.size(); i++) {
+        if (points[i].reprojection_error < REPROJ_ERROR_THRESHOLD) {
+            objectPoints.push_back(points[i].pt);
+            colors.push_back(image.at<uchar>(Point2i(originalPoints[i])));
+        }
+    }
+
+    Mat img(480, 640, CV_8UC3, Scalar(0, 0, 0));
+
+    if (objectPoints.size() > 0) {
+        projectPoints(objectPoints, cameraPose->rvec, cameraPose->tvec, cameraMatrix, cv::noArray(), imagePoints);
+
+        for (int i = 0; i < imagePoints.size(); i++) {
+            img.at<Vec3b>(Point2i(imagePoints[i])) = Vec3b(colors[i], colors[i], colors[i]);
+        }
+    }
+
+    ScopedLock lock(mutexType);
+    img.copyTo(result);
+}
+
 void Visualization::renderWithContours(const std::vector<CloudPoint> &points) {
     std::vector<cv::Point3f> objectPoints;
     std::vector<cv::Point2f> imagePoints;

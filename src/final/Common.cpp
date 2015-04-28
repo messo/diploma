@@ -41,7 +41,7 @@ void writeCloudPoints(const string &fileName, const vector<CloudPoint> &cpts) {
     myfile << "property float z" << endl;
     myfile << "end_header" << endl;
     for (unsigned int i = 0; i < cpts.size(); i++) {
-        myfile << -cpts[i].pt.x << " " << cpts[i].pt.y << " " << cpts[i].pt.z << endl;
+        myfile << cpts[i].pt.x << " " << cpts[i].pt.y << " " << cpts[i].pt.z << endl;
     }
     myfile.close();
 }
