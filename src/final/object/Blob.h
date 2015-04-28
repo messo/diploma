@@ -15,6 +15,3 @@ public:
     bool contains(const cv::Point2f& point) const;
 
 };
-
-
-

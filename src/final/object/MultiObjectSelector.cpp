@@ -4,14 +4,12 @@
 #include <opencv2/highgui.hpp>
 
 #include "MultiObjectSelector.h"
-#include "SURFFeatureExtractor.h"
-#include "MyMatcher.h"
+#include "Matcher.h"
 
 using namespace std;
 using namespace cv;
 
 void MultiObjectSelector::selectObjects(std::vector<cv::Mat> frames, std::vector<cv::Mat> masks) {
-
     double t0 = getTickCount();
 
     std::vector<Mat> newMasks(2);
@@ -26,30 +24,11 @@ void MultiObjectSelector::selectObjects(std::vector<cv::Mat> frames, std::vector
         }
     }
 
-//    imshow("mask0", newMasks[0]);
-//    imshow("mask1", newMasks[1]);
-
-    SURFFeatureExtractor extractor(frames, newMasks);
-    MyMatcher matcher(camera1, camera2);
-
-    vector<DMatch> matches;
-    vector<pair<Point2f, Point2f>> points = matcher.match(extractor, matches, F);
+    vector<pair<Point2f, Point2f>> points = matcher.match(frames, newMasks);
 
     if (points.size() < 1) {
         return;
     }
-
-    // DEBUG ------
-    Mat img_matches;
-    Mat _frame1, _frame2;
-    frames[0].copyTo(_frame1, newMasks[0]);
-    frames[1].copyTo(_frame2, newMasks[1]);
-    drawMatches(_frame1, extractor.keypoints[0], _frame2, extractor.keypoints[1], matches, img_matches,
-                Scalar::all(-1), Scalar::all(-1), std::vector<char>(), DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);
-    imshow("Matches", img_matches);
-    // DEBUG ------
-
-    std::cout << "Matches found in " << ((double) getTickCount() - t0) / getTickFrequency() << "s" << std::endl;
 
     // we'll map from the bigger set
     const int from = (blobs[Camera::LEFT].size() > blobs[Camera::RIGHT].size()) ? Camera::LEFT : Camera::RIGHT;

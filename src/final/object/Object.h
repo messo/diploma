@@ -1,7 +1,6 @@
 #pragma once
 
-
-#include "Blob.h"
+#include <opencv2/core.hpp>
 
 class Object {
 
