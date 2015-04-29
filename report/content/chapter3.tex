@@ -14,11 +14,21 @@ A diplomamunka során elkészítendő rendszernek képesnek kell lennie egy zár
 
 A rendszer tervezése során figyelembe veszem, hogy lényegében tetszőleges számú kamerát is felhasználhatok a probléma megoldásához, ennek megfelelően a megvalósított rendszer architektúráját így készítem el, de az elérhető eszközök korlátozott száma miatt csak két kamerával lesz tesztelve. Egyre több kamera bevonásával a rekonstrukció minősége, valamint a helyesen rekonstruálható nézőpontok száma növekszik, de ezzel együtt a rendszer teljesítménye a megnövekedő számítási szükséglet miatt csökken. Fontos megemlíteni, hogy a feladat és a megoldás jellegéből adódóan a független kamerákból meghatározott rekonstrukciók párhuzamosíthatóak, így ezek megfelelő feldolgozó egységet feltételezve egy időben elvégezhetőek. Ez azt jelenti, hogy a kamerák számának növelése valóban megoldás lehet a robusztus eredmény eléréséhez.
 
-\section{A tervezett rendszer felépítése}
+\section{A tervezett rendszer működése}
 
 A feladat megoldásához \aref{methods:optic}. alszekcióban leírt optikai-folyamos eljárást használom fel. A rendszer tervét, átfogó képét mutatom be a következőkben.
 
-A kamerákat két lépésben kalibrálom; először, hogy a torzításukat minimalizáljam, majd azért, hogy meghatározhassam az elhelyezkedésüket egy rögzített koordinátarendszerben. Ezt követően a kamerákat úgy párosítva, hogy azok egymáshoz közel helyezkedjenek el, és nagyjából egy irányba nézzenek, az általuk látott térrészről alkotott képeiken egyező pontokat keresek az optikai folyamok segítségével. Felhasználva, hogy a kamerák helyzetét ismerem, háromszögeléssel megkaphatom a pontok világbeli koordinátájukat. Így tetszőleges sok kamera által előállított pontfelhőt egy közös koordinátarendszerben kapom meg, így ezek könnyen egyesíthetőek. Ezután a választott nézőpontból projekció segítségével meghatározom az onnan látható képet, és ezen befoglaló sokszögekkel közelíthetőek az objektumok kontúrja. Ezt a folyamatot mutatja be \aref{fig:of-method}. ábra. A diplomaterv keretében a színezett hátterű lépések készültek el, a több kamerákra vonatkozó együttes kezelés nem.
+A kamerákat két lépésben kalibrálom; először, hogy a torzításukat minimalizáljam, majd azért, hogy meghatározhassam az elhelyezkedésüket egy rögzített koordinátarendszerben. 
+
+Ezt követően a kamerák képeiből meghatározom az előtér maszkot. Erre két féle megközelítést is implementálok; az egyik az optikai folyamokat használja a mozgás érzékeléséhez, ami kijelöli az előteret, a másik pedig egy előtér-háttér szegmentációs eljárás használata lesz. Ezek közül összehasonlítás után végül egy mellett fogok dönteni.
+
+Miután a vélt előtér objektumok maszkjait meghatároztam, ezeket a képeken egymással párosítanom kell. Itt is kétféle megközelítést próbálok ki és implementálok. Az első egy egyszerű ,,legnagyobb-területű'' kiválasztás lesz, amely mindkét képen a legnagyobb területű blobot keresi, és ezeket feleltetni meg egymásnak. Természetesen ilyenkor csak 1 objektumot fogunk tudni rekonstruálni, de a további lépéseket jól lehet rajta tesztelni. A másik eljárás pedig, hogy ezen a blobokon keresek jellegzetes pontokat, és megpróbálom egymásnak megfeleltetni őket. Ezekből a megfeleltetések alapján többségi döntéssel fogok dönteni, hogy az egyik kép blobja, melyik másik blobnak felel meg.
+
+A blob-párosítások alapján, külön-külön tudok optikai-folyam alapján sűrű pont-pont megfeleltetést számolni a két képen. Felhasználva, hogy a kamerák helyzetét ismerem, háromszögeléssel megkaphatom a pontok világbeli koordinátájukat. 
+
+Végül a választott nézőpontból projekció segítségével meghatározom az onnan látható becsült képet (felhasználva az eredeti képből kinyerhető színinformációkat), valamint az objektumokhoz tartozó kontúrokat.
+
+Gondoljuk meg, hogy a fenti leírás tetszőleges számú kamera-párokra (amelyek nem feltétlen diszjunktak) általánosítható, és az így kapott pontfelhőket, felhasználva, hogy az adatokat az előzetes kalibrációnak köszönhetően egy közös világ-koordinátarendszerben kapjuk meg, ezek könnyen egyesíthetőek. Ezt a folyamatot mutatja be \aref{fig:of-method}. ábra. A diplomaterv keretében a színezett hátterű lépések készültek el, a több kamerákra vonatkozó együttes kezelés nem.
 
 \begin{sidewaysfigure}
 \centering

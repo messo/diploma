@@ -143,7 +143,14 @@ A kamera külső paramétereinek meghatározása után már minden információ 
 \section{Objektum detekció}
 %----------------------------------------------------------------------------
 
+A következőkben az objekumok detekciójáról lesz szó. Először bemutatok két megközelítést az előtér maszk meghatározásához, ami lényegében a két képen kijelöli a mozgó részek maszkját. Ezt követően a maszkokat szegmentálni kell különálló blobokra, és ezeket a két képen egymásnak megfeleltetni, hogy megkapjuk egy objektum két maszkját.
 
+    %----------------------------------------------------------------------------
+    \subsection{Előtér maszk meghatározása}
+    %----------------------------------------------------------------------------
+
+
+\subsubsection{Előtér-háttér szegmentáció}
 
 \Aref{sec:obj_detection}. szekcióban leírtam a mozgó objektumok detekciójának egy lehetséges megközelítését. A lényege, hogy egy háttér modellt építünk, és így mindig aktuálisan lekérhető az előtérhez tartozó maszk, ami kijelöli a mozgó objektumokat. A probléma megoldása két fázisra bontható: először egyetlen objektumot keresek és detektálok, majd később több mozgó objektumot is.
 
@@ -203,6 +210,60 @@ Megfigyelhető, hogy a bal oldali dobozhoz tartozó maszk része annyira zajos v
 \caption{Előtér maszk alkalmazás az eredeti képre \label{fig:mask_applied}}
 \end{figure}
 
+    %----------------------------------------------------------------------------
+    \subsubsection{Előtér meghatározása optikai folyamokkal}
+    %----------------------------------------------------------------------------
+    
+Másik megközelítésem, hogy már az előtér meghatározásához is az optikai folyamokat hívom segítségül. 
+
+\Aref{chapter2}. fejezetben bemutattam a sűrű optikai folyamok meghatározására Gunner Farnebäck módszerét. OpenCV-ben ezt a \texttt{cv::calcOpticalFlowFarneback()} \cite{opencv-mog} függvény valósítja meg. Az algoritmus szempontjából fontos paraméterei közül kiemelnék párat:
+
+\begin{enumerate}
+\item \texttt{pyr\_scale} -- a már említett piramis-módszerhez kapcsolódó paraméter: azt definiálja, hogy rétegenként a következő réteg hányszorosa az előzőnek (ennek segítségével a nagy elmozdulások kisebbek lesznek a kisebb rétegeken)
+\item \texttt{levels} -- piramis rétegeinek a száma, 1-nél csak az eredeti képet használja, továbbiak nélkül
+\item \texttt{winsize} -- az ablak méret, amit a mintavételezéshez használ
+\item \texttt{iterations} -- iterációk száma minden piramis rétegen
+\end{enumerate}
+
+Tekintve, hogy nekünk csak az a fontos, hogy a lehető leggyorsabban kapjunk elmozdulásvektorokat, a paramétereket a következőknek megfelelően állítottam be: ne építsünk piramist (\texttt{levels = 1}, így \texttt{pyr\_scale} beállítása lényegtelen), valamint kicsit ablakmérettel dolgozzunk ($3\times 3$, tehát \texttt{winsize = 3}), valamint rétegenként elég 1 iteráció (\texttt{iterations = 1}).
+
+A kiszámolt vektormezőből pedig a maszkot úgy határozom meg, hogy minden, egységnél hosszabb (tehát legalább 1 pixelnyi a becsült mozgása) vektor végpontját megjelölöm. Ezáltal lényegében azon részeket határoztam meg, ahova éppen a pontok mozdultak, ez pedig pontosan azon részei a képnek, ahol az adott képkockán az előtérben mozgó objektumokat éppen várjuk. Az előzőekhez hasonlóan a maszkon itt is végzünk apró utófeldolgozást a dilatáció és erózió morfológiai műveletek segítségével.
+
+Az osztálydiagramot \aref{fig:cd:fg-mask-calc}. ábra mutatja be. \texttt{ForegroundMaskCalculator} osztály lényegében egy közös interfészt nyújt csak, valamint egy \texttt{morph()} metódust tartalmaz, mely a morfológiai műveleteket végzi el a maszkon. A \texttt{MOG2ForegroundMaskCalculator} az OpenCV-s \texttt{BackgroundSubtractorMOG2} osztály egy példányát csomagolja be, ami minden új képkockát megkap és visszaadja a maszkot, az algoritmus által árnyéknak jelölt részeket pedig a \texttt{removeShadows} távolítja el. \texttt{OFForegroundMaskCalculator} pedig eltárolja az előző képkockát, és ebből meg az éppen aktuális képkockából \texttt{calcOpticalFlowFarneback()} segítségével a lehető leggyorsabban meghatározza a képkockákra az optikai folyamot, melyből aztán az előbbiekben ismertetett módszerrel a \texttt{getMaskFromFlow()} adja vissza a maszkot.
+
+\begin{figure}[tbh]
+\centering
+
+\begin{tikzpicture} 
+
+\begin{abstractclass}[text width=5.3 cm]{ForegroundMaskCalculator}{0, 0}
+
+\operation   {\# morph(mask) : void}
+\operation[0]{+ calculate(nextFrame) : Mat}
+
+\end{abstractclass}
+
+\begin{class}[text width=6.3 cm]{MOG2ForegroundMaskCalculator}{-3.8, -3.5}
+\inherit{ForegroundMaskCalculator}
+\attribute{- sub : BackgroundSubtractorMOG2}
+\operation{- removeShadows(mask): void}
+
+\operation{+ calculate(nextFrame) : Mat}
+\end{class}
+
+\begin{class}[text width=6.3 cm]{OFForegroundMaskCalculator}{3.8, -3.5}
+\inherit{ForegroundMaskCalculator}
+\attribute{- prevFrame : Mat}
+\operation{- getMaskFromFlow(flow) : Mat}
+
+\operation{+ calculate(nextFrame) : Mat}
+\end{class}
+
+\end{tikzpicture}
+
+\caption{Előtér maszk meghatározására szolgáló implementációk \label{fig:cd:fg-mask-calc}}
+\end{figure}
+
 \subsection{Egyetlen objektum detekciója}
 
 Kezdetben azzal az egyszerűsítéssel élek, hogy a képen csak egyetlen mozgó objektumot detektálok, mégpedig azt, amelyik a legnagyobb részt foglalja el a képen. Ez nagyban egyszerűsíti a dolgokat, mert ahogy majd látni fogjuk a következő szekcióban, az optikai folyam meghatározására szükség lesz a képeken látható \textit{blob}ok (egy objektumhoz tartozó egybefüggő rész a képen) párosításra a kamerák képein. Mivel összesen egy blobot jelölök ki a képeken, ezek párosítása triviális, és nagy valószínűséggel ugyanazon objektumhoz tartoznak majd.
@@ -244,6 +305,7 @@ Ezen logikát egy \texttt{SingleObjectSelector} osztályban implementáltam. Egy
 \section{Optikai folyam meghatározása}
 %----------------------------------------------------------------------------
 
+{\color{red} Kicsit átírni...}
 
 \Aref{chapter2}. fejezetben bemutattam a sűrű optikai folyamok meghatározására Gunner Farnebäck módszerét. Ennek alkalmazását, valamint OpenCV-ben történő implementációjáról lesz szó ebben a részben.
 
@@ -463,12 +525,15 @@ Ezen három vizualizációjának eredménye a bal oldali kamera nézpontjából 
 Ahogy \aref{chapter3}. fejezetben említettem, a választott nézőpont, ahonnan érdemes lehet rekonstruálni az objektumot, a két kamera nézőpont között helyezkedhet el. Tehát a két kamera között szeretnénk interpolálni egy virtuális kamerát, és innen elvégezni a vetítést. Fontos, hogy nem elég csak a kamera helyzetét ($\mathbf{t_v}$), hanem a forgatási mátrixát ($\mathbf{R_v}$) is meg kell határozni. Jelölje $r \in [0; 1]$ a virtuális kamera pozícióját a pályáján, ahol $r = 0$, ha a bal oldali kamera, és $r = 1$, ha a jobb oldali kamera helyzetében van. Ekkor a virtuális kamera eltolási vektora $\mathbf{t_v} = (1-r)\mathbf{t_v} + r\mathbf{t_j}$, ahol $\mathbf{t_v}$ jelöli a bal oldali, $\mathbf{t_j}$ a jobb oldali kamera eltolási vektorát.
 {\color{red} Kvaterniók...}
 
-%----------------------------------------------------------------------------
-\section{Párhuzamosítás, többszálúsítás}
-%----------------------------------------------------------------------------
-
 
 %----------------------------------------------------------------------------
 \section{Eredmények, mérések, értékelés {\color{red} külön fejezet?}}
 %----------------------------------------------------------------------------
+
+{\color{red} Algoritmusok választása!!!}
+
+%----------------------------------------------------------------------------
+\section{Párhuzamosítás, többszálúsítás, újra-kalkulált eredmények}
+%----------------------------------------------------------------------------
+
 

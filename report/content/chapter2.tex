@@ -566,10 +566,9 @@ Ez meghatározza $\mathbf{x}$-et egy faktor erejéig, és ennek nem-zérus megol
 
 A feladat megoldása során mozgó objektumokat kell követnem, azokat modelleznem, így szükség van ezeknek az egymás utáni képkockákon történő azonosítására.
 
-{\color{red} Ezt lehet ki kell majd venni... }
-Az előző részben leírt Farnebäck-módszert egy kamera egymás utáni képkockáin felhasználva becslést kaphatunk arra vonatkozóan, hogy hol lehetnek a mozgó tárgyak. A kamerák statikus helyzete révén, a háttér képpontjaihoz tartozóan közel zéró elmozdulást várunk, míg a mozgó részeken ettől eltérőt.
+Egy lehetőségünk például az előző részben leírt Farnebäck-módszer használata. Egy kamera egymás utáni képkockáira alkalmazva, becslést kaphatunk arra vonatkozóan, hogy hol lehetnek a mozgó tárgyak. A kamerák statikus helyzete révén, a háttér képpontjaihoz tartozóan közel zéró elmozdulást várunk, míg a mozgó részeken ettől eltérőt.
 
-Azonban ez önmagában még nem elég, szükség van egy háttér-előtér szegmentálási algoritmus (MOG) \cite{MOG} felhasználására is, mely az egymás utáni képkockákból egy háttér-modellt épít. Az aktuális képkockából a kapott hátteret kivonva, megkapjuk az éppen aktuális előtérhez tartozó maszkot, lásd \aref{fig:mog-example}. ábrát.
+Másik megoldás lehet például egy háttér-előtér szegmentálási algoritmus (MOG) \cite{MOG}, mely az egymás utáni képkockákból egy háttér-modellt épít. Az aktuális képkockából a kapott hátteret kivonva, megkapjuk az éppen aktuális előtérhez tartozó maszkot, lásd \aref{fig:mog-example}. ábrát.
 
 \begin{figure}[tbh]
 \centering
@@ -577,9 +576,7 @@ Azonban ez önmagában még nem elég, szükség van egy háttér-előtér szegm
 \caption{Minta a háttér-előtér elválasztási algoritmus eredményére \cite{mog-example} \label{fig:mog-example}}
 \end{figure}
 
-A választott algoritmus előnye, hogy az árnyékokat nagy valószínűséggel kiszűrí és azokat nem tekinti az objektum részének, valamint a folyamatos modellépítésnek köszönhetően, nem csak egy fix tanulási időszak alatt gyűjtött információkból határozza meg a hátteret.
-
-A kapott előtér maszkot és az optika-folyamokat felhasználva már igen jó közelítéssel megkapjuk a mozgó objektumoknak megfelelő képszeleteket.
+A választott algoritmus előnye, hogy az árnyékokat nagy valószínűséggel kiszűrí, és azokat nem tekinti az objektum részének, valamint a folyamatos modellépítésnek köszönhetően, nem csak egy fix tanulási időszak alatt gyűjtött információkból határozza meg a hátteret.
 
 
 %----------------------------------------------------------------------------
