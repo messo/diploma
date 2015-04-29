@@ -36,8 +36,6 @@ protected:
     void visualizeMatches(const cv::Mat &img1, const std::vector<cv::Point2f> &points1,
                           const cv::Mat &img2, const std::vector<cv::Point2f> &points2) const;
 
-    cv::Point2i getOptimalShift();
-
     void shiftFrame(int i, cv::Point shift);
 
     OpticalFlowCalculator(cv::Ptr<Camera> camera1, cv::Ptr<Camera> camera2, cv::Mat F) : camera1(camera1), camera2(camera2), F(F) { }

@@ -2,11 +2,7 @@
 
 #include <opencv2/core.hpp>
 
-class Blob {
-
-    std::vector<cv::Point> contour;
-
-public:
+struct Blob {
 
     cv::Mat mask;
 
