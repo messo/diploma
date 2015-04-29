@@ -23,7 +23,7 @@ endif()
 set(CLASSES camera/Camera.cpp camera/RealCamera.cpp camera/DummyCamera.cpp
             calibration/Calibration.cpp calibration/CameraPoseCalculator.cpp camera/CameraPose.cpp
             mask/MOG2ForegroundMaskCalculator.cpp mask/OFForegroundMaskCalculator.cpp
-            object/Matcher.cpp object/SingleObjectSelector.cpp object/MultiObjectSelector.cpp object/Blob.cpp object/Object.cpp
+            object/Matcher.cpp object/ObjectSelector.cpp object/SingleObjectSelector.cpp object/MultiObjectSelector.cpp object/Blob.cpp object/Object.cpp
             optical_flow/OpticalFlowCalculator.cpp optical_flow/SpatialOpticalFlowCalculator.cpp
             Common.cpp
             Triangulator.cpp
@@ -38,7 +38,7 @@ add_executable(ForReport for_report.cpp ${CLASSES} optical_flow/ReportOpticalFlo
 target_compile_features(ForReport PRIVATE cxx_range_for)
 target_link_libraries(ForReport ${OpenCV_LIBS} v4l2)
 
-add_executable(MultiObj multi_obj.cpp ${CLASSES} optical_flow/MultiObjectOpticalFlowCalculator.cpp)
+add_executable(MultiObj multi_obj.cpp ${CLASSES})
 target_compile_features(MultiObj PRIVATE cxx_range_for)
 target_link_libraries(MultiObj ${OpenCV_LIBS} v4l2)
 

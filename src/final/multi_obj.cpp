@@ -12,9 +12,9 @@
 #include "mask/OFForegroundMaskCalculator.h"
 #include "object/MultiObjectSelector.h"
 #include "optical_flow/ReportOpticalFlowCalculator.h"
-#include "optical_flow/MultiObjectOpticalFlowCalculator.h"
 #include "Triangulator.h"
 #include "Visualization.h"
+#include "optical_flow/SpatialOpticalFlowCalculator.h"
 
 using namespace cv;
 using namespace std;
@@ -113,15 +113,15 @@ int main(int argc, char **argv) {
     masks[1] = imread("/media/balint/Data/Linux/multi_right_mask.png", IMREAD_GRAYSCALE);
 
     //while (true) {
-    objSelector.selectObjects(frames, masks);
+    std::vector<Object> objects = objSelector.selectObjects(frames, masks);
 
     // tiny display.
     Mat leftResult(480, 640, CV_8UC3, Scalar(0, 0, 0));
     Mat rightResult(480, 640, CV_8UC3, Scalar(0, 0, 0));
 
     RNG rng;
-    for (int i = 0; i < objSelector.objects.size(); i++) {
-        const Object &obj = objSelector.objects[i];
+    for (int i = 0; i < objects.size(); i++) {
+        const Object &obj = objects[i];
 
         int icolor = (unsigned) rng;
         Scalar color(icolor & 255, (icolor >> 8) & 255, (icolor >> 16) & 255);
@@ -133,8 +133,8 @@ int main(int argc, char **argv) {
 
     Mat merged = mergeImages(leftResult, rightResult);
 
-    for (int i = 0; i < objSelector.objects.size(); i++) {
-        const Object &obj = objSelector.objects[i];
+    for (int i = 0; i < objects.size(); i++) {
+        const Object &obj = objects[i];
 
         for (int j = 0; j < obj.matches.size(); j++) {
             int icolor = (unsigned) rng;
@@ -148,16 +148,16 @@ int main(int argc, char **argv) {
 
     imshow("objects", merged);
 
-    MultiObjectOpticalFlowCalculator calculator(camera[0], camera[1], F);
+    SpatialOpticalFlowCalculator calculator(camera[0], camera[1], F);
 
     std::vector<CloudPoint> finalResult;
     std::vector<Point2f> totalPoints;
 
-    for (int i = 0; i < objSelector.objects.size(); i++) {
+    for (int i = 0; i < objects.size(); i++) {
         imshow("OriginalFrame1", frames[0]);
         imshow("OriginalFrame2", frames[1]);
 
-        calculator.feed(frames, objSelector.objects[i]);
+        calculator.feed(frames, objects[i]);
 
         Triangulator triangulator(camera[Camera::LEFT], camera[Camera::RIGHT],
                                   cameraPose[Camera::LEFT], cameraPose[Camera::RIGHT]);

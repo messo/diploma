@@ -5,7 +5,6 @@
 #include <omp.h>
 #include "OpticalFlowCalculator.h"
 #include "../Common.h"
-#include "OFReconstruction.h"
 
 using namespace cv;
 using namespace std;
@@ -64,7 +63,7 @@ void OpticalFlowCalculator::calcTexturedRegions(const Mat frame, const Mat mask,
     }
 }
 
-double OpticalFlowCalculator::calcOpticalFlow(Point &translation) {
+double OpticalFlowCalculator::calcOpticalFlow() {
 
     Mat flows[2];
     Mat _flows[2];
@@ -76,8 +75,7 @@ double OpticalFlowCalculator::calcOpticalFlow(Point &translation) {
 
 #pragma omp parallel for
     for (int i = 0; i < 2; i++) {
-        //std::cout << "THREAD: " << omp_get_thread_num() << std::endl;
-        calcOpticalFlowFarneback(frames[i](unified), frames[(i + 1) % 2](unified), _flows[i], 0.5, 4, 21, 10, 7, 1.5,
+        calcOpticalFlowFarneback(frames[i](unified), frames[(i + 1) % 2](unified), _flows[i], 0.75, 6, 21, 10, 7, 1.5,
                                  OPTFLOW_FARNEBACK_GAUSSIAN);
 //        this->visualizeOpticalFlow(frame1, mask1, frame2, mask2, flow12, "flow12");
 
@@ -86,16 +84,14 @@ double OpticalFlowCalculator::calcOpticalFlow(Point &translation) {
         _flows[i].copyTo(flows[i](unified));
     }
 
-    // trying to smooth the vectorfield
-    //Mat smoothedFlow;
-    //GaussianBlur(flow2, smoothedFlow, Size(15, 15), -1);
-    //smoothedFlow.copyTo(flow2);
+//    this->visualizeOpticalFlow(frames[0], masks[0], frames[1], masks[1], flows[0], "flow12");
+//    this->visualizeOpticalFlow(frames[1], masks[1], frames[0], masks[0], flows[1], "flow21");
 
     // collecting matching points using optical flow
     collectMatchingPoints(flows[0], flows[1], unified, points1, points2);
 
-//    visualizeMatches(points1, points2);
-//    waitKey();
+    std::cout << points1.size() << std::endl;
+    std::cout.flush();
 
     Point2f avgMovement(this->calcAverageMovement(points1, points2));
 
@@ -103,41 +99,9 @@ double OpticalFlowCalculator::calcOpticalFlow(Point &translation) {
     cout << avgMovement << ": " << length << endl;
     cout.flush();
 
-//    if (length > 10.0) {
-//        // we consider this as "too big" displacement, so we shift the current image further, and do this again
-//
-//        Point newTranslation(-avgMovement);
-//
-//        Rect currentBoundingRect(boundingRect(masks[1]));
-//
-//        // translate the image
-//        Mat _currentFrame;
-//        frames[1].copyTo(_currentFrame);
-//        shiftImage(_currentFrame, currentBoundingRect, newTranslation, frames[1]);
-//        // translate the mask
-//        Mat _currentMask;
-//        masks[1].copyTo(_currentMask);
-//        shiftImage(_currentMask, currentBoundingRect, newTranslation, masks[1]);
-//        // translate the textured regions
-//        Mat _currentTexturedRegions;
-//        texturedRegions[1].copyTo(_currentTexturedRegions);
-//        shiftImage(_currentTexturedRegions, currentBoundingRect, newTranslation, texturedRegions[1]);
-//
-//        translation += newTranslation;
-//
-//        length = this->calcOpticalFlow(translation);
-//    } else { //if (length >= 1.0) {*/
-//        this->visualizeMatches(points1, points2);
+    visualizeMatchesROI(frames[0], points1, frames[1], points2);
 
-    // reconstruction
-//        currentReconstruction = Ptr<OFReconstruction>(new OFReconstruction(camera, points1, points2));
-//        currentReconstruction->reconstruct();
-    //} else {
-//        imshow("prev", prevFrame);
-//        imshow("this", currentFrame);
-//    }
-
-    return 2.0; //length;
+    return length;
 }
 
 void OpticalFlowCalculator::collectMatchingPoints(const Mat &flow, const Mat &backFlow, const Rect &roi,
@@ -159,7 +123,7 @@ void OpticalFlowCalculator::collectMatchingPoints(const Mat &flow, const Mat &ba
             Point to(cvRound(x + fwd.x), cvRound(y + fwd.y));
 
             // check if we are still in the mask, and the movement is not zero
-            if (masks[0].at<uchar>(from) && to.inside(imageArea) && masks[1].at<uchar>(to) && fwd.dot(fwd) > 0.0001) {
+            if (masks[0].at<uchar>(from) == 255 && to.inside(imageArea) && masks[1].at<uchar>(to) == 255) {
 
                 // to + back = backTo
                 const Point2f &back = backFlow.at<Point2f>(to);

@@ -314,20 +314,23 @@ Point moveToTheCenter(Mat image, Mat mask) {
     return translation;
 }
 
-std::vector<Mat> getFramesFromCameras(std::vector<Ptr<Camera>> &cameras,
-                                      std::vector<Ptr<ForegroundMaskCalculator>> &maskCalculators,
-                                      std::vector<SingleObjectSelector> &objSelectors) {
-    std::vector<Mat> selected(2);
+std::vector<std::vector<Mat>> getFramesFromCameras(std::vector<Ptr<Camera>> &cameras,
+                                      std::vector<Ptr<ForegroundMaskCalculator>> &maskCalculators) {
+
+    std::vector<std::vector<Mat>> result(2);
+    result[0].resize(2);
+    result[1].resize(2);
+
 #pragma omp parallel for
     for (int i = 0; i < 2; i++) {
         // std::cout << "CAP THREAD: " << omp_get_thread_num() << std::endl;
-        Mat image, mask;
+        Mat image;
         cameras[i]->read(image); // readUndistorted
-        mask = maskCalculators[i]->calculate(image);
+        result[1][i] = maskCalculators[i]->calculate(image);
 
-        Mat gray, equalized;
+        Mat gray;
         cvtColor(image, gray, COLOR_BGR2GRAY);
-        equalizeHist(gray, equalized);
+        equalizeHist(gray, result[0][i]);
 
 //        if (i == 0) {
 //            imshow("image", image);
@@ -338,11 +341,9 @@ std::vector<Mat> getFramesFromCameras(std::vector<Ptr<Camera>> &cameras,
 //        }
 
         //drawGridXY(leftImage, leftCamera, leftCameraPose);
-
-        selected[i] = objSelectors[i].selectUsingContourWithMaxArea(equalized, mask);
     }
 
-    return selected;
+    return result;
 }
 
 Point2f magicVector(const std::vector<Point2f> &vector) {

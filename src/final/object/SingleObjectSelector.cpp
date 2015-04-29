@@ -6,9 +6,6 @@
 using namespace std;
 using namespace cv;
 
-SingleObjectSelector::SingleObjectSelector() {
-
-}
 
 cv::Mat SingleObjectSelector::selectUsingConnectedComponents(const cv::Mat &img, const cv::Mat &mask) {
     Mat labels, stats, centroids;
@@ -58,67 +55,42 @@ cv::Mat SingleObjectSelector::selectUsingContourWithMaxArea(const cv::Mat &img, 
     return result;
 }
 
-cv::Mat SingleObjectSelector::selectUsingContoursWithClosestCentroid(const cv::Mat &img, const cv::Mat &mask) {
-    vector<vector<Point>> contours;
+std::vector<Object> SingleObjectSelector::selectObjects(const std::vector<cv::Mat> &frames,
+                                                        const std::vector<cv::Mat> &masks) {
 
-    findContours(mask, contours, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
+    std::vector<Mat> newMasks(2);
 
-    lastMask = Mat::zeros(mask.size(), CV_8U);
+    for (int i = 0; i < 2; i++) {
+        Mat labels, stats, centroids;
+        int nLabels = connectedComponentsWithStats(masks[i], labels, stats, centroids);
 
-    if (contours.size() == 0)
-        return lastMask;
-
-    int selectedComponent = 0;
-
-    if (lastCentroid.empty()) {
-        double maxArea = 0;
-
-        for (int idx = 0; idx < contours.size(); idx++) {
-            const vector<Point> &c = contours[idx];
-            double area = fabs(contourArea(Mat(c)));
-            if (area > maxArea) {
-                maxArea = area;
-                selectedComponent = idx;
+        // select biggest component
+        int maxArea = 0;
+        int selectedLabel = -1;
+        for (int j = 1; j < nLabels; j++) {
+            int a = stats.at<int>(j, CC_STAT_AREA);
+            if (a > maxArea) {
+                maxArea = a;
+                selectedLabel = j;
             }
         }
 
-    } else {
-        double minDistance = DBL_MAX;
+        newMasks[i] = Mat::zeros(frames[i].rows, frames[i].cols, CV_8U);
 
-        for (int idx = 0; idx < contours.size(); idx++) {
-            Ptr<Point> currentCentroid = getCentroid(moments(contours[idx]));
-
-            Point diff(currentCentroid.get()->x - lastCentroid.get()->x,
-                       currentCentroid.get()->y - lastCentroid.get()->y);
-            double distance = diff.dot(diff);
-
-            if (distance < minDistance) {
-                minDistance = distance;
-                selectedComponent = idx;
+        for (int y = 0; y < labels.rows; y++) {
+            for (int x = 0; x < labels.cols; x++) {
+                if (labels.at<int>(y, x) == selectedLabel) {
+                    newMasks[i].at<uchar>(y, x) = 255;
+                }
             }
         }
     }
 
-    lastCentroid = getCentroid(moments(contours[selectedComponent]));
+    vector<pair<Point2f, Point2f>> matches = matcher.match(frames, newMasks);
 
-    drawContours(lastMask, contours, selectedComponent, Scalar(255), FILLED, LINE_8);
+    std::vector<Object> result;
+    result.push_back(Object(newMasks[0], newMasks[1]));
+    result.back().matches = matches;
 
-    // save the contour
-    lastContour = contours[selectedComponent];
-    lastBoundingRect = boundingRect(lastContour);
-
-    Mat result;
-    img.copyTo(result, lastMask);
     return result;
-}
-
-cv::Ptr<cv::Point> SingleObjectSelector::getCentroid(cv::Moments moments) {
-    int x = static_cast<int>(moments.m10 / moments.m00);
-    int y = static_cast<int>(moments.m01 / moments.m00);
-
-    return cv::Ptr<cv::Point>(new Point(x, y));
-}
-
-const std::vector<cv::Point> &SingleObjectSelector::getLastContour() const {
-    return lastContour;
 }

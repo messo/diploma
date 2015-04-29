@@ -9,8 +9,6 @@ using namespace std;
 
 bool ReportOpticalFlowCalculator::feed(std::vector<cv::Mat> &frames, std::vector<cv::Mat> &masks) {
 
-    Point translations[2];
-
     double t0 = getTickCount();
 
 #pragma omp parallel for
@@ -21,9 +19,6 @@ bool ReportOpticalFlowCalculator::feed(std::vector<cv::Mat> &frames, std::vector
             this->frames[i] = frames[i].clone();
         }
         this->masks[i] = masks[i].clone();
-
-        // move the frame2 and mask around a bit, so the main object's movement is not that big -- so OF will be okay
-        //translations[i] = moveToTheCenter(this->frames[i], this->masks[i]);
 
 //         this->texturedRegions[i] = masks[i].clone();
         this->calcTexturedRegions(this->frames[i], this->masks[i], this->texturedRegions[i]);
@@ -68,7 +63,7 @@ bool ReportOpticalFlowCalculator::feed(std::vector<cv::Mat> &frames, std::vector
     std::cout << "Feed init done in " << t0 << "s" << std::endl;
     std::cout.flush();
 
-    this->calcOpticalFlow(translations[1]);
+    this->calcOpticalFlow();
 
 //    this->visualizeMatches(points1, points2);
 
@@ -82,7 +77,7 @@ bool ReportOpticalFlowCalculator::feed(std::vector<cv::Mat> &frames, std::vector
     return true;
 }
 
-double ReportOpticalFlowCalculator::calcOpticalFlow(cv::Point &translation) {
+double ReportOpticalFlowCalculator::calcOpticalFlow() {
     Mat flows[2];
     Mat _flows[2];
 
@@ -122,35 +117,9 @@ double ReportOpticalFlowCalculator::calcOpticalFlow(cv::Point &translation) {
     cout << avgMovement << ": " << length << endl;
     cout.flush();
 
-//    if(points1.size() < 10000) {
-//    if (length > 5.0) {
-//        // we consider this as "too big" displacement, so we shift the current image further, and do this again
-//
-//        Point newTranslation(-avgMovement * 0.75);
-//
-//        Rect currentBoundingRect(boundingRect(masks[1]));
-//
-//        // translate the image
-//        Mat _currentFrame;
-//        frames[1].copyTo(_currentFrame);
-//        shiftImage(_currentFrame, currentBoundingRect, newTranslation, frames[1]);
-//        // translate the mask
-//        Mat _currentMask;
-//        masks[1].copyTo(_currentMask);
-//        shiftImage(_currentMask, currentBoundingRect, newTranslation, masks[1]);
-//        // translate the textured regions
-//        Mat _currentTexturedRegions;
-//        texturedRegions[1].copyTo(_currentTexturedRegions);
-//        shiftImage(_currentTexturedRegions, currentBoundingRect, newTranslation, texturedRegions[1]);
-//
-//        translation += newTranslation;
-//
-//        length = this->calcOpticalFlow(translation);
-//    } else {
     visualizeMatchesROI(frames[0], points1, frames[1], points2);
-//    }
 
-    return 2.0; //length;
+    return length;
 }
 
 void ReportOpticalFlowCalculator::collectMatchingPoints(const cv::Mat &flow, const cv::Mat &backFlow,

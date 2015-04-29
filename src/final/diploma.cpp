@@ -123,7 +123,7 @@ int main(int argc, char **argv) {
     static_cast<RealCamera *>(camera[Camera::LEFT].get())->focus(focus);
     static_cast<RealCamera *>(camera[Camera::RIGHT].get())->focus(focus);
 
-    std::vector<SingleObjectSelector> objSelector(2);
+    Ptr<ObjectSelector> objSelector(new SingleObjectSelector(camera[Camera::LEFT], camera[Camera::RIGHT], F));
 
     Triangulator triangulator(camera[Camera::LEFT], camera[Camera::RIGHT],
                               cameraPose[Camera::LEFT], cameraPose[Camera::RIGHT]);
@@ -163,9 +163,12 @@ int main(int argc, char **argv) {
 //                    learningRate = 0;
 //                }
 
-                std::vector<Mat> selected = getFramesFromCameras(camera, maskCalculators, objSelector);
+                std::vector<std::vector<Mat>> selected = getFramesFromCameras(camera, maskCalculators);
+                std::vector<Mat> &frames = selected[0];
+                std::vector<Mat> &masks = selected[1];
+                std::vector<Object> objects = objSelector->selectObjects(frames, masks);
 
-                Mat leftRight = mergeImages(selected[Camera::LEFT], selected[Camera::RIGHT]);
+                Mat leftRight = mergeImages(frames[Camera::LEFT], frames[Camera::RIGHT]);
                 dispCnter.tick();
                 // std::cout << "Display: " << dispCnter.get() << std::endl;
                 imshow("input", leftRight);
@@ -179,15 +182,13 @@ int main(int argc, char **argv) {
 
                 // copy the current data if it's needed.
                 mutex.Lock();
-                frame0 = selected[0].clone();
-                frame1 = selected[1].clone();
-                mask0 = objSelector[0].lastMask.clone();
-                mask1 = objSelector[1].lastMask.clone();
+                frame0 = frames[0].clone();
+                frame1 = frames[1].clone();
 
-#pragma omp task firstprivate(frame0,frame1,mask0,mask1)
+#pragma omp task firstprivate(frame0,frame1,objects)
                 {
                     mutex.Unlock();
-                    if (!taskRunning && boundingRect(mask0).area() > 100 && boundingRect(mask1).area() > 100) {
+                    if (!taskRunning && objects.size() > 0) {
                         taskRunning = true;
 
                         double t = getTickCount();
@@ -195,11 +196,14 @@ int main(int argc, char **argv) {
                         std::vector<Mat> frames(2);
                         frames[0] = frame0;
                         frames[1] = frame1;
-                        std::vector<Mat> masks(2);
-                        masks[0] = mask0;
-                        masks[1] = mask1;
 
-                        ofCalculator.feed(frames, masks);
+                        // TODO MORE OBJECTS!!
+                        for (int i = 0; i < objects.size(); i++) {
+                            if (boundingRect(objects[i].masks[0]).area() > 100 &&
+                                boundingRect(objects[i].masks[1]).area() > 100) {
+                                ofCalculator.feed(frames, objects[i]);
+                            }
+                        }
 
                         std::cout << "## Feed done in " << (((double) getTickCount() - t) / getTickFrequency()) <<
                         "s" << std::endl;

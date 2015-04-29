@@ -9,7 +9,7 @@
 using namespace std;
 using namespace cv;
 
-void MultiObjectSelector::selectObjects(std::vector<cv::Mat> frames, std::vector<cv::Mat> masks) {
+vector<Object> MultiObjectSelector::selectObjects(const std::vector<cv::Mat> &frames, const std::vector<cv::Mat> &masks) {
     double t0 = getTickCount();
 
     std::vector<Mat> newMasks(2);
@@ -27,7 +27,7 @@ void MultiObjectSelector::selectObjects(std::vector<cv::Mat> frames, std::vector
     vector<pair<Point2f, Point2f>> points = matcher.match(frames, newMasks);
 
     if (points.size() < 1) {
-        return;
+        return vector<Object>();
     }
 
     // we'll map from the bigger set
@@ -116,7 +116,7 @@ void MultiObjectSelector::selectObjects(std::vector<cv::Mat> frames, std::vector
 //        std::cout << blobMatches[i].first << " -> " << blobMatches[i].second << std::endl;
 //    }
 
-    objects.clear();
+    vector<Object> objects;
 
     // now create the objects
     for (auto it = matchesBackward.begin(); it != matchesBackward.end(); ++it) {
@@ -148,6 +148,8 @@ void MultiObjectSelector::selectObjects(std::vector<cv::Mat> frames, std::vector
     t0 = ((double) getTickCount() - t0) / getTickFrequency();
     std::cout << "MultiObject selection done in " << t0 << "s" << std::endl;
     std::cout.flush();
+
+    return objects;
 }
 
 std::vector<std::vector<Point>> MultiObjectSelector::getContours(const cv::Mat &mask) {

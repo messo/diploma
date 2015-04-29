@@ -103,9 +103,8 @@ void drawGridXY(cv::Mat &img, cv::Ptr<Camera> camera, cv::Ptr<CameraPose> camera
 
 cv::Point moveToTheCenter(cv::Mat image, cv::Mat mask);
 
-std::vector<cv::Mat> getFramesFromCameras(std::vector<cv::Ptr<Camera>> &cameras,
-                                          std::vector<cv::Ptr<ForegroundMaskCalculator>> &maskCalculators,
-                                          std::vector<SingleObjectSelector> &objSelectors);
+std::vector<std::vector<cv::Mat>> getFramesFromCameras(std::vector<cv::Ptr<Camera>> &cameras,
+                                                       std::vector<cv::Ptr<ForegroundMaskCalculator>> &maskCalculators);
 
 cv::Point2f magicVector(const std::vector<cv::Point2f> &vector);
 

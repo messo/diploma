@@ -11,6 +11,10 @@ std::vector<std::pair<cv::Point2f, cv::Point2f>> Matcher::match(const std::vecto
 
     detectKeypointsAndExtractDescriptors(images, masks);
 
+    if (descriptors[0].empty() || descriptors[1].empty()) {
+        return std::vector<std::pair<cv::Point2f, cv::Point2f>>();
+    }
+
     std::vector<cv::DMatch> matches = matchDescriptors();
 
     std::vector<cv::DMatch> keptMatches;

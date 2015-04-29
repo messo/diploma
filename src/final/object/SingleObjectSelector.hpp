@@ -1,28 +1,24 @@
 #pragma once
 
-#include <opencv2/core/mat.hpp>
+#include "ObjectSelector.h"
+#include "../camera/Camera.hpp"
+#include "Matcher.h"
 
-class SingleObjectSelector {
+class SingleObjectSelector : public ObjectSelector {
 
-    cv::Ptr<cv::Point> getCentroid(cv::Moments moments);
-
-    std::vector<cv::Point> lastContour;
-
-public:
-    SingleObjectSelector();
+    Matcher matcher;
 
     cv::Mat selectUsingConnectedComponents(const cv::Mat &img, const cv::Mat &mask);
 
     cv::Mat selectUsingContourWithMaxArea(const cv::Mat &img, cv::Mat mask);
 
-    cv::Mat selectUsingContoursWithClosestCentroid(const cv::Mat &img, const cv::Mat &mask);
+public:
 
-    const std::vector<cv::Point> &getLastContour() const;
+    SingleObjectSelector(const cv::Ptr<Camera> &camera1, const cv::Ptr<Camera> &camera2, const cv::Mat &F) :
+            matcher(camera1, camera2, F) { }
 
-
-    cv::Ptr<cv::Point> lastCentroid;
-
-    cv::Rect lastBoundingRect;
+    virtual std::vector<Object> selectObjects(const std::vector<cv::Mat> &frames,
+                                              const std::vector<cv::Mat> &masks) override;
 
     cv::Mat lastMask;
 };
