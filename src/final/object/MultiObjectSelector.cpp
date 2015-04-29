@@ -2,6 +2,7 @@
 
 #include <opencv2/imgproc.hpp>
 #include <opencv2/highgui.hpp>
+#include <iomanip>
 
 #include "MultiObjectSelector.h"
 #include "Matcher.h"
@@ -34,7 +35,7 @@ vector<Object> MultiObjectSelector::selectObjects(const std::vector<cv::Mat> &fr
     const int from = (blobs[Camera::LEFT].size() > blobs[Camera::RIGHT].size()) ? Camera::LEFT : Camera::RIGHT;
     const int to = (blobs[Camera::LEFT].size() > blobs[Camera::RIGHT].size()) ? Camera::RIGHT : Camera::LEFT;
 
-    std::cout << "Matching: " << from << " -> " << to << endl;
+    std::cout << "[" << std::setw(20) << "MultiObjectSelector" << "] " << "Matching: " << from << " -> " << to << endl;
 
     map<int, map<int, int>> blobMatchCounters;
     map<pair<int, int>, vector<pair<Point2f, Point2f>>> pointMatchesForBlobMatches;
@@ -146,7 +147,7 @@ vector<Object> MultiObjectSelector::selectObjects(const std::vector<cv::Mat> &fr
     }
 
     t0 = ((double) getTickCount() - t0) / getTickFrequency();
-    std::cout << "MultiObject selection done in " << t0 << "s" << std::endl;
+    std::cout << "[" << std::setw(20) << "MultiObjectSelector" << "] " << "MultiObject selection done in " << t0 << "s" << std::endl;
     std::cout.flush();
 
     return objects;

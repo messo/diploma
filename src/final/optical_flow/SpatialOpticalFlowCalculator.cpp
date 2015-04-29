@@ -1,5 +1,6 @@
 #include <opencv2/video/tracking.hpp>
 #include <opencv2/highgui.hpp>
+#include <iomanip>
 #include "../Common.h"
 #include "SpatialOpticalFlowCalculator.h"
 
@@ -34,18 +35,18 @@ bool SpatialOpticalFlowCalculator::feed(std::vector<cv::Mat> &frames, const Obje
         Point2f v = magicVector(vectors);
         optimalShift = Point(cvRound(v.x), cvRound(v.y));
 
-        std::cout << "SHIFT: " << optimalShift << endl;
+        std::cout << "[" << std::setw(20) << "OFCalculator" << "] " << "SHIFT: " << optimalShift << endl;
         shiftFrame(1, -optimalShift);
     } else {
-        std::cerr << "Not enough matches, no shifting!" << endl;
+        std::cerr << "[" << std::setw(20) << "OFCalculator" << "] "<< "Not enough matches, no shifting!" << endl;
     }
 
 //    Rect unified = boundingRect(this->masks[0]) | boundingRect(this->masks[1]);
 //    Mat merged = mergeImagesVertically(this->frames[0](unified), this->frames[1](unified));
 //    imwrite("/media/balint/Data/Linux/diploma/after_shift.png", merged);
 
-    imshow("frame1", this->frames[0]);
-    imshow("frame2", this->frames[1]);
+//    imshow("frame1", this->frames[0]);
+//    imshow("frame2", this->frames[1]);
 
     // --------------------
 
@@ -70,7 +71,7 @@ bool SpatialOpticalFlowCalculator::feed(std::vector<cv::Mat> &frames, const Obje
 
 
     t0 = ((double) getTickCount() - t0) / getTickFrequency();
-    std::cout << "Feed init done in " << t0 << "s" << std::endl;
+    std::cout << "[" << std::setw(20) << "OFCalculator" << "] "<< "Feed init done in " << t0 << "s" << std::endl;
     std::cout.flush();
 
     this->calcOpticalFlow();

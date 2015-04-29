@@ -4,6 +4,7 @@
 #include <opencv2/xfeatures2d/nonfree.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/highgui.hpp>
+#include <iomanip>
 
 std::vector<std::pair<cv::Point2f, cv::Point2f>> Matcher::match(const std::vector<cv::Mat> &images,
                                                                 const std::vector<cv::Mat> &masks) {
@@ -21,7 +22,7 @@ std::vector<std::pair<cv::Point2f, cv::Point2f>> Matcher::match(const std::vecto
     std::vector<std::pair<cv::Point2f, cv::Point2f>> result = buildMatches(matches, keptMatches);
 
     t0 = ((double) cv::getTickCount() - t0) / cv::getTickFrequency();
-    std::cout << "- Matching done in " << t0 << "s" << std::endl;
+    std::cout << "[" << std::setw(20) << "Matcher" << "] " << "Matching done in " << t0 << "s" << std::endl;
     std::cout.flush();
 
     // DEBUG ------
@@ -50,12 +51,14 @@ void Matcher::detectKeypointsAndExtractDescriptors(const std::vector<cv::Mat> &i
 
     // FIXME -- CLEAR???
     for (int i = 0; i < images.size(); i++) {
+//        cv::AKAZE detector;
+//        cv::AKAZE extractor;
         detector.detect(images[i], keypoints[i], masks[i]);
         extractor.compute(images[i], keypoints[i], descriptors[i]);
     }
 
     t0 = ((double) cv::getTickCount() - t0) / cv::getTickFrequency();
-    std::cout << "-- SURF detection and extraction done in " << t0 << "s" << std::endl;
+    std::cout << "[" << std::setw(20) << "Matcher" << "] " << "SURF detection and extraction done in " << t0 << "s" << std::endl;
     std::cout.flush();
 }
 
@@ -63,6 +66,14 @@ std::vector<cv::DMatch> Matcher::matchDescriptors() {
     cv::FlannBasedMatcher matcher;
     std::vector<cv::DMatch> matches;
     matcher.match(descriptors[0], descriptors[1], matches);
+
+//    cv::BFMatcher matcher(cv::NORM_HAMMING);
+//    std::vector<std::vector<cv::DMatch>> nn_matches;
+//    matcher.knnMatch(descriptors[0], descriptors[1], nn_matches, 1);
+//    std::vector<cv::DMatch> matches;
+//    for (auto it = nn_matches.begin(); it != nn_matches.end(); ++it) {
+//        matches.push_back((*it)[0]);
+//    }
 
     return matches;
 
@@ -126,7 +137,7 @@ std::vector<std::pair<cv::Point2f, cv::Point2f>> Matcher::buildMatches(const std
         }
     }
 
-    std::cout << "- " << keptMatches.size() << "/" << matches.size() << " has been kept by F." << std::endl;
+    std::cout << "[" << std::setw(20) << "Matcher" << "] " << keptMatches.size() << "/" << matches.size() << " has been kept by F." << std::endl;
 
     return matchingPoints;
 }

@@ -3,6 +3,7 @@
 #include <opencv2/video/tracking.hpp>
 #include <opencv2/highgui.hpp>
 #include <omp.h>
+#include <iomanip>
 #include "OpticalFlowCalculator.h"
 #include "../Common.h"
 
@@ -90,16 +91,16 @@ double OpticalFlowCalculator::calcOpticalFlow() {
     // collecting matching points using optical flow
     collectMatchingPoints(flows[0], flows[1], unified, points1, points2);
 
-    std::cout << points1.size() << std::endl;
+    std::cout << "[" << std::setw(20) << "OFCalculator" << "] found matches using OF: " << points1.size() << std::endl;
     std::cout.flush();
 
     Point2f avgMovement(this->calcAverageMovement(points1, points2));
 
     double length = norm(avgMovement);
-    cout << avgMovement << ": " << length << endl;
+    cout << "[" << std::setw(20) << "OFCalculator" << "] avgMovementLength: " << length << endl;
     cout.flush();
 
-    visualizeMatchesROI(frames[0], points1, frames[1], points2);
+//    visualizeMatchesROI(frames[0], points1, frames[1], points2);
 
     return length;
 }

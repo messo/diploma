@@ -1,6 +1,7 @@
 #include "Triangulator.h"
 
 #include <iostream>
+#include <iomanip>
 
 using namespace std;
 using namespace cv;
@@ -293,13 +294,12 @@ double Triangulator::triangulateIteratively(const std::vector<cv::Point2f> &poin
 double Triangulator::triangulateCv(const std::vector<cv::Point2f> &points1, const std::vector<cv::Point2f> &points2,
                                    std::vector<CloudPoint> &pointcloud) {
 
-    cout << "Triangulating...";
     double t = getTickCount();
 
     int count = (int) points1.size();
 
     if (count == 0) {
-        cout << "no points." << endl;
+        cout << "[" << std::setw(20) << "Triangulator" << "] " << "no points." << endl;
         return -1.0;
     }
 
@@ -355,7 +355,7 @@ double Triangulator::triangulateCv(const std::vector<cv::Point2f> &points1, cons
 
     Scalar mse = mean(reproj_error);
     t = ((double) getTickCount() - t) / getTickFrequency();
-    cout << "CV Done. (" << pointcloud.size() << "points, " << t << "s, mean reproj err = " << mse[0] << ")" << endl;
+    cout << "[" << std::setw(20) << "Triangulator" << "] " << "CV Done. (" << pointcloud.size() << "points, " << t << "s, mean reproj err = " << mse[0] << ")" << endl;
 
     return mse[0];
 }

@@ -1,6 +1,7 @@
 #include <opencv2/highgui.hpp>
 #include <opencv2/video/background_segm.hpp>
 #include <opencv2/imgproc.hpp>
+#include <iomanip>
 #include "camera/RealCamera.hpp"
 #include "camera/CameraPose.h"
 #include "calibration/Calibration.h"
@@ -14,6 +15,7 @@
 #include "FPSCounter.h"
 #include "mask/MOG2ForegroundMaskCalculator.h"
 #include "mask/OFForegroundMaskCalculator.h"
+#include "object/MultiObjectSelector.h"
 
 using namespace cv;
 
@@ -123,7 +125,7 @@ int main(int argc, char **argv) {
     static_cast<RealCamera *>(camera[Camera::LEFT].get())->focus(focus);
     static_cast<RealCamera *>(camera[Camera::RIGHT].get())->focus(focus);
 
-    Ptr<ObjectSelector> objSelector(new SingleObjectSelector(camera[Camera::LEFT], camera[Camera::RIGHT], F));
+    Ptr<ObjectSelector> objSelector(new MultiObjectSelector(camera[Camera::LEFT], camera[Camera::RIGHT], F));
 
     Triangulator triangulator(camera[Camera::LEFT], camera[Camera::RIGHT],
                               cameraPose[Camera::LEFT], cameraPose[Camera::RIGHT]);
@@ -166,7 +168,6 @@ int main(int argc, char **argv) {
                 std::vector<std::vector<Mat>> selected = getFramesFromCameras(camera, maskCalculators);
                 std::vector<Mat> &frames = selected[0];
                 std::vector<Mat> &masks = selected[1];
-                std::vector<Object> objects = objSelector->selectObjects(frames, masks);
 
                 Mat leftRight = mergeImages(frames[Camera::LEFT], frames[Camera::RIGHT]);
                 dispCnter.tick();
@@ -184,30 +185,40 @@ int main(int argc, char **argv) {
                 mutex.Lock();
                 frame0 = frames[0].clone();
                 frame1 = frames[1].clone();
+                mask0 = masks[0].clone();
+                mask1 = masks[1].clone();
 
-#pragma omp task firstprivate(frame0,frame1,objects)
+#pragma omp task firstprivate(frame0,frame1, mask0, mask1)
                 {
                     mutex.Unlock();
-                    if (!taskRunning && objects.size() > 0) {
+                    if (!taskRunning) {
                         taskRunning = true;
-
-                        double t = getTickCount();
 
                         std::vector<Mat> frames(2);
                         frames[0] = frame0;
                         frames[1] = frame1;
 
-                        // TODO MORE OBJECTS!!
-                        for (int i = 0; i < objects.size(); i++) {
-                            if (boundingRect(objects[i].masks[0]).area() > 100 &&
-                                boundingRect(objects[i].masks[1]).area() > 100) {
-                                ofCalculator.feed(frames, objects[i]);
-                            }
-                        }
+                        std::vector<Mat> masks(2);
+                        masks[0] = mask0;
+                        masks[1] = mask1;
 
-                        std::cout << "## Feed done in " << (((double) getTickCount() - t) / getTickFrequency()) <<
-                        "s" << std::endl;
-                        std::cout.flush();
+                        std::vector<Object> objects = objSelector->selectObjects(frames, masks);
+                        if (objects.size() != 0) {
+
+                            std::cout << "---------------------------------" << std::endl;
+
+                            std::vector<CloudPoint> totalCloud;
+
+                            // TODO MORE OBJECTS!!
+                            for (int i = 0; i < objects.size(); i++) {
+                                if (boundingRect(objects[i].masks[0]).area() > 100 && boundingRect(objects[i].masks[1]).area() > 100) {
+                                    double t = getTickCount();
+
+                                    ofCalculator.feed(frames, objects[i]);
+
+                                    std::cout << "[" << std::setw(20) << "main" << "] " << "Object(" << i << ") feed done in " <<
+                                    (((double) getTickCount() - t) / getTickFrequency()) << "s" << std::endl;
+                                    std::cout.flush();
 
 //                        std::vector<CloudPoint> pointcloud;
 //                        std::vector<Point> cp;
@@ -217,17 +228,15 @@ int main(int argc, char **argv) {
 //                                          camera[Camera::RIGHT]->Kinv,
 //                                          leftP, rightP, pointcloud, cp);
 
-                        std::vector<CloudPoint> cvPointcloud;
-                        triangulator.triangulateCv(ofCalculator.points1, ofCalculator.points2, cvPointcloud);
+                                    std::vector<CloudPoint> cvPointcloud;
+                                    triangulator.triangulateCv(ofCalculator.points1, ofCalculator.points2, cvPointcloud);
+                                    totalCloud.insert(totalCloud.end(), cvPointcloud.begin(), cvPointcloud.end());
+                                }
+                            }
 
-                        t = ((double) getTickCount() - t) / getTickFrequency();
-                        std::cout << "## Done in " << t << "s" << std::endl;
-                        std::cout.flush();
-
-                        procCnter.tick();
-                        std::cout << "Process: " << procCnter.get() << std::endl;
 //                        matVis.renderWithDepth(pointcloud);
-                        matVis2.renderWithDepth(cvPointcloud);
+                            matVis2.renderWithDepth(totalCloud);
+                        }
 
 //                        imwrite("__left.png", frame0);
 //                        imwrite("__right.png", frame1);
