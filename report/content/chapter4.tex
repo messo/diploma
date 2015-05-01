@@ -143,7 +143,7 @@ A kamera külső paramétereinek meghatározása után már minden információ 
 \section{Objektum detekció}
 %----------------------------------------------------------------------------
 
-A következőkben az objekumok detekciójáról lesz szó. Először bemutatok két megközelítést az előtér maszk meghatározásához, ami lényegében a két képen kijelöli a mozgó részek maszkját. Ezt követően a maszkokat szegmentálni kell különálló blobokra, és ezeket a két képen egymásnak megfeleltetni, hogy megkapjuk egy objektum két maszkját.
+A következőkben az objekumok detekciójáról lesz szó. Először bemutatok két megközelítést az előtér maszk meghatározásához, ami lényegében a két képen kijelöli a mozgó részek maszkját. Ezt követően a maszkokat szegmentálni kell különálló \textit{blob}okra, és ezeket a két képen egymásnak megfeleltetni, hogy megkapjuk egy objektum két maszkját.
 
     %----------------------------------------------------------------------------
     \subsection{Előtér maszk meghatározása}
@@ -227,9 +227,45 @@ Másik megközelítésem, hogy már az előtér meghatározásához is az optika
 
 Tekintve, hogy nekünk csak az a fontos, hogy a lehető leggyorsabban kapjunk elmozdulásvektorokat, a paramétereket a következőknek megfelelően állítottam be: ne építsünk piramist (\texttt{levels = 1}, így \texttt{pyr\_scale} beállítása lényegtelen), valamint kicsit ablakmérettel dolgozzunk ($3\times 3$, tehát \texttt{winsize = 3}), valamint rétegenként elég 1 iteráció (\texttt{iterations = 1}).
 
-A kiszámolt vektormezőből pedig a maszkot úgy határozom meg, hogy minden, egységnél hosszabb (tehát legalább 1 pixelnyi a becsült mozgása) vektor végpontját megjelölöm. Ezáltal lényegében azon részeket határoztam meg, ahova éppen a pontok mozdultak, ez pedig pontosan azon részei a képnek, ahol az adott képkockán az előtérben mozgó objektumokat éppen várjuk. Az előzőekhez hasonlóan a maszkon itt is végzünk apró utófeldolgozást a dilatáció és erózió morfológiai műveletek segítségével.
+A kiszámolt vektormezőből pedig a maszkot úgy határozom meg, hogy minden, egységnél hosszabb (tehát legalább 1 pixelnyi a becsült mozgása) vektor végpontját megjelölöm. Ezáltal lényegében azon részeket határoztam meg, ahova éppen a pontok mozdultak, ez pedig pontosan azon részei a képnek, ahol az adott képkockán az előtérben mozgó objektumokat éppen várjuk. Az előzőekhez hasonlóan a maszkon itt is végzünk apró utófeldolgozást a dilatáció és erózió morfológiai műveletek segítségével. Az eredményt \aref{fig:of_mask}. ábra mutatja be. Megfigyelhető, hogy a jól textúrázott objektumokhoz nagyon jó maszkot kapunk, a textúrázatlan területeken pedig a pontokat úgy tekinti mintha statikusak lennének.
 
-Az osztálydiagramot \aref{fig:cd:fg-mask-calc}. ábra mutatja be. \texttt{ForegroundMaskCalculator} osztály lényegében egy közös interfészt nyújt csak, valamint egy \texttt{morph()} metódust tartalmaz, mely a morfológiai műveleteket végzi el a maszkon. A \texttt{MOG2ForegroundMaskCalculator} az OpenCV-s \texttt{BackgroundSubtractorMOG2} osztály egy példányát csomagolja be, ami minden új képkockát megkap és visszaadja a maszkot, az algoritmus által árnyéknak jelölt részeket pedig a \texttt{removeShadows} távolítja el. \texttt{OFForegroundMaskCalculator} pedig eltárolja az előző képkockát, és ebből meg az éppen aktuális képkockából \texttt{calcOpticalFlowFarneback()} segítségével a lehető leggyorsabban meghatározza a képkockákra az optikai folyamot, melyből aztán az előbbiekben ismertetett módszerrel a \texttt{getMaskFromFlow()} adja vissza a maszkot.
+\begin{figure}[tbh]
+\centering
+\begin{subfigure}[b]{.32\linewidth}
+	\centering
+	\includegraphics[width=137pt]{figures/frame_ofmask_101.png}
+	\caption{2. képkocka}
+  \end{subfigure}
+\begin{subfigure}[b]{.32\linewidth}
+	\centering
+	\includegraphics[width=137pt]{figures/frame_ofmask_104.png}
+	\caption{3. képkocka}
+  \end{subfigure}
+\begin{subfigure}[b]{.32\linewidth}
+	\centering
+	\includegraphics[width=137pt]{figures/frame_ofmask_107.png}
+	\caption{4. képkocka}
+  \end{subfigure}\\
+\begin{subfigure}[b]{.32\linewidth}
+	\centering
+	\includegraphics[width=137pt]{figures/mask_ofmask_101.png}
+	\caption{2. maszk}
+  \end{subfigure}
+\begin{subfigure}[b]{.32\linewidth}
+	\centering
+	\includegraphics[width=137pt]{figures/mask_ofmask_104.png}
+	\caption{3. maszk}
+  \end{subfigure}
+\begin{subfigure}[b]{.32\linewidth}
+	\centering
+	\includegraphics[width=137pt]{figures/mask_ofmask_107.png}
+	\caption{4. maszk}
+  \end{subfigure}
+\caption{Egy jelenet 3 képkockája és ezekből az optikai folyamok felhaszánlásával kapott maszkok (már zajcsökkentés után) \label{fig:of_mask}}
+\end{figure}
+
+
+Az osztálydiagramot \aref{fig:cd:fg-mask-calc}. ábra mutatja be. \texttt{ForegroundMaskCalculator} osztály lényegében egy közös interfészt nyújt csak, valamint egy \texttt{morph()} metódust tartalmaz, mely a morfológiai műveleteket végzi el a maszkon. A \texttt{MOG2ForegroundMaskCalculator} az OpenCV-s \texttt{BackgroundSubtractorMOG2} osztály egy példányát csomagolja be, ami minden új képkockát megkap, és visszaadja a maszkot, az algoritmus által árnyéknak jelölt részeket a \texttt{removeShadows()} távolítja el. \texttt{OFForegroundMaskCalculator} pedig eltárolja az előző képkockát, és ebből meg az éppen aktuális képkockából \texttt{calcOpticalFlowFarneback()} segítségével a lehető leggyorsabban meghatározza a képkockákra az optikai folyamot, melyből aztán az előbbiekben ismertetett módszerrel a \texttt{getMaskFromFlow()} adja vissza a maszkot.
 
 \begin{figure}[tbh]
 \centering
@@ -264,40 +300,104 @@ Az osztálydiagramot \aref{fig:cd:fg-mask-calc}. ábra mutatja be. \texttt{Foreg
 \caption{Előtér maszk meghatározására szolgáló implementációk \label{fig:cd:fg-mask-calc}}
 \end{figure}
 
+%----------------------------------------------------------------------------
 \subsection{Egyetlen objektum detekciója}
+%----------------------------------------------------------------------------
 
-Kezdetben azzal az egyszerűsítéssel élek, hogy a képen csak egyetlen mozgó objektumot detektálok, mégpedig azt, amelyik a legnagyobb részt foglalja el a képen. Ez nagyban egyszerűsíti a dolgokat, mert ahogy majd látni fogjuk a következő szekcióban, az optikai folyam meghatározására szükség lesz a képeken látható \textit{blob}ok (egy objektumhoz tartozó egybefüggő rész a képen) párosításra a kamerák képein. Mivel összesen egy blobot jelölök ki a képeken, ezek párosítása triviális, és nagy valószínűséggel ugyanazon objektumhoz tartoznak majd.
+Kezdetben azzal az egyszerűsítéssel élek, hogy a képen csak egyetlen mozgó objektumot detektálok, mégpedig azt, amelyik a legnagyobb részt foglalja el a képeken. Ez nagyban egyszerűsíti a dolgokat, mert ahogy majd látni fogjuk a következő szekcióban, az optikai folyam meghatározására szükség lesz a képeken látható \textit{blob}ok (egy objektumhoz tartozó egybefüggő rész a képen) párosításra a kamerák képein. Mivel összesen egy blobot jelölök ki a képeken, ezek párosítása triviális, és nagy valószínűséggel ugyanazon objektumhoz tartoznak majd.
 
-Ezen logikát egy \texttt{SingleObjectSelector} osztályban implementáltam. Egyetlen metódusa van, amely paraméterül a képet és a (zajcsökkentett) előtér maszkot várja, visszatérési értéke pedig a kép azon része, melyet a maszk legnagyobb területű blobja jelöl ki. Ez utóbbit a \texttt{lastMask}-ban le is lehet kérdezni, és a későbbi könnyebb feldolgozás érdekében az ehhez tartozó befoglaló téglalapot is (\texttt{lastBoundingRect}). A megoldásom az OpenCV \texttt{findContours()} függvényére épít. Segítségével lekérem a maszkon található legkülső kontúrokat (a belső lyukakat is az objektum részének tekintem), és ezek közül azt választom, amelyiknek a legnagyobb a területe (ehhez a \texttt{cv::contourArea()}-t hívom segítségül).
+Ehhez először szükség van az összefüggő komponensek kiválasztására. Két módszer kínálkozik erre OpenCV-ben; az egyik a \texttt{findContours()} függvény, ami megkeresi a képen látható kontúrokat (paraméterezhető, hogy csak a legkülsőbbeket találja meg, a belső kontúrokat nem), a másik pedig a a \texttt{connectedComponentsWithStats()}, mely a 3.0-s verziótól érhető el. Az első abban különbözik az utóbbitól, hogy a kapott kontúrt felhasználva megkaphatjuk a belső területet (lyukak nélkül), míg utóbbi lényegében a maszk pixeleit címkézi fel, hogy melyik komponenshez tartoznak. Ezért én az előbbi használata mellett döntöttem. Miután megvannak ezek a kontúrok a belső területeket meghatározom a \texttt{cv::contourArea()} függvénnyel, és egy maximum kiválasztás után megkapom a legnagyobb területtel rendelkező komponens maszkjával. Mindkét képre elvégezve ezt, megkapom az egyik és másik képen a legnagyobb objektumhoz tartozó 1-1 maszkot. Az algoritmus eredmény \aref{fig:single-obj}. ábrán látható.
+
+\begin{figure}[tbh]
+\centering
+\begin{subfigure}[b]{.49\linewidth}
+	\centering
+	\includegraphics[width=205pt]{figures/mask_ofmask_104.png}
+	\caption{Eredeti maszk}
+  \end{subfigure}
+\begin{subfigure}[b]{.49\linewidth}
+	\centering
+	\includegraphics[width=205pt]{figures/mask_ofmask_104_selected.png}
+	\caption{Detektált blobok, és fehérrel a legnagyobb}
+  \end{subfigure}
+\caption{Legnagyobb területű blob kijelölése \label{fig:single-obj}}
+\end{figure}
+
+%----------------------------------------------------------------------------
+\subsection{Több objektum detekciója, párosítás a kamerák képein}
+%----------------------------------------------------------------------------
+
+A következő feladat, amit meg kell oldanom, az több objektum együttes detekciója, úgy, hogy a két képen az egymásnak megfelelő blobokat párosítsam. Ehhez jellegzetes pontokat, és ezekhez tartozó leírókat keresek, illetve számolok ki a képi információkból.
+
+A szakirodalomban több algoritmust is találhatunk, mely vagy a jellegzetes pontok (\textit{feature}) detektálásában (pl. FAST \cite{FAST}, MSER \cite{MSER}), vagy ezen pontokhoz tartozó leírók (\textit{feature descriptor}) kinyerésében (pl. FREAK \cite{FREAK}), vagy mindkettőre használhatóak (pl. ORB \cite{ORB}, SIFT \cite{SIFT} és SURF \cite{SURF}). SIFT és a SURF a tradícionális leírók közé sorolhatóak abban a tekintetben, hogy vektor-alapú leírokat készítenek, ellenben az újabbakkal, amelyek bináris-füzéreket. Előbbi algoritmusok kiszámolása idő- és erőforrásigényes, valós idejű, valamint mobil eszközökön történő alkalmazásra nem alkalmasak, ellenben utóbbiak igen, és a kinyert leírók összehasonlítása is gyors (Hamming-távolság). Dolgozatomnak nem célja ezek mélgyreható vizsgálata és rangsorolása, de \cite{feature-detection-comparison} alapján a FAST-ot választottam detekcióhoz és a FREAK-et a leírók kinyeréséhez, mert \cite{FREAK}-ben meggyőzőek voltak az eredmények.
+
+Miután mindkét képen megkerestem a jellegzetes pontjaikat, és kinyertem hozzájuk a leírókat, ezeket párosítani kell. Ehhez használhatunk brute-force módszert (mindent mindennel összehasonlítva és kiválasztva a legközelebbit), vagy a FLANN (Fast Approximate Nearest Neighbor Search Library \cite{flann_pami_2014}) könyvtárat, melyhez OpenCV-ben is elkészült az interfész \cite{opencv-flann}. Ez első sorban arra használható, hogy gyorsan tudjunk több dimenziós vektortérben egy vektorhoz megkeresni a hozzá legközelebbi vektort, amely SIFT és SURF esetben ideális, de használható bináris leírókhoz is \cite{flann-binary}. Mivel a halmaz mérete, ahol a párosítást keressük, nem olyan nagy, hogy a brute-force módszer hátránya kiütközzön, ezért emellett maradtam, melynek OpenCV-ben az implementációját a \texttt{cv::BFMatcher} osztályban találjuk.
+
+Végül a kapott párosításokat a fundamentális mátrix segítségével validálom és kiszűröm, vagyis megnézem, hogy a már használt epipoláris ($\mathbf{u}'^T \mathbf{F} \mathbf{u} = 0$) kényszer egy adott hibahatáron belül teljesül-e. Gondoljuk meg, hogy ettől még maradhat teljesen rossz párosítás is a halmazban, hiszen az adott ponthoz csak azt nézi meg, hogy a másik pont rajta van-e a hozzá tartozó epipoláris egyenesen. \Aref{fig:multi-obj-matches}. ábrán látható néhány találat. {\color{red}Megfigyelhető, hogy van olyan egyezőség, amely ugyanazon ismétlődő motívum (teás doboz logója a bal oldali képen) egy részét találta meg két különböző helyen a dobozon, valamint, hogy talál egyezőséget a két doboz között is.}
+
+\begin{figure}[tbh]
+\centering
+\includegraphics[width=400pt]{figures/multi_obj_matches.png}
+\caption{\color{red} REGGEL JOBBAT!!! RÁZZOMOLVA! Blobok által kijelölt képrészleteken az egymásnak megfelelő pontok keresése (29 találat) \label{fig:multi-obj-matches}}
+\end{figure}
+
+Ezt követően a blobokat a következőképpen párosítom. Veszem azt a képet, amelyiken több blob van, mint a másikon (ha ugyanannyi, akkor a választás tetszőleges), majd egyesével az itt lévő blobokhoz megkeresem, hogy a benne lévő párosításbeli pontok párjainak többségét melyik másik képen lévő blob tartalmazza. Így kapok egy projekciót a több elemű halmazból a kisebbe. Nem feltétlen lesz minden blobnak párja (nem tartalmaz \textit{feature} pontot), valamint lehet, hogy több különböző blob is ugyanahhoz a blobhoz fog tartozni, ekkor ezeket összevonom egy blobbá. Így a végén a blobok egy részhalmazához egy kölcsönösen egyértelmű relációt, párosítást kapok, ezek jelölik ugyanazon objektum két maszkját a két képen. {\color{red}Párosításért lásd... ábra}
+
+Annak érdekében, hogy a következő lépéseket könnyebben tudjam tesztelni, aktívan fogom használni a csak egy objektum detekciójára képes algoritmust is, ezért a két megoldásnak interoperábilisnak kell lennie. Tehát mindkettő egy közös \texttt{ObjectSelector} absztrakt osztályból származik, lásd \ref{fig:cd:objectselector}. ábra. Későbbiekben fogjuk látni, hogy ennél a módszernél is jó, ha meghatározzuk az egymásnak megfelelő pontokat, így végülis mindkettő megkapja konstruktorában a \texttt{Matcher} osztály egy példányát, melyet a \texttt{ObjectSelector} őriz. A \texttt{Matcher} két képkockából és az előtér maszkokból meghatározza az egymásnak megfelelő pontokat, melyeket pontpáros listájaként ad vissza. Konstruktorában azért, hogy a találatokat szűrni tudja megkapja a kamera objektumokat és a fundamentális mátrixot. Mindkét konkrét \texttt{ObjectSelector} megvalósítás \texttt{Object} listával tér vissza, mely tartalmazza a két maszkot a két képen, valamint az összetartozó pontokat.
+
 
 \begin{figure}[tbh]
 \centering
 
 \begin{tikzpicture} 
 
-\begin{class}[text width=10 cm]{SingleObjectSelector}{0, 0}
-\attribute{+ lastMask : Mat}
-\attribute{+ lastBoundingRect : Rect}
+\begin{class}[text width=5.5 cm]{Matcher}{4.5, 0}
 
-\operation{+ selectUsingContourWithMaxArea(img, mask) : Mat}
+\operation{+ Matcher(cam1, cam2, F)}
+\operation{+ match(imgs, masks) : ~~~~~~~ vector<pair<Point2f, Point2f>{}>}
+
 \end{class}
+
+\begin{abstractclass}[text width=7 cm]{ObjectSelector}{-3.8, 0}
+
+\operation   {+ ObjectSelector(matcher)}
+\operation[0]{+ select(frames, masks) : vector<Object>}
+
+\end{abstractclass}
+
+
+\aggregation{ObjectSelector}{matcher~~~~~~~~~~}{1}{Matcher}
+
+
+\begin{class}[text width=7 cm]{SingleObjectSelector}{-3.8, -3}
+\inherit{ObjectSelector}
+
+\operation{+ SingleObjectSelector(matcher)}
+\operation{+ select(frames, masks) : vector<Object>}
+\end{class}
+
+\begin{class}[text width=7 cm]{MultiObjectSelector}{4, -3}
+\inherit{ObjectSelector}
+
+\operation{+ MultiObjectSelector(matcher)}
+\operation{+ select(frames, masks) : vector<Object>}
+\end{class}
+
+\begin{class}[text width=7.5 cm]{Object}{0, -6}
+\operation{+ masks : vector<Mat>}
+\operation{+ matches : vector<pair<Point2f, Point2f>{}>}
+\end{class}
+
+\draw[umlcd style dashed line,->] (SingleObjectSelector.south) ++
+(-3,0) |- node [above,sloped,black,pos=0.75]{$ < <$ instantiate $ > >$} (Object);
+
+\draw[umlcd style dashed line,->] (MultiObjectSelector.south) ++
+(3,0) |- node [above,sloped,black,pos=0.75]{$ < <$ instantiate $ > >$} (Object);
 
 \end{tikzpicture}
 
-\caption{\texttt{SingleObjectSelector} osztály \label{fig:cd:singleobjectselector}}
+\caption{Objektumok kijelölését szolgáló osztályok \label{fig:cd:objectselector}}
 \end{figure}
-
-\Aref{fig:maxArea}. ábrán látható az előbbiekben bemutatott maszkhoz meghatározott kontúrok és teli fehérrel a kiválasztott legnagyobb blob.
-
-\begin{figure}[tbh]
-    \centering
-    \includegraphics[width=250pt]{figures/mask343_contours.png}
-    \caption{Legnagyobb blob kijelölése \label{fig:maxArea}}
-\end{figure}
-
-\subsection{Több objektum detekciója, párosítás a kamerák képein}
-
-{\color{red} TODO: SURF + FLANN, fullos osztályok a matchingekhez}
 
 
 
