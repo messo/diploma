@@ -25,9 +25,9 @@ bool ReportOpticalFlowCalculator::feed(std::vector<cv::Mat> &frames, std::vector
     }
 
     // SHIFTING....
-    Point2i optimalShift = getOptimalShift();
-
-    shiftFrame(1, -optimalShift);
+//    Point2i optimalShift = getOptimalShift();
+//
+//    shiftFrame(1, -optimalShift);
 
 //    Rect unified = boundingRect(this->masks[0]) | boundingRect(this->masks[1]);
 //    Mat merged = mergeImagesVertically(this->frames[0](unified), this->frames[1](unified));
@@ -69,7 +69,7 @@ bool ReportOpticalFlowCalculator::feed(std::vector<cv::Mat> &frames, std::vector
 
     // move the points to their original location
     for (int i = 0; i < points1.size(); i++) {
-        points2[i] += Point2f(optimalShift);
+        //points2[i] += Point2f(optimalShift);
     }
 
 //    this->visualizeMatches(frames[0], points1, frames[1], points2);

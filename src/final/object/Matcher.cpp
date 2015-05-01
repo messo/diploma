@@ -1,6 +1,7 @@
 #include "Matcher.h"
 
 #include <opencv2/features2d.hpp>
+#include <opencv2/xfeatures2d.hpp>
 #include <opencv2/xfeatures2d/nonfree.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/highgui.hpp>
@@ -30,10 +31,15 @@ std::vector<std::pair<cv::Point2f, cv::Point2f>> Matcher::match(const std::vecto
     cv::Mat _frame1, _frame2;
     images[0].copyTo(_frame1, masks[0]);
     images[1].copyTo(_frame2, masks[1]);
+
+    //std::sort(keptMatches.begin(), keptMatches.end());
+    //keptMatches.erase(keptMatches.begin()+20, keptMatches.end());
+
     drawMatches(_frame1, keypoints[0], _frame2, keypoints[1], keptMatches, img_matches,
                 cv::Scalar::all(-1), cv::Scalar::all(-1), std::vector<char>(),
                 cv::DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);
     cv::imshow("Matches", img_matches);
+    cv::imwrite("/media/balint/Data/Linux/multi_obj_matches.png", img_matches);
     // DEBUG ------
 
     return result;
@@ -43,33 +49,37 @@ void Matcher::detectKeypointsAndExtractDescriptors(const std::vector<cv::Mat> &i
                                                    const std::vector<cv::Mat> &masks) {
     double t0 = cv::getTickCount();
 
-    cv::xfeatures2d::SURF detector(600);
-    cv::xfeatures2d::SURF extractor;
+    cv::OrbFeatureDetector detector;
+//    cv::FastFeatureDetector detector(70);
+//    cv::xfeatures2d::SURF detector(600);
+
+    cv::xfeatures2d::FREAK extractor;
+
+//    cv::xfeatures2d::SURF extractor;
 
     keypoints.resize(images.size());
     descriptors.resize(images.size());
 
-    // FIXME -- CLEAR???
     for (int i = 0; i < images.size(); i++) {
-//        cv::AKAZE detector;
-//        cv::AKAZE extractor;
         detector.detect(images[i], keypoints[i], masks[i]);
         extractor.compute(images[i], keypoints[i], descriptors[i]);
     }
 
     t0 = ((double) cv::getTickCount() - t0) / cv::getTickFrequency();
-    std::cout << "[" << std::setw(20) << "Matcher" << "] " << "SURF detection and extraction done in " << t0 << "s" << std::endl;
+    std::cout << "[" << std::setw(20) << "Matcher" << "] " << "Detection and extraction done in " << t0 << "s" << std::endl;
     std::cout.flush();
 }
 
 std::vector<cv::DMatch> Matcher::matchDescriptors() {
-    cv::FlannBasedMatcher matcher;
+//    cv::FlannBasedMatcher matcher; //cv::Ptr<cv::flann::IndexParams>(new cv::flann::LshIndexParams(20, 10, 2)));
+//    std::vector<cv::DMatch> matches;
+//    matcher.match(descriptors[0], descriptors[1], matches);
+
+    cv::BFMatcher matcher(cv::NORM_HAMMING);
     std::vector<cv::DMatch> matches;
     matcher.match(descriptors[0], descriptors[1], matches);
 
-//    cv::BFMatcher matcher(cv::NORM_HAMMING);
 //    std::vector<std::vector<cv::DMatch>> nn_matches;
-//    matcher.knnMatch(descriptors[0], descriptors[1], nn_matches, 1);
 //    std::vector<cv::DMatch> matches;
 //    for (auto it = nn_matches.begin(); it != nn_matches.end(); ++it) {
 //        matches.push_back((*it)[0]);

@@ -12,6 +12,8 @@
 #include "Triangulator.h"
 #include "Visualization.h"
 #include "object/SingleObjectSelector.hpp"
+#include "mask/OFForegroundMaskCalculator.h"
+#include "mask/MOG2ForegroundMaskCalculator.h"
 
 using namespace cv;
 using namespace std;
@@ -101,6 +103,80 @@ int main_mask(int argc, char **argv) {
     return 0;
 }
 
+int main(int argc, char **argv) {
+
+    Ptr<Camera> camera1(new RealCamera(Camera::LEFT, "/media/balint/Data/Linux/diploma/src/final/intrinsics_left.yml"));
+    Ptr<Camera> camera2(new RealCamera(Camera::RIGHT, "/media/balint/Data/Linux/diploma/src/final/intrinsics_right.yml"));
+
+    OFForegroundMaskCalculator maskCalculator1, maskCalculator2;
+
+    int frameId = 0;
+    while (true) {
+
+        frameId++;
+
+        Mat frame1, frame2;
+        camera1->read(frame1);
+        Mat mask1 = maskCalculator1.calculate(frame1);
+
+        camera2->read(frame2);
+        Mat mask2 = maskCalculator2.calculate(frame2);
+
+        imshow("frame1", frame1);
+        imshow("mask1", mask1);
+        imshow("frame2", frame2);
+        imshow("mask2", mask2);
+
+        char ch = (char) waitKey(33);
+        if (ch == 27) {
+            break;
+        } else if (frameId > 200) {
+            imwrite("/media/balint/Data/Linux/frames/frame_left_" + std::to_string(frameId) + ".png", frame1);
+            imwrite("/media/balint/Data/Linux/frames/frame_right_" + std::to_string(frameId) + ".png", frame2);
+            imwrite("/media/balint/Data/Linux/frames/mask_left_" + std::to_string(frameId) + ".png", mask1);
+            imwrite("/media/balint/Data/Linux/frames/mask_right_" + std::to_string(frameId) + ".png", mask2);
+        }
+    }
+
+    return 0;
+}
+
+int main_SELECT(int argc, char **argv) {
+
+    Ptr<Camera> camera1(new RealCamera(Camera::LEFT, "/media/balint/Data/Linux/diploma/src/final/intrinsics_left.yml"));
+    Ptr<Camera> camera2(new RealCamera(Camera::RIGHT, "/media/balint/Data/Linux/diploma/src/final/intrinsics_right.yml"));
+
+    FileStorage fs;
+    fs.open("/media/balint/Data/Linux/diploma/F.yml", FileStorage::READ);
+    Mat F;
+    fs["myF"] >> F;
+
+    SingleObjectSelector objectSelector(Matcher(camera1, camera2, F));
+
+    std::vector<Mat> frames(2), masks(2);
+
+    frames[0] = imread("/media/balint/Data/Linux/mask/frame_ofmask_104.png");
+    frames[1] = imread("/media/balint/Data/Linux/mask/frame_ofmask_107.png");
+    masks[0] = imread("/media/balint/Data/Linux/mask/mask_ofmask_104.png", IMREAD_GRAYSCALE);
+    masks[1] = imread("/media/balint/Data/Linux/mask/mask_ofmask_107.png", IMREAD_GRAYSCALE);
+
+    std::vector<Object> objects = objectSelector.selectObjects(frames, masks);
+
+    imwrite("/media/balint/Data/Linux/mask/frame_ofmask_104_selected.png", objects[0].masks[0]);
+
+    int frameId = 0;
+    while (true) {
+
+        imshow("masks", objects[0].masks[0]);
+
+        char ch = (char) waitKey(33);
+        if (ch == 27) {
+            break;
+        }
+    }
+
+    return 0;
+}
 
 int main_pose(int argc, char **argv) {
 
@@ -309,7 +385,7 @@ enum VIS_TYPE {
     PIXELS, DEPTH, CONTOURS
 };
 
-int main(int argc, char **argv) {
+int main___(int argc, char **argv) {
 
     vector<Ptr<Camera>> camera(2);
     camera[Camera::LEFT] = Ptr<Camera>(
@@ -329,13 +405,13 @@ int main(int argc, char **argv) {
     static_cast<RealCamera *>(camera[Camera::LEFT].get())->focus(focus);
     static_cast<RealCamera *>(camera[Camera::RIGHT].get())->focus(focus);
 
-    std::vector<SingleObjectSelector> objSelector(2);
-
-
     FileStorage fs;
     fs.open("/media/balint/Data/Linux/diploma/F.yml", FileStorage::READ);
     Mat F;
     fs["myF"] >> F;
+
+    SingleObjectSelector objSelector(Matcher(camera[0], camera[1], F));
+
 
     ReportOpticalFlowCalculator ofCalculator(camera[Camera::LEFT], camera[Camera::RIGHT], F);
 

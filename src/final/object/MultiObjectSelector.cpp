@@ -13,7 +13,9 @@ using namespace cv;
 vector<Object> MultiObjectSelector::selectObjects(const std::vector<cv::Mat> &frames, const std::vector<cv::Mat> &masks) {
     double t0 = getTickCount();
 
+    std::vector<std::vector<std::vector<cv::Point>>> contours;
     std::vector<Mat> newMasks(2);
+    std::vector<std::vector<Blob>> blobs;
 
     for (int i = 0; i < 2; i++) {
         contours[i] = this->getContours(masks[i]);
