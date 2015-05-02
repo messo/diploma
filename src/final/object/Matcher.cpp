@@ -40,8 +40,11 @@ void Matcher::debug2(const std::vector<cv::Mat> &images, const std::vector<cv::M
     images[0].copyTo(_frame1, masks[0]);
     images[1].copyTo(_frame2, masks[1]);
 
-    cv::Rect left(120, 20, 400, 300);
-    cv::Rect right(220, 20, 400, 300);
+//    cv::Rect left(120, 20, 400, 300);
+//    cv::Rect right(220, 20, 400, 300);
+
+    cv::Rect left(0, 0, 640, 480);
+    cv::Rect right(0, 0, 640, 480);
 
 
     std::vector<cv::Point2f> points1, points2;
@@ -59,8 +62,8 @@ void Matcher::debug2(const std::vector<cv::Mat> &images, const std::vector<cv::M
     cv::Mat img_matches = mergeImages(_frame1(left), _frame2(right));
     cv::RNG rng;
 
-    cv::line(img_matches, cv::Point(399,0), cv::Point(399,300), cv::Scalar(255,255,255));
-    cv::line(img_matches, cv::Point(400,0), cv::Point(400,300), cv::Scalar(255,255,255));
+    cv::line(img_matches, cv::Point(left.width - 1, 0), cv::Point(left.width - 1, left.height), cv::Scalar(255, 255, 255));
+    cv::line(img_matches, cv::Point(left.width, 0), cv::Point(left.width, left.height), cv::Scalar(255, 255, 255));
 
     for (int i = 0; i < keptMatches.size(); i++) {
         cv::Point p1(points1[keptMatches[i].queryIdx]);
@@ -69,9 +72,9 @@ void Matcher::debug2(const std::vector<cv::Mat> &images, const std::vector<cv::M
         int icolor = (unsigned) rng;
         cv::Scalar color(icolor & 255, (icolor >> 8) & 255, (icolor >> 16) & 255);
 
-        cv::line(img_matches, p1, p2 + cv::Point(400, 0), color, 1, cv::LINE_AA);
+        cv::line(img_matches, p1, p2 + cv::Point(left.width, 0), color, 1, cv::LINE_AA);
         cv::circle(img_matches, p1, 3, color, 1, cv::LINE_AA);
-        cv::circle(img_matches, p2 + cv::Point(400, 0), 3, color, 1, cv::LINE_AA);
+        cv::circle(img_matches, p2 + cv::Point(left.width, 0), 3, color, 1, cv::LINE_AA);
     }
 
 
