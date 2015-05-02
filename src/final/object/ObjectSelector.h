@@ -11,7 +11,7 @@ protected:
 
 public:
 
-    ObjectSelector(const Matcher &matcher) : matcher(matcher) { }
+    ObjectSelector(Matcher &matcher) : matcher(matcher) { }
 
     virtual std::vector<Object> selectObjects(const std::vector<cv::Mat> &frames,
                                               const std::vector<cv::Mat> &masks) = 0;

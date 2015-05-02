@@ -8,7 +8,7 @@ class SingleObjectSelector : public ObjectSelector {
 
 public:
 
-    SingleObjectSelector(const Matcher &matcher) : ObjectSelector(matcher) { }
+    SingleObjectSelector(Matcher &matcher) : ObjectSelector(matcher) { }
 
     virtual std::vector<Object> selectObjects(const std::vector<cv::Mat> &frames,
                                               const std::vector<cv::Mat> &masks) override;

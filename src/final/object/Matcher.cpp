@@ -36,8 +36,8 @@ std::vector<std::pair<cv::Point2f, cv::Point2f>> Matcher::match(const std::vecto
     //keptMatches.erase(keptMatches.begin()+20, keptMatches.end());
 
     drawMatches(_frame1, keypoints[0], _frame2, keypoints[1], keptMatches, img_matches,
-                cv::Scalar::all(-1), cv::Scalar::all(-1), std::vector<char>(),
-                cv::DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);
+                cv::Scalar::all(-1), cv::Scalar::all(-1), std::vector<char>());
+    //,cv::DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);
     cv::imshow("Matches", img_matches);
     cv::imwrite("/media/balint/Data/Linux/multi_obj_matches.png", img_matches);
     // DEBUG ------
@@ -50,10 +50,11 @@ void Matcher::detectKeypointsAndExtractDescriptors(const std::vector<cv::Mat> &i
     double t0 = cv::getTickCount();
 
     cv::OrbFeatureDetector detector;
-//    cv::FastFeatureDetector detector(70);
-//    cv::xfeatures2d::SURF detector(600);
+//    cv::FastFeatureDetector detector(100);
+//    cv::xfeatures2d::SURF detector(1000);
 
     cv::xfeatures2d::FREAK extractor;
+//    cv::OrbDescriptorExtractor extractor;
 
 //    cv::xfeatures2d::SURF extractor;
 
@@ -71,18 +72,21 @@ void Matcher::detectKeypointsAndExtractDescriptors(const std::vector<cv::Mat> &i
 }
 
 std::vector<cv::DMatch> Matcher::matchDescriptors() {
-//    cv::FlannBasedMatcher matcher; //cv::Ptr<cv::flann::IndexParams>(new cv::flann::LshIndexParams(20, 10, 2)));
+//    cv::FlannBasedMatcher matcher; //(cv::Ptr<cv::flann::IndexParams>(new cv::flann::LshIndexParams(20, 10, 2)));
 //    std::vector<cv::DMatch> matches;
 //    matcher.match(descriptors[0], descriptors[1], matches);
 
     cv::BFMatcher matcher(cv::NORM_HAMMING);
+
     std::vector<cv::DMatch> matches;
     matcher.match(descriptors[0], descriptors[1], matches);
 
 //    std::vector<std::vector<cv::DMatch>> nn_matches;
+//    matcher.knnMatch(descriptors[0], descriptors[1], nn_matches, 2);
+//
 //    std::vector<cv::DMatch> matches;
 //    for (auto it = nn_matches.begin(); it != nn_matches.end(); ++it) {
-//        matches.push_back((*it)[0]);
+//            matches.push_back((*it)[0]);
 //    }
 
     return matches;
@@ -100,13 +104,15 @@ std::vector<cv::DMatch> Matcher::matchDescriptors() {
 //    printf("-- Max dist : %f \n", max_dist);
 //    printf("-- Min dist : %f \n", min_dist);
 //
-//    std::vector<DMatch> good_matches;
+//    std::vector<cv::DMatch> good_matches;
 //    std::cout << "Matches before distnace selection: " << matches.size() << std::endl;
 //    for (int i = 0; i < descriptors[0].rows; i++) {
-//        if (matches[i].distance <= max(2 * min_dist, 0.35)) {
+//        if (matches[i].distance <= cv::max(2 * min_dist, 0.5)) {
 //            good_matches.push_back(matches[i]);
 //        }
 //    }
+//
+//    return good_matches;
 }
 
 std::vector<std::pair<cv::Point2f, cv::Point2f>> Matcher::buildMatches(const std::vector<cv::DMatch> &matches,
@@ -141,7 +147,7 @@ std::vector<std::pair<cv::Point2f, cv::Point2f>> Matcher::buildMatches(const std
                 cv::Mat(cv::Vec3d(u_points2[i].x, u_points2[i].y, 1).t()) * F *
                 cv::Mat(cv::Vec3d(u_points1[i].x, u_points1[i].y, 1));
 
-        if (fabs(res.at<double>(0)) < threshold) {
+        if (fabs(res.at<double>(0)) < THRESHOLD) {
             keptMatches.push_back(matches[i]);
             matchingPoints.push_back(std::make_pair(points1[i], points2[i]));
         }

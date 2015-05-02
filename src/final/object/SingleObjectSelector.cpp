@@ -45,12 +45,13 @@ std::vector<Object> SingleObjectSelector::selectObjects(const std::vector<cv::Ma
         masks[i].copyTo(img);
         findContours(img, allContours, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
 
-        int maxArea = 0;
+        double maxArea = 0;
         int selectedContour = -1;
         for (int idx = 0; idx < allContours.size(); idx++) {
             const std::vector<Point> &c = allContours[idx];
             double area = fabs(contourArea(c));
             if (area > maxArea) {
+                maxArea = area;
                 selectedContour = idx;
             }
         }

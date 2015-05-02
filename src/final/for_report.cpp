@@ -14,6 +14,7 @@
 #include "object/SingleObjectSelector.hpp"
 #include "mask/OFForegroundMaskCalculator.h"
 #include "mask/MOG2ForegroundMaskCalculator.h"
+#include "optical_flow/SpatialOpticalFlowCalculator.h"
 
 using namespace cv;
 using namespace std;
@@ -103,7 +104,7 @@ int main_mask(int argc, char **argv) {
     return 0;
 }
 
-int main(int argc, char **argv) {
+int main___maskcalc(int argc, char **argv) {
 
     Ptr<Camera> camera1(new RealCamera(Camera::LEFT, "/media/balint/Data/Linux/diploma/src/final/intrinsics_left.yml"));
     Ptr<Camera> camera2(new RealCamera(Camera::RIGHT, "/media/balint/Data/Linux/diploma/src/final/intrinsics_right.yml"));
@@ -151,7 +152,8 @@ int main_SELECT(int argc, char **argv) {
     Mat F;
     fs["myF"] >> F;
 
-    SingleObjectSelector objectSelector(Matcher(camera1, camera2, F));
+    Matcher matcher(camera1, camera2, F);
+    SingleObjectSelector objectSelector(matcher);
 
     std::vector<Mat> frames(2), masks(2);
 
@@ -385,7 +387,7 @@ enum VIS_TYPE {
     PIXELS, DEPTH, CONTOURS
 };
 
-int main___(int argc, char **argv) {
+int main(int argc, char **argv) {
 
     vector<Ptr<Camera>> camera(2);
     camera[Camera::LEFT] = Ptr<Camera>(
@@ -410,10 +412,11 @@ int main___(int argc, char **argv) {
     Mat F;
     fs["myF"] >> F;
 
-    SingleObjectSelector objSelector(Matcher(camera[0], camera[1], F));
+    Matcher matcher(camera[0], camera[1], F);
+    SingleObjectSelector objSelector(matcher);
 
 
-    ReportOpticalFlowCalculator ofCalculator(camera[Camera::LEFT], camera[Camera::RIGHT], F);
+    SpatialOpticalFlowCalculator ofCalculator(camera[Camera::LEFT], camera[Camera::RIGHT], F);
 
     Mat originalImage = imread("/media/balint/Data/Linux/diploma/of_img_left.png");
 
@@ -469,7 +472,9 @@ int main___(int argc, char **argv) {
     masks[0] = maskLeft;
     masks[1] = maskRight;
 
-    ofCalculator.feed(frames, masks);
+    vector<Object> objects = objSelector.selectObjects(frames, masks);
+
+    ofCalculator.feed(frames, objects[0]);
 
     Triangulator triangulator(camera[Camera::LEFT], camera[Camera::RIGHT],
                               cameraPose[Camera::LEFT], cameraPose[Camera::RIGHT]);

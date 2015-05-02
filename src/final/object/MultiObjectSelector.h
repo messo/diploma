@@ -16,7 +16,7 @@ class MultiObjectSelector : public ObjectSelector {
 
 public:
 
-    MultiObjectSelector(const Matcher &matcher) : ObjectSelector(matcher) { }
+    MultiObjectSelector(Matcher &matcher) : ObjectSelector(matcher) { }
 
     virtual std::vector<Object> selectObjects(const std::vector<cv::Mat> &frames,
                                               const std::vector<cv::Mat> &masks) override;

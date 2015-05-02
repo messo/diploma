@@ -125,7 +125,8 @@ int main(int argc, char **argv) {
     static_cast<RealCamera *>(camera[Camera::LEFT].get())->focus(focus);
     static_cast<RealCamera *>(camera[Camera::RIGHT].get())->focus(focus);
 
-    Ptr<ObjectSelector> objSelector(new MultiObjectSelector(camera[Camera::LEFT], camera[Camera::RIGHT], F));
+    Matcher matcher(camera[Camera::LEFT], camera[Camera::RIGHT], F);
+    Ptr<ObjectSelector> objSelector(new SingleObjectSelector(matcher));
 
     Triangulator triangulator(camera[Camera::LEFT], camera[Camera::RIGHT],
                               cameraPose[Camera::LEFT], cameraPose[Camera::RIGHT]);

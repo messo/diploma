@@ -12,7 +12,7 @@ class Matcher {
     std::vector<std::vector<cv::KeyPoint>> keypoints;
     std::vector<cv::Mat> descriptors;
 
-    double threshold = 0.2;
+    const double THRESHOLD = 0.2;
 
     void detectKeypointsAndExtractDescriptors(const std::vector<cv::Mat> &images, const std::vector<cv::Mat> &masks);
 
@@ -27,4 +27,5 @@ public:
 
     std::vector<std::pair<cv::Point2f, cv::Point2f>> match(const std::vector<cv::Mat> &images,
                                                            const std::vector<cv::Mat> &masks);
+
 };
