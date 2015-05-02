@@ -1,4 +1,5 @@
 #include "Matcher.h"
+#include "../Common.h"
 
 #include <opencv2/features2d.hpp>
 #include <opencv2/xfeatures2d.hpp>
@@ -27,22 +28,58 @@ std::vector<std::pair<cv::Point2f, cv::Point2f>> Matcher::match(const std::vecto
     std::cout.flush();
 
     // DEBUG ------
-    cv::Mat img_matches;
+    debug2(images, masks, keptMatches);
+
+    // DEBUG ------
+
+    return result;
+}
+
+void Matcher::debug2(const std::vector<cv::Mat> &images, const std::vector<cv::Mat> &masks, std::vector<cv::DMatch> &keptMatches) const {
     cv::Mat _frame1, _frame2;
     images[0].copyTo(_frame1, masks[0]);
     images[1].copyTo(_frame2, masks[1]);
 
-    //std::sort(keptMatches.begin(), keptMatches.end());
-    //keptMatches.erase(keptMatches.begin()+20, keptMatches.end());
+    cv::Rect left(120, 20, 400, 300);
+    cv::Rect right(220, 20, 400, 300);
 
-    drawMatches(_frame1, keypoints[0], _frame2, keypoints[1], keptMatches, img_matches,
-                cv::Scalar::all(-1), cv::Scalar::all(-1), std::vector<char>());
-    //,cv::DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);
-    cv::imshow("Matches", img_matches);
-    cv::imwrite("/media/balint/Data/Linux/multi_obj_matches.png", img_matches);
-    // DEBUG ------
 
-    return result;
+    std::vector<cv::Point2f> points1, points2;
+    for (int i = 0; i < this->keypoints[0].size(); i++) {
+        points1.push_back(this->keypoints[0][i].pt - cv::Point2f(left.tl()));
+    }
+    for (int i = 0; i < this->keypoints[1].size(); i++) {
+        points2.push_back(this->keypoints[1][i].pt - cv::Point2f(right.tl()));
+    }
+
+
+    sort(keptMatches.begin(), keptMatches.end());
+    keptMatches.erase(keptMatches.begin(), keptMatches.end() - 20);
+
+    cv::Mat img_matches = mergeImages(_frame1(left), _frame2(right));
+    cv::RNG rng;
+
+    cv::line(img_matches, cv::Point(399,0), cv::Point(399,300), cv::Scalar(255,255,255));
+    cv::line(img_matches, cv::Point(400,0), cv::Point(400,300), cv::Scalar(255,255,255));
+
+    for (int i = 0; i < keptMatches.size(); i++) {
+        cv::Point p1(points1[keptMatches[i].queryIdx]);
+        cv::Point p2(points2[keptMatches[i].trainIdx]);
+
+        int icolor = (unsigned) rng;
+        cv::Scalar color(icolor & 255, (icolor >> 8) & 255, (icolor >> 16) & 255);
+
+        cv::line(img_matches, p1, p2 + cv::Point(400, 0), color, 1, cv::LINE_AA);
+        cv::circle(img_matches, p1, 3, color, 1, cv::LINE_AA);
+        cv::circle(img_matches, p2 + cv::Point(400, 0), 3, color, 1, cv::LINE_AA);
+    }
+
+
+
+//    drawMatches(_frame1(left), keyPoints1, _frame2(right), keyPoints2, keptMatches, img_matches,
+//                ::cv::Scalar_<double>::all(-1), ::cv::Scalar_<double>::all(-1), std::vector<char>(), cv::DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);
+    imshow("Matches", img_matches);
+    imwrite("/media/balint/Data/Linux/multi_obj_matches_bad.png", img_matches);
 }
 
 void Matcher::detectKeypointsAndExtractDescriptors(const std::vector<cv::Mat> &images,
@@ -51,10 +88,11 @@ void Matcher::detectKeypointsAndExtractDescriptors(const std::vector<cv::Mat> &i
 
     cv::OrbFeatureDetector detector;
 //    cv::FastFeatureDetector detector(100);
-//    cv::xfeatures2d::SURF detector(1000);
+//    cv::xfeatures2d::SURF detector(600);
+//    cv::BRISK detector;
 
-    cv::xfeatures2d::FREAK extractor;
-//    cv::OrbDescriptorExtractor extractor;
+//    cv::xfeatures2d::FREAK extractor;
+    cv::OrbDescriptorExtractor extractor;
 
 //    cv::xfeatures2d::SURF extractor;
 
@@ -107,7 +145,7 @@ std::vector<cv::DMatch> Matcher::matchDescriptors() {
 //    std::vector<cv::DMatch> good_matches;
 //    std::cout << "Matches before distnace selection: " << matches.size() << std::endl;
 //    for (int i = 0; i < descriptors[0].rows; i++) {
-//        if (matches[i].distance <= cv::max(2 * min_dist, 0.5)) {
+//        if (matches[i].distance <= cv::max(2 * min_dist, 0.02)) {
 //            good_matches.push_back(matches[i]);
 //        }
 //    }

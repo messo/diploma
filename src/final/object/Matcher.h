@@ -28,4 +28,5 @@ public:
     std::vector<std::pair<cv::Point2f, cv::Point2f>> match(const std::vector<cv::Mat> &images,
                                                            const std::vector<cv::Mat> &masks);
 
+    void debug2(const std::vector<cv::Mat> &images, const std::vector<cv::Mat> &masks, std::vector<cv::DMatch> &keptMatches) const;
 };

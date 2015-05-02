@@ -113,13 +113,22 @@ int main(int argc, char **argv) {
 //    masks[0] = imread("/media/balint/Data/Linux/mask_left_230.png", IMREAD_GRAYSCALE);
 //    masks[1] = imread("/media/balint/Data/Linux/mask_right_230.png", IMREAD_GRAYSCALE);
 
+//    std::vector<Mat> frames(2);
+//    frames[0] = imread("/media/balint/Data/Linux/__MULTI/_multi_left.png", IMREAD_GRAYSCALE);
+//    frames[1] = imread("/media/balint/Data/Linux/__MULTI/_multi_right.png", IMREAD_GRAYSCALE);
+//
+//    std::vector<Mat> masks(2);
+//    masks[0] = imread("/media/balint/Data/Linux/__MULTI/_multi_left_mask.png", IMREAD_GRAYSCALE);
+//    masks[1] = imread("/media/balint/Data/Linux/__MULTI/_multi_right_mask.png", IMREAD_GRAYSCALE);
+
     std::vector<Mat> frames(2);
-    frames[0] = imread("/media/balint/Data/Linux/__MULTI/_multi_left.png", IMREAD_GRAYSCALE);
-    frames[1] = imread("/media/balint/Data/Linux/__MULTI/_multi_right.png", IMREAD_GRAYSCALE);
+    frames[0] = imread("/media/balint/Data/Linux/for_report/120_1left_img.png");//, IMREAD_GRAYSCALE);
+    frames[1] = imread("/media/balint/Data/Linux/for_report/120_3right_img.png");//, IMREAD_GRAYSCALE);
 
     std::vector<Mat> masks(2);
-    masks[0] = imread("/media/balint/Data/Linux/__MULTI/_multi_left_mask.png", IMREAD_GRAYSCALE);
-    masks[1] = imread("/media/balint/Data/Linux/__MULTI/_multi_right_mask.png", IMREAD_GRAYSCALE);
+    masks[0] = imread("/media/balint/Data/Linux/for_report/120_2left_mask.png", IMREAD_GRAYSCALE);
+    masks[1] = imread("/media/balint/Data/Linux/for_report/120_4right_mask.png", IMREAD_GRAYSCALE);
+
 
     //while (true) {
     std::vector<Object> objects = objSelector.selectObjects(frames, masks);

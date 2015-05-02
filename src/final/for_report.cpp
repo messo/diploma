@@ -15,6 +15,7 @@
 #include "mask/OFForegroundMaskCalculator.h"
 #include "mask/MOG2ForegroundMaskCalculator.h"
 #include "optical_flow/SpatialOpticalFlowCalculator.h"
+#include "object/MultiObjectSelector.h"
 
 using namespace cv;
 using namespace std;
@@ -381,13 +382,117 @@ int main_SAVE(int argc, char **argv) {
             imwrite("right.png", right);
         }
     }
+
+    return 0;
+}
+
+
+int main(int argc, char **argv) {
+    vector<Ptr<Camera>> camera(2);
+    camera[Camera::LEFT] = Ptr<Camera>(
+            new RealCamera(Camera::LEFT, "/media/balint/Data/Linux/diploma/src/final/intrinsics_left.yml"));
+    camera[Camera::RIGHT] = Ptr<Camera>(
+            new RealCamera(Camera::RIGHT, "/media/balint/Data/Linux/diploma/src/final/intrinsics_right.yml"));
+
+    vector<CameraPose> cameraPose(2);
+    cameraPose[Camera::LEFT].load("/media/balint/Data/Linux/diploma/src/final/pose_left.yml");
+    cameraPose[Camera::RIGHT].load("/media/balint/Data/Linux/diploma/src/final/pose_right.yml");
+
+    FileStorage fs;
+    fs.open("/media/balint/Data/Linux/diploma/F.yml", FileStorage::READ);
+    Mat F;
+    fs["myF"] >> F;
+
+    OFForegroundMaskCalculator maskCalculator1, maskCalculator2;
+    Matcher matcher(camera[0], camera[1], F);
+    MultiObjectSelector objSelector(matcher);
+    SpatialOpticalFlowCalculator ofCalculator(camera[Camera::LEFT], camera[Camera::RIGHT], F);
+
+    int frame = 0;
+
+    while (true) {
+        frame++;
+        std::vector<Mat> frames(2), masks(2);
+
+        camera[0]->read(frames[0]);
+        masks[0] = maskCalculator1.calculate(frames[0]);
+
+        camera[1]->read(frames[1]);
+        masks[1] = maskCalculator2.calculate(frames[1]);
+
+        vector<Object> objects = objSelector.selectObjects(frames, masks);
+
+//        if (boundingRect(objects[0].masks[0]).area() < 100 || boundingRect(objects[0].masks[1]).area() < 100) {
+//            continue;
+//        }
+//
+//        ofCalculator.feed(frames, objects[0]);
+//
+//        Triangulator triangulator(camera[Camera::LEFT], camera[Camera::RIGHT],
+//                                  cameraPose[Camera::LEFT], cameraPose[Camera::RIGHT]);
+//        std::vector<CloudPoint> cvPointcloud;
+//        triangulator.triangulateCv(ofCalculator.points1, ofCalculator.points2, cvPointcloud);
+//
+//        Visualization matVis2(cameraPose[Camera::LEFT], camera[Camera::LEFT]->cameraMatrix);
+//        matVis2.renderWithDepth(cvPointcloud);
+//        imshow("Result", matVis2.getResult());
+
+        imshow("left", frames[0]);
+        imshow("right", frames[1]);
+
+
+        // tiny display.
+        Mat leftResult(480, 640, CV_8UC3, Scalar(0, 0, 0));
+        Mat rightResult(480, 640, CV_8UC3, Scalar(0, 0, 0));
+
+        RNG rng;
+        for (int i = 0; i < objects.size(); i++) {
+            const Object &obj = objects[i];
+
+            int icolor = (unsigned) rng;
+            Scalar color(icolor & 255, (icolor >> 8) & 255, (icolor >> 16) & 255);
+            Mat objMat(480, 640, CV_8UC3, color);
+
+            objMat.copyTo(leftResult, obj.masks[0]);
+            objMat.copyTo(rightResult, obj.masks[1]);
+        }
+
+        Mat merged = mergeImages(leftResult, rightResult);
+
+        for (int i = 0; i < objects.size(); i++) {
+            const Object &obj = objects[i];
+
+            for (int j = 0; j < obj.matches.size(); j++) {
+                int icolor = (unsigned) rng;
+                Scalar color(icolor & 255, (icolor >> 8) & 255, (icolor >> 16) & 255);
+
+                circle(merged, obj.matches[j].first, 1, color, 1);
+                circle(merged, obj.matches[j].second + Point2f(640, 0), 2, color, 1);
+                line(merged, obj.matches[j].first, obj.matches[j].second + Point2f(640, 0), color, 1);
+            }
+        }
+
+        imshow("objects", merged);
+
+        char ch = (char) waitKey(33);
+        if (ch == 27) {
+            break;
+        } else if (frame % 5 == 0) {
+            imwrite("/media/balint/Data/Linux/for_multi/" + std::to_string(frame) + "_1left_img.png", frames[0]);
+            imwrite("/media/balint/Data/Linux/for_multi/" + std::to_string(frame) + "_2left_mask.png", masks[0]);
+            imwrite("/media/balint/Data/Linux/for_multi/" + std::to_string(frame) + "_3right_img.png", frames[1]);
+            imwrite("/media/balint/Data/Linux/for_multi/" + std::to_string(frame) + "_4right_mask.png", masks[1]);
+            imwrite("/media/balint/Data/Linux/for_multi/" + std::to_string(frame) + "_5objects.png", merged);
+//            imwrite("/media/balint/Data/Linux/for_multi/" + std::to_string(frame) + "_5vis.png", matVis2.getResult());
+        }
+    }
 }
 
 enum VIS_TYPE {
     PIXELS, DEPTH, CONTOURS
 };
 
-int main(int argc, char **argv) {
+int main_________(int argc, char **argv) {
 
     vector<Ptr<Camera>> camera(2);
     camera[Camera::LEFT] = Ptr<Camera>(
@@ -420,14 +525,14 @@ int main(int argc, char **argv) {
 
     Mat originalImage = imread("/media/balint/Data/Linux/diploma/of_img_left.png");
 
-    Mat left = imread("/media/balint/Data/Linux/diploma/of_img_left.png", IMREAD_GRAYSCALE); // of_img_left
-    Mat right = imread("/media/balint/Data/Linux/diploma/of_img_right.png", IMREAD_GRAYSCALE); // of_img_right
-    Mat maskLeft = imread("/media/balint/Data/Linux/diploma/of_mask_left.png", IMREAD_GRAYSCALE);
-    Mat maskRight = imread("/media/balint/Data/Linux/diploma/of_mask_right.png", IMREAD_GRAYSCALE);
+    Mat left = imread("/media/balint/Data/Linux/for_report/390_1left_img.png", IMREAD_GRAYSCALE); // of_img_left
+    Mat right = imread("/media/balint/Data/Linux/for_report/390_3right_img.png", IMREAD_GRAYSCALE); // of_img_right
+    Mat maskLeft = imread("/media/balint/Data/Linux/for_report/390_2left_mask.png", IMREAD_GRAYSCALE);
+    Mat maskRight = imread("/media/balint/Data/Linux/for_report/390_4right_mask.png", IMREAD_GRAYSCALE);
 
-    Mat eqLeft, eqRight;
-    equalizeHist(left, eqLeft);
-    equalizeHist(right, eqRight);
+//    Mat eqLeft, eqRight;
+//    equalizeHist(left, eqLeft);
+//    equalizeHist(right, eqRight);
 
     // SURF
 //    vector<Mat> images(2);
@@ -465,8 +570,8 @@ int main(int argc, char **argv) {
 
 
     vector<Mat> frames(2);
-    frames[0] = eqLeft;
-    frames[1] = eqRight;
+    frames[0] = left;
+    frames[1] = right;
 
     vector<Mat> masks(2);
     masks[0] = maskLeft;

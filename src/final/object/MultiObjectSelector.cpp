@@ -5,7 +5,6 @@
 #include <iomanip>
 
 #include "MultiObjectSelector.h"
-#include "Matcher.h"
 
 using namespace std;
 using namespace cv;
@@ -32,6 +31,9 @@ vector<Object> MultiObjectSelector::selectObjects(const std::vector<cv::Mat> &fr
     if (points.size() < 1) {
         return vector<Object>();
     }
+
+    std::cout << "[" << std::setw(20) << "MultiObjectSelector" << "] " << "Blob on the left: " << blobs[Camera::LEFT].size() << " right: " <<
+    blobs[Camera::RIGHT].size() << endl;
 
     // we'll map from the bigger set
     const int from = (blobs[Camera::LEFT].size() > blobs[Camera::RIGHT].size()) ? Camera::LEFT : Camera::RIGHT;
@@ -90,12 +92,70 @@ vector<Object> MultiObjectSelector::selectObjects(const std::vector<cv::Mat> &fr
         blobMatchCounters[fromBlobIdx][toBlobIdx]++;
     }
 
+    // VISUALIZATION
+
+//    Mat vis(480, 640 * 2, CV_8UC3, Scalar(0, 0, 0));
+//
+//    for (int i = 0; i < 2; i++) {
+//        for (int j = 0; j < blobs[i].size(); j++) {
+//            cv::Moments m = moments(blobs[i][j].mask, true);
+//            cv::Point center(m.m10 / m.m00, m.m01 / m.m00);
+//
+//            Mat blobby(480, 640, CV_8UC3, Scalar(255, 255, 255));
+//
+//            if (i == 1) {
+//                center += Point(640, 0);
+//                blobby.copyTo(vis(Rect(640, 0, 640, 480)), blobs[i][j].mask);
+//            } else {
+//                blobby.copyTo(vis(Rect(0, 0, 640, 480)), blobs[i][j].mask);
+//            }
+//
+//            putText(vis, std::to_string(j), center, cv::FONT_HERSHEY_PLAIN, 1.0, Scalar(255, 255, 255), 1, LINE_AA);
+//        }
+//    }
+//
+//    for (auto it = blobMatchCounters.begin(); it != blobMatchCounters.end(); ++it) {
+//        int fromIdx = it->first;
+//        for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2) {
+//            int toIdx = it2->first;
+//
+//            cv::Moments m = moments(blobs[from][fromIdx].mask, true);
+//            cv::Point fromPt(m.m10 / m.m00, m.m01 / m.m00);
+//
+//            m = moments(blobs[to][toIdx].mask, true);
+//            cv::Point toPt(m.m10 / m.m00, m.m01 / m.m00);
+//
+//            if (it2->second < 100) {
+//                fromPt += Point(0, 80);
+//                toPt += Point(0, 80);
+//            }
+//
+//            if (from == 0) {
+//                toPt += Point(640, 0);
+//            } else {
+//                fromPt += Point(640, 0);
+//            }
+//
+//            putText(vis, std::to_string(it2->second), (fromPt + toPt) / 2, cv::FONT_HERSHEY_PLAIN, 2.0, Scalar(255, 255, 255), 1, LINE_AA);
+//
+//            if (from == 0) {
+//                cv::line(vis, fromPt, toPt, Scalar(0, 0, 255), 1, LINE_AA);
+//            } else {
+//                cv::line(vis, toPt, fromPt, Scalar(0, 0, 255), 1, LINE_AA);
+//            }
+//        }
+//    }
+//
+//    imshow("vis", vis);
+
+    // ---------------
+
     vector<pair<int, int>> blobMatches;
     map<int, vector<int>> matchesBackward;
 
     for (auto it = blobMatchCounters.begin(); it != blobMatchCounters.end(); ++it) {
         int fromIdx = it->first;
-        //std::cout << (*it).first << " --> ";
+        std::cout << (*it).first << " --> ";
 
         int maxCount = 0;
         int toIdx = -1;
@@ -106,13 +166,13 @@ vector<Object> MultiObjectSelector::selectObjects(const std::vector<cv::Mat> &fr
                 maxCount = count;
                 toIdx = id;
             }
-            //std::cout << "[" << (*it2).first << ": " << (*it2).second << "] ";
+            std::cout << "[" << (*it2).first << ": " << (*it2).second << "] ";
         }
 
         matchesBackward[toIdx].push_back(fromIdx);
         blobMatches.push_back(make_pair(fromIdx, toIdx));
 
-//        std::cout << endl;
+        std::cout << endl;
     }
 
 //    for (int i = 0; i < blobMatches.size(); i++) {
