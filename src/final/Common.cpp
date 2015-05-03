@@ -370,8 +370,8 @@ Mat slerp(Mat rvec1, Mat rvec2, double ratio) {
     Rodrigues(rvec1, R1);
     Rodrigues(rvec2, R2);
 
-    Eigen::Matrix<double, 3, 3> r1;
-    Eigen::Matrix<double, 3, 3> r2;
+    Eigen::Matrix3d r1;
+    Eigen::Matrix3d r2;
 
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
@@ -382,7 +382,7 @@ Mat slerp(Mat rvec1, Mat rvec2, double ratio) {
 
     Eigen::Quaterniond q1(r1);
     Eigen::Quaterniond q2(r2);
-    Eigen::Matrix<double, 3, 3> R = q1.slerp(ratio, q2).toRotationMatrix();
+    Eigen::Matrix3d R = q1.slerp(ratio, q2).toRotationMatrix();
 
     Mat rot(3, 3, CV_64FC1);
     for (int i = 0; i < 3; i++) {

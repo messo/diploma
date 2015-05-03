@@ -28,7 +28,7 @@ void Visualization::renderWithDepth(const std::vector<CloudPoint> &points) {
 //    std::cout << minZ << " " << maxZ;
 
     if (objectPoints.size() > 0) {
-        projectPoints(objectPoints, cameraPose->rvec, cameraPose->tvec, cameraMatrix, cv::noArray(), imagePoints);
+        projectPoints(objectPoints, cameraPose.rvec, cameraPose.tvec, cameraMatrix, cv::noArray(), imagePoints);
 
         for (int i = 0; i < imagePoints.size(); i++) {
 //            std::cout << objectPoints[i].z << std::endl;
@@ -65,7 +65,7 @@ void Visualization::renderWithColors(const std::vector<CloudPoint> &points,
     Mat img(480, 640, CV_8UC3, Scalar(0, 0, 0));
 
     if (objectPoints.size() > 0) {
-        projectPoints(objectPoints, cameraPose->rvec, cameraPose->tvec, cameraMatrix, cv::noArray(), imagePoints);
+        projectPoints(objectPoints, cameraPose.rvec, cameraPose.tvec, cameraMatrix, cv::noArray(), imagePoints);
 
         for (int i = 0; i < imagePoints.size(); i++) {
             img.at<Vec3b>(Point2i(imagePoints[i])) = colors[i];
@@ -94,7 +94,7 @@ void Visualization::renderWithGrayscale(const std::vector<CloudPoint> &points,
     Mat img(480, 640, CV_8UC3, Scalar(0, 0, 0));
 
     if (objectPoints.size() > 0) {
-        projectPoints(objectPoints, cameraPose->rvec, cameraPose->tvec, cameraMatrix, cv::noArray(), imagePoints);
+        projectPoints(objectPoints, cameraPose.rvec, cameraPose.tvec, cameraMatrix, cv::noArray(), imagePoints);
 
         for (int i = 0; i < imagePoints.size(); i++) {
             img.at<Vec3b>(Point2i(imagePoints[i])) = Vec3b(colors[i], colors[i], colors[i]);
@@ -118,7 +118,7 @@ void Visualization::renderWithContours(const std::vector<CloudPoint> &points) {
     Mat img(480, 640, CV_8U, Scalar(0));
 
     if (objectPoints.size() > 0) {
-        projectPoints(objectPoints, cameraPose->rvec, cameraPose->tvec, cameraMatrix, cv::noArray(), imagePoints);
+        projectPoints(objectPoints, cameraPose.rvec, cameraPose.tvec, cameraMatrix, cv::noArray(), imagePoints);
 
         for (int i = 0; i < imagePoints.size(); i++) {
             img.at<uchar>(Point2i(imagePoints[i])) = 255;
