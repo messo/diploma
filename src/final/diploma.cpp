@@ -96,24 +96,16 @@ int main(int argc, char **argv) {
 //    calcPose(Camera::RIGHT, "/media/balint/Data/Linux/diploma/src/final/intrinsics_right.yml", "pose_right.yml");
 
     std::vector<Ptr<Camera>> camera(2);
-    camera[Camera::LEFT] = Ptr<Camera>(
-            new RealCamera(Camera::LEFT, "/media/balint/Data/Linux/diploma/src/final/intrinsics_left.yml"));
-    camera[Camera::RIGHT] = Ptr<Camera>(
-            new RealCamera(Camera::RIGHT, "/media/balint/Data/Linux/diploma/src/final/intrinsics_right.yml"));
+    camera[Camera::LEFT] = Ptr<Camera>(new RealCamera(Camera::LEFT, "/media/balint/Data/Linux/diploma/src/final/intrinsics_left.yml"));
+    camera[Camera::RIGHT] = Ptr<Camera>(new RealCamera(Camera::RIGHT, "/media/balint/Data/Linux/diploma/src/final/intrinsics_right.yml"));
 
     std::vector<CameraPose> cameraPose(2);
     cameraPose[Camera::LEFT].load("/media/balint/Data/Linux/diploma/src/final/pose_left.yml");
-    Matx34d leftP = cameraPose[Camera::LEFT].getRT();
-    //Matx44d leftPclP = cameraPose[Camera::LEFT].getPoseForPcl();
     cameraPose[Camera::RIGHT].load("/media/balint/Data/Linux/diploma/src/final/pose_right.yml");
-    Matx34d rightP = cameraPose[Camera::RIGHT].getRT();
-    //Matx44d rightPclP = cameraPose[Camera::RIGHT].getPoseForPcl();
 
     std::vector<Ptr<ForegroundMaskCalculator>> maskCalculators(2);
-    maskCalculators[Camera::LEFT] = Ptr<ForegroundMaskCalculator>(
-            new OFForegroundMaskCalculator()); //new MOG2ForegroundMaskCalculator());
-    maskCalculators[Camera::RIGHT] = Ptr<ForegroundMaskCalculator>(
-            new OFForegroundMaskCalculator()); //new MOG2ForegroundMaskCalculator());
+    maskCalculators[Camera::LEFT] = Ptr<ForegroundMaskCalculator>(new OFForegroundMaskCalculator()); //new MOG2ForegroundMaskCalculator());
+    maskCalculators[Camera::RIGHT] = Ptr<ForegroundMaskCalculator>(new OFForegroundMaskCalculator()); //new MOG2ForegroundMaskCalculator());
 
     FileStorage fs;
     fs.open("/media/balint/Data/Linux/diploma/F.yml", FileStorage::READ);

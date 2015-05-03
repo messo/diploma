@@ -3,11 +3,11 @@
 #include "Camera.hpp"
 
 class DummyCamera : public Camera {
-    long frame = 0;
     long currentFrame = 0;
     std::string path;
 
 public:
+    long frame = 0;
     int lastFrame = -1;
     int firstFrame = 0;
 

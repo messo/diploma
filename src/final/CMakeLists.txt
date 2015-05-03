@@ -51,9 +51,13 @@ target_link_libraries(MultiObj ${OpenCV_LIBS} v4l2)
 #target_compile_features(StereoCalibration PRIVATE cxx_range_for)
 #target_link_libraries(StereoCalibration ${OPENGL_LIBRARIES} ${OpenCV_LIBS} ${GLUT_LIBRARIES} v4l2)
 
-#add_executable(VideoMaker video.cpp ${CLASSES})
-#target_compile_features(VideoMaker PRIVATE cxx_range_for)
-#target_link_libraries(VideoMaker ${OpenCV_LIBS} v4l2 ${PCL_LIBRARIES})
+add_executable(VideoMaker video.cpp ${CLASSES})
+target_compile_features(VideoMaker PRIVATE cxx_range_for)
+target_link_libraries(VideoMaker ${OpenCV_LIBS} v4l2)
+
+add_executable(SceneRenderer SceneRenderer.cpp ${CLASSES})
+target_compile_features(SceneRenderer PRIVATE cxx_range_for)
+target_link_libraries(SceneRenderer ${OpenCV_LIBS} v4l2)
 
 #add_executable(TriTest __unused/TriTest.cpp ${CLASSES} __unused/VirtualCamera.cpp __unused/FakeCamera.cpp)
 #target_compile_features(TriTest PRIVATE cxx_range_for)

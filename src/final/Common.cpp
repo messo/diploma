@@ -328,9 +328,11 @@ std::vector<std::vector<Mat>> getFramesFromCameras(std::vector<Ptr<Camera>> &cam
         cameras[i]->read(image); // readUndistorted
         result[1][i] = maskCalculators[i]->calculate(image);
 
-        Mat gray;
-        cvtColor(image, gray, COLOR_BGR2GRAY);
-        equalizeHist(gray, result[0][i]);
+//        Mat gray;
+//        cvtColor(image, gray, COLOR_BGR2GRAY);
+//        equalizeHist(gray, result[0][i]);
+
+        image.copyTo(result[0][i]);
 
 //        if (i == 0) {
 //            imshow("image", image);

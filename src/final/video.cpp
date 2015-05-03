@@ -1,6 +1,6 @@
 #include <opencv2/calib3d/calib3d.hpp>
 #include <opencv2/highgui/highgui.hpp>
-#include "RealCamera.hpp"
+#include "camera/RealCamera.hpp"
 
 using namespace cv;
 using namespace std;
@@ -23,17 +23,12 @@ int main() {
         imshow("1", src1);
         imshow("2", src2);
 
-        char filename1[80];
-        sprintf(filename1,"/media/balint/Data/Linux/diploma/src/imgs_stereo_depth_1/left_%d.png",i);
-        imwrite(filename1, src1);
-
-        char filename2[80];
-        sprintf(filename1,"/media/balint/Data/Linux/diploma/src/imgs_stereo_depth_1/right_%d.png",i);
-        imwrite(filename1, src2);
+        imwrite("/media/balint/Data/Linux/diploma/scene_1/left_" + to_string(i) + ".png", src1);
+        imwrite("/media/balint/Data/Linux/diploma/scene_1/right_" + to_string(i) + ".png", src2);
 
         i++;
 
-        char ch = waitKey(50);
+        char ch = waitKey(33);
         if (ch == 27) {
             break;
         }
