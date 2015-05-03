@@ -56,8 +56,8 @@ void Matcher::debug2(const std::vector<cv::Mat> &images, const std::vector<cv::M
     }
 
 
-    sort(keptMatches.begin(), keptMatches.end());
-    keptMatches.erase(keptMatches.begin(), keptMatches.end() - 20);
+//    sort(keptMatches.begin(), keptMatches.end());
+//    keptMatches.erase(keptMatches.begin(), keptMatches.end() - 20);
 
     cv::Mat img_matches = mergeImages(_frame1(left), _frame2(right));
     cv::RNG rng;

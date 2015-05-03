@@ -24,7 +24,7 @@ set(CLASSES camera/Camera.cpp camera/RealCamera.cpp camera/DummyCamera.cpp
             calibration/Calibration.cpp calibration/CameraPoseCalculator.cpp camera/CameraPose.cpp
             mask/MOG2ForegroundMaskCalculator.cpp mask/OFForegroundMaskCalculator.cpp
             object/Matcher.cpp object/ObjectSelector.cpp object/SingleObjectSelector.cpp object/MultiObjectSelector.cpp object/Blob.cpp object/Object.cpp
-            optical_flow/OpticalFlowCalculator.cpp optical_flow/SpatialOpticalFlowCalculator.cpp
+            optical_flow/OpticalFlowCalculator.cpp
             Common.cpp
             Triangulator.cpp
             Visualization.cpp

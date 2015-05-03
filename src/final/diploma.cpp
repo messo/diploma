@@ -6,7 +6,7 @@
 #include "camera/CameraPose.h"
 #include "calibration/Calibration.h"
 #include "calibration/CameraPoseCalculator.h"
-#include "optical_flow/SpatialOpticalFlowCalculator.h"
+#include "optical_flow/OpticalFlowCalculator.h"
 #include "object/SingleObjectSelector.hpp"
 #include "camera/DummyCamera.hpp"
 #include "Triangulator.h"
@@ -119,7 +119,7 @@ int main(int argc, char **argv) {
     fs.open("/media/balint/Data/Linux/diploma/F.yml", FileStorage::READ);
     Mat F;
     fs["myF"] >> F;
-    SpatialOpticalFlowCalculator ofCalculator(camera[Camera::LEFT], camera[Camera::RIGHT], F);
+    OpticalFlowCalculator ofCalculator;
 
     int focus = 80;
     static_cast<RealCamera *>(camera[Camera::LEFT].get())->focus(focus);
@@ -215,7 +215,7 @@ int main(int argc, char **argv) {
                                 if (boundingRect(objects[i].masks[0]).area() > 100 && boundingRect(objects[i].masks[1]).area() > 100) {
                                     double t = getTickCount();
 
-                                    ofCalculator.feed(frames, objects[i]);
+                                    std::pair<std::vector<Point2f>, std::vector<Point2f>> matches = ofCalculator.calcDenseMatches(frames, objects[i]);
 
                                     std::cout << "[" << std::setw(20) << "main" << "] " << "Object(" << i << ") feed done in " <<
                                     (((double) getTickCount() - t) / getTickFrequency()) << "s" << std::endl;
@@ -230,7 +230,7 @@ int main(int argc, char **argv) {
 //                                          leftP, rightP, pointcloud, cp);
 
                                     std::vector<CloudPoint> cvPointcloud;
-                                    triangulator.triangulateCv(ofCalculator.points1, ofCalculator.points2, cvPointcloud);
+                                    triangulator.triangulateCv(matches.first, matches.second, cvPointcloud);
                                     totalCloud.insert(totalCloud.end(), cvPointcloud.begin(), cvPointcloud.end());
                                 }
                             }

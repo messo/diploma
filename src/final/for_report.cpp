@@ -14,7 +14,7 @@
 #include "object/SingleObjectSelector.hpp"
 #include "mask/OFForegroundMaskCalculator.h"
 #include "mask/MOG2ForegroundMaskCalculator.h"
-#include "optical_flow/SpatialOpticalFlowCalculator.h"
+#include "optical_flow/OpticalFlowCalculator.h"
 #include "object/MultiObjectSelector.h"
 
 using namespace cv;
@@ -406,7 +406,7 @@ int main(int argc, char **argv) {
     OFForegroundMaskCalculator maskCalculator1, maskCalculator2;
     Matcher matcher(camera[0], camera[1], F);
     MultiObjectSelector objSelector(matcher);
-    SpatialOpticalFlowCalculator ofCalculator(camera[Camera::LEFT], camera[Camera::RIGHT], F);
+    OpticalFlowCalculator ofCalculator;
 
     int frame = 0;
 
@@ -521,7 +521,7 @@ int main_________(int argc, char **argv) {
     SingleObjectSelector objSelector(matcher);
 
 
-    SpatialOpticalFlowCalculator ofCalculator(camera[Camera::LEFT], camera[Camera::RIGHT], F);
+    OpticalFlowCalculator ofCalculator;
 
     Mat originalImage = imread("/media/balint/Data/Linux/diploma/of_img_left.png");
 
@@ -579,16 +579,16 @@ int main_________(int argc, char **argv) {
 
     vector<Object> objects = objSelector.selectObjects(frames, masks);
 
-    ofCalculator.feed(frames, objects[0]);
+    pair<vector<Point2f>, vector<Point2f>> matches = ofCalculator.calcDenseMatches(frames, objects[0]);
 
     Triangulator triangulator(camera[Camera::LEFT], camera[Camera::RIGHT],
                               cameraPose[Camera::LEFT], cameraPose[Camera::RIGHT]);
 
     std::vector<CloudPoint> pointcloud;
-    triangulator.triangulateIteratively(ofCalculator.points1, ofCalculator.points2, pointcloud);
+    triangulator.triangulateIteratively(matches.first, matches.second, pointcloud);
 
     std::vector<CloudPoint> cvPointcloud;
-    triangulator.triangulateCv(ofCalculator.points1, ofCalculator.points2, cvPointcloud);
+    triangulator.triangulateCv(matches.first, matches.second, cvPointcloud);
 
 //    Visualization matVis(cameraPose[Camera::LEFT], camera[Camera::LEFT]->cameraMatrix);
 
@@ -618,7 +618,7 @@ int main_________(int argc, char **argv) {
         if (type == VIS_TYPE::DEPTH) {
             matVis2.renderWithDepth(cvPointcloud);
         } else if (type == VIS_TYPE::PIXELS) {
-            matVis2.renderWithColors(cvPointcloud, ofCalculator.points1, originalImage);
+            matVis2.renderWithColors(cvPointcloud, matches.first, originalImage);
         } else {
             matVis2.renderWithContours(cvPointcloud);
         }

@@ -8,15 +8,11 @@ class ReportOpticalFlowCalculator : public OpticalFlowCalculator {
 
 public:
 
-    ReportOpticalFlowCalculator(cv::Ptr<Camera> camera1, cv::Ptr<Camera> camera2, cv::Mat F) :
-            OpticalFlowCalculator(camera1, camera2, F) { }
-
-    bool feed(std::vector<cv::Mat> &frames, std::vector<cv::Mat> &masks);
+    virtual std::pair<std::vector<cv::Point2f>, std::vector<cv::Point2f>> calcDenseMatches(std::vector<cv::Mat> &frames, const Object &object) override;
 
 protected:
-    virtual double calcOpticalFlow() override;
+    virtual std::vector<cv::Mat> calcOpticalFlows() const override;
 
-    virtual void collectMatchingPoints(const cv::Mat &flow, const cv::Mat &backFlow, const cv::Rect &roi,
-                                       std::vector<cv::Point2f> &points1, std::vector<cv::Point2f> &points2) override;
+    virtual std::pair<std::vector<cv::Point2f>, std::vector<cv::Point2f>> collectMatchingPoints(const std::vector<cv::Mat> &flows) const override;
 
 };

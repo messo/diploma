@@ -1,21 +1,101 @@
-#include "ReportOpticalFlowCalculator.h"
-#include "SpatialOpticalFlowCalculator.h"
+#include "OpticalFlowCalculator.h"
+
 #include <opencv2/video/tracking.hpp>
 #include <opencv2/highgui.hpp>
 #include <omp.h>
 #include <iomanip>
-#include "OpticalFlowCalculator.h"
 #include "../Common.h"
 
 using namespace cv;
 using namespace std;
 
-void OpticalFlowCalculator::calcTexturedRegions(const Mat frame, const Mat mask, Mat &texturedRegions) const {
+pair<vector<Point2f>, vector<Point2f>> OpticalFlowCalculator::calcDenseMatches(std::vector<cv::Mat> &frames, const Object &object) {
+
+    double t0 = getTickCount();
+
+#pragma omp parallel for
+    for (int i = 0; i < 2; i++) {
+        if (frames[i].channels() != 1) {
+            cvtColor(frames[i], this->frames[i], COLOR_BGR2GRAY);
+        } else {
+            this->frames[i] = frames[i].clone();
+        }
+        this->masks[i] = object.masks[i]; //.clone();
+
+//         this->texturedRegions[i] = masks[i].clone();
+        this->texturedRegions[i] = this->calcTexturedRegion(this->frames[i], this->masks[i]);
+    }
+
+    // SHIFT
+    Point optimalShift;
+    if (object.matches.size() >= 2) {
+        vector<Point2f> vectors;
+        for (int i = 0; i < object.matches.size(); i++) {
+            vectors.push_back(object.matches[i].second - object.matches[i].first);
+        }
+        Point2f v = magicVector(vectors);
+        optimalShift = Point(cvRound(v.x), cvRound(v.y));
+
+        std::cout << "[" << std::setw(20) << "OFCalculator" << "] " << "SHIFT: " << optimalShift << endl;
+        shiftFrame(1, -optimalShift);
+    } else {
+        std::cerr << "[" << std::setw(20) << "OFCalculator" << "] " << "Not enough matches, no shifting!" << endl;
+    }
+
+//    Rect unified = boundingRect(this->masks[0]) | boundingRect(this->masks[1]);
+//    Mat merged = mergeImagesVertically(this->frames[0](unified), this->frames[1](unified));
+//    imwrite("/media/balint/Data/Linux/diploma/after_shift.png", merged);
+
+//    imshow("frame1", this->frames[0]);
+//    imshow("frame2", this->frames[1]);
+
+    // --------------------
+
+//    Rect br0 = boundingRect(this->masks[0]);
+//    Rect br1 = boundingRect(this->masks[1]);
+//    Rect uni = br0 | br1;
+//    Mat frame0 = frames[0].clone();
+//    Mat frame1 = frames[1].clone();
+//    rectangle(frame0, uni.tl(), uni.br(), Scalar(0, 0, 255), 2, LINE_AA);
+//    rectangle(frame0, br0.tl(), br0.br(), Scalar(0, 255, 255), 1, LINE_AA);
+//    rectangle(frame1, uni.tl(), uni.br(), Scalar(0, 0, 255), 2, LINE_AA);
+//    rectangle(frame1, br1.tl(), br1.br(), Scalar(0, 255, 255), 1, LINE_AA);
+//    imwrite("/media/balint/Data/Linux/diploma/of_img_left_framed.png", frame0);
+//    imwrite("/media/balint/Data/Linux/diploma/of_img_right_framed.png", frame1);
+
+    // texturazott cuccok...
+//    Rect br0 = boundingRect(this->masks[0]);
+//    Rect br1 = boundingRect(this->masks[1]);
+//    Mat textures = mergeImages(this->texturedRegions[0](br0), this->texturedRegions[1](br1));
+//    imshow("textures", textures);
+//    imwrite("/media/balint/Data/Linux/diploma/textures.png", textures);
+
+
+    t0 = ((double) getTickCount() - t0) / getTickFrequency();
+    std::cout << "[" << std::setw(20) << "OFCalculator" << "] " << "Feed init done in " << t0 << "s" << std::endl;
+    std::cout.flush();
+
+    std::vector<Mat> flows = this->calcOpticalFlows();
+
+    pair<vector<Point2f>, vector<Point2f>> matches = collectMatchingPoints(flows);
+
+//    this->visualizeMatches(points1, points2);
+
+    // move the points to their original location
+    for (int i = 0; i < matches.second.size(); i++) {
+        matches.second[i] += Point2f(optimalShift);
+    }
+
+//    this->visualizeMatches(frames[0], points1, frames[1], points2);
+
+    return matches;
+}
+
+Mat OpticalFlowCalculator::calcTexturedRegion(const Mat frame, const Mat mask) const {
     // H(σ(Iy - Ix) - ε)
     int ksize = 1;
 
-    texturedRegions.create(frame.rows, frame.cols, CV_8U);
-    texturedRegions.setTo(0);
+    Mat texturedRegion(frame.rows, frame.cols, CV_8U, Scalar(0));
 
     Rect roi(boundingRect(mask));
 
@@ -58,15 +138,19 @@ void OpticalFlowCalculator::calcTexturedRegions(const Mat frame, const Mat mask,
             double sigma2 = tmp / values.size();
 
             if (sigma2 > EPSILON_TEXTURE) {
-                texturedRegions.at<uchar>(y, x) = 255;
+                texturedRegion.at<uchar>(y, x) = 255;
             }
         }
     }
+
+    return texturedRegion;
 }
 
-double OpticalFlowCalculator::calcOpticalFlow() {
+std::vector<Mat> OpticalFlowCalculator::calcOpticalFlows() const {
 
-    Mat flows[2];
+    double t0 = getTickCount();
+
+    std::vector<Mat> flows(2);
     Mat _flows[2];
 
     // find a common bounding rect to simplify the OF
@@ -89,30 +173,29 @@ double OpticalFlowCalculator::calcOpticalFlow() {
 //    this->visualizeOpticalFlow(frames[1], masks[1], frames[0], masks[0], flows[1], "flow21");
 
     // collecting matching points using optical flow
-    collectMatchingPoints(flows[0], flows[1], unified, points1, points2);
 
-    std::cout << "[" << std::setw(20) << "OFCalculator" << "] found matches using OF: " << points1.size() << std::endl;
+    t0 = ((double) getTickCount() - t0) / getTickFrequency();
+    std::cout << "[" << std::setw(20) << "OFCalculator" << "] Optical flows have been calculated in " << t0 << "s" << std::endl;
     std::cout.flush();
-
-    Point2f avgMovement(this->calcAverageMovement(points1, points2));
-
-    double length = norm(avgMovement);
-    cout << "[" << std::setw(20) << "OFCalculator" << "] avgMovementLength: " << length << endl;
-    cout.flush();
 
 //    visualizeMatchesROI(frames[0], points1, frames[1], points2);
 
-    return length;
+    return flows;
 }
 
-void OpticalFlowCalculator::collectMatchingPoints(const Mat &flow, const Mat &backFlow, const Rect &roi,
-                                                  vector<Point2f> &points1, vector<Point2f> &points2) {
-    points1.clear();
-    points2.clear();
+pair<vector<Point2f>, vector<Point2f>> OpticalFlowCalculator::collectMatchingPoints(const vector<Mat> &flows) const {
+    double t0 = getTickCount();
 
-//    double t0 = getTickCount();
+    Rect rect0(boundingRect(masks[0]));
+    Rect rect1(boundingRect(masks[1]));
+    Rect roi(rect0 | rect1);
+
+    vector<Point2f> points1, points2;
 
     Rect imageArea(Point(0, 0), masks[1].size());
+
+    const Mat &flow = flows[0];
+    const Mat &backFlow = flows[1];
 
 #pragma omp parallel for collapse(2)
     for (int y = roi.tl().y; y <= roi.br().y; y++) {
@@ -142,14 +225,15 @@ void OpticalFlowCalculator::collectMatchingPoints(const Mat &flow, const Mat &ba
                         }
                     }
                 }
-
             }
         }
     }
 
-//    t0 = ((double) getTickCount() - t0) / getTickFrequency();
-//    std::cout << "collect Done in " << t0 << "s" << std::endl;
-//    std::cout.flush();
+    t0 = ((double) getTickCount() - t0) / getTickFrequency();
+    std::cout << "[" << std::setw(20) << "OFCalculator" << "] Found matches: " << points1.size() << " in " << t0 << "s" << std::endl;
+    std::cout.flush();
+
+    return make_pair(points1, points2);
 }
 
 // -----------------
@@ -258,18 +342,6 @@ void OpticalFlowCalculator::visualizeMatchesROI(cv::Mat const &img1, std::vector
 //    imwrite("/media/balint/Data/Linux/diploma/vis_full.png", vis);
 }
 
-
-cv::Point2f OpticalFlowCalculator::calcAverageMovement(const std::vector<cv::Point2f> &points1,
-                                                       const std::vector<cv::Point2f> &points2) const {
-
-    Point2f sum(0.0, 0.0);
-
-    for (int i = 0; i < points1.size(); i++) {
-        sum += (points2[i] - points1[i]);
-    }
-
-    return sum / ((int) points1.size());
-}
 
 void OpticalFlowCalculator::shiftFrame(int i, Point shift) {
     Rect currentBoundingRect(boundingRect(this->masks[i]));

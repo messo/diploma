@@ -7,7 +7,7 @@ using namespace cv;
 using namespace std;
 
 
-bool ReportOpticalFlowCalculator::feed(std::vector<cv::Mat> &frames, std::vector<cv::Mat> &masks) {
+pair<vector<Point2f>, vector<Point2f>> ReportOpticalFlowCalculator::calcDenseMatches(std::vector<cv::Mat> &frames, const Object &object) {
 
     double t0 = getTickCount();
 
@@ -18,10 +18,10 @@ bool ReportOpticalFlowCalculator::feed(std::vector<cv::Mat> &frames, std::vector
         } else {
             this->frames[i] = frames[i].clone();
         }
-        this->masks[i] = masks[i].clone();
+        this->masks[i] = object.masks[i].clone();
 
 //         this->texturedRegions[i] = masks[i].clone();
-        this->calcTexturedRegions(this->frames[i], this->masks[i], this->texturedRegions[i]);
+        this->calcTexturedRegion(this->frames[i], this->masks[i], this->texturedRegions[i]);
     }
 
     // SHIFTING....
@@ -63,22 +63,26 @@ bool ReportOpticalFlowCalculator::feed(std::vector<cv::Mat> &frames, std::vector
     std::cout << "Feed init done in " << t0 << "s" << std::endl;
     std::cout.flush();
 
-    this->calcOpticalFlow();
+    std::vector<Mat> flows = this->calcOpticalFlows();
+    std::pair<std::vector<Point2f>, std::vector<Point2f>> matches = collectMatchingPoints(flows);
+
+    visualizeMatchesROI(frames[0], matches.first, frames[1], matches.second);
+
+    std::cout << matches.first.size() << std::endl;
+    std::cout.flush();
 
 //    this->visualizeMatches(points1, points2);
 
     // move the points to their original location
-    for (int i = 0; i < points1.size(); i++) {
-        //points2[i] += Point2f(optimalShift);
+    for (int i = 0; i < matches.second.size(); i++) {
+        //matches.second[i] += Point2f(optimalShift);
     }
 
-//    this->visualizeMatches(frames[0], points1, frames[1], points2);
-
-    return true;
+    return matches;
 }
 
-double ReportOpticalFlowCalculator::calcOpticalFlow() {
-    Mat flows[2];
+std::vector<cv::Mat> ReportOpticalFlowCalculator::calcOpticalFlows() const {
+    std::vector<cv::Mat> flows(2);
     Mat _flows[2];
 
     // find a common bounding rect to simplify the OF
@@ -106,31 +110,24 @@ double ReportOpticalFlowCalculator::calcOpticalFlow() {
     //smoothedFlow.copyTo(flow2);
 
     // collecting matching points using optical flow
-    collectMatchingPoints(flows[0], flows[1], unified, points1, points2);
 
-    std::cout << points1.size() << std::endl;
-    std::cout.flush();
-
-    Point2f avgMovement(this->calcAverageMovement(points1, points2));
-
-    double length = norm(avgMovement);
-    cout << avgMovement << ": " << length << endl;
-    cout.flush();
-
-    visualizeMatchesROI(frames[0], points1, frames[1], points2);
-
-    return length;
+    return flows;
 }
 
-void ReportOpticalFlowCalculator::collectMatchingPoints(const cv::Mat &flow, const cv::Mat &backFlow,
-                                                        const cv::Rect &roi, std::vector<cv::Point2f> &points1,
-                                                        std::vector<cv::Point2f> &points2) {
-    points1.clear();
-    points2.clear();
+std::pair<std::vector<cv::Point2f>, std::vector<cv::Point2f>> ReportOpticalFlowCalculator::collectMatchingPoints(const std::vector<cv::Mat> &flows) const {
+
+    Rect rect0(boundingRect(masks[0]));
+    Rect rect1(boundingRect(masks[1]));
+    Rect roi(rect0 | rect1);
+
+    std::vector<Point2f> points1, points2;
 
 //    double t0 = getTickCount();
 
     Rect imageArea(Point(0, 0), masks[1].size());
+
+    const Mat &flow = flows[0];
+    const Mat &backFlow = flows[1];
 
     for (int y = roi.tl().y; y <= roi.br().y; y++) {
         for (int x = roi.tl().x; x <= roi.br().x; x++) {
@@ -159,5 +156,6 @@ void ReportOpticalFlowCalculator::collectMatchingPoints(const cv::Mat &flow, con
             }
         }
     }
-}
 
+    return make_pair(points1, points2);
+}

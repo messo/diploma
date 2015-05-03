@@ -11,10 +11,10 @@
 #include "calibration/CameraPoseCalculator.h"
 #include "mask/OFForegroundMaskCalculator.h"
 #include "object/MultiObjectSelector.h"
+#include "optical_flow/OpticalFlowCalculator.h"
 #include "optical_flow/ReportOpticalFlowCalculator.h"
 #include "Triangulator.h"
 #include "Visualization.h"
-#include "optical_flow/SpatialOpticalFlowCalculator.h"
 
 using namespace cv;
 using namespace std;
@@ -166,7 +166,7 @@ int main(int argc, char **argv) {
 
     imshow("objects", merged);
 
-    SpatialOpticalFlowCalculator calculator(camera[0], camera[1], F);
+    OpticalFlowCalculator calculator;
 
     std::vector<CloudPoint> finalResult;
     std::vector<Point2f> totalPoints;
@@ -175,15 +175,15 @@ int main(int argc, char **argv) {
         imshow("OriginalFrame1", frames[0]);
         imshow("OriginalFrame2", frames[1]);
 
-        calculator.feed(frames, objects[i]);
+        std::pair<std::vector<Point2f>, std::vector<Point2f>> matches = calculator.calcDenseMatches(frames, objects[i]);
 
         Triangulator triangulator(camera[Camera::LEFT], camera[Camera::RIGHT],
                                   cameraPose[Camera::LEFT], cameraPose[Camera::RIGHT]);
 
         std::vector<CloudPoint> cvPointcloud;
-        triangulator.triangulateCv(calculator.points1, calculator.points2, cvPointcloud);
+        triangulator.triangulateCv(matches.first, matches.second, cvPointcloud);
 
-        totalPoints.insert(totalPoints.end(), calculator.points1.begin(), calculator.points1.end());
+        totalPoints.insert(totalPoints.end(), matches.first.begin(), matches.first.end());
         finalResult.insert(finalResult.end(), cvPointcloud.begin(), cvPointcloud.end());
 
 //        Visualization matVis(cameraPose[Camera::LEFT], camera[Camera::LEFT]->cameraMatrix);
