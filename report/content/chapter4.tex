@@ -357,7 +357,7 @@ Végül a kapott párosításokat a fundamentális mátrix segítségével valid
 
 Ezt követően a blobokat a következőképpen párosítom. Veszem azt a képet, amelyiken több blob van, mint a másikon (ha ugyanannyi, akkor a választás tetszőleges), majd egyesével az itt lévő blobokhoz megkeresem, hogy a benne lévő párosításbeli pontok párjainak többségét melyik másik képen lévő blob tartalmazza. Így kapok egy projekciót a több elemű halmazból a kisebbe. Nem feltétlen lesz minden blobnak párja (nem tartalmaz \textit{feature} pontot), valamint lehet, hogy több különböző blob is ugyanahhoz a blobhoz fog tartozni, ekkor ezeket eggyesítem. Így a végén a blobok egy részhalmazához egy kölcsönösen egyértelmű relációt, párosítást kapok, ezek jelölik ugyanazon objektum két maszkját a két képen. %\Aref{fig:multi-obj-matches} képrészleten látható objektumok esetén például a 367 talált párosításból a 1 objektumhoz tartozó maszkból atból összesen 30 volt két nem egymáshoz tartozó blobok között
 
-Annak érdekében, hogy a következő lépéseket könnyebben tudjam tesztelni, aktívan fogom használni a csak egy objektum detekciójára képes algoritmust is, ezért a két megoldásnak interoperábilisnak kell lennie. Tehát mindkettő egy közös \texttt{ObjectSelector} absztrakt osztályból származik, lásd \ref{fig:cd:objectselector}. ábra. Későbbiekben fogjuk látni, hogy ennél a módszernél is jó, ha meghatározzuk az egymásnak megfelelő pontokat, így végülis mindkettő megkapja konstruktorában a \texttt{Matcher} osztály egy példányát, melyet a \texttt{ObjectSelector} őriz. A \texttt{Matcher} két képkockából és az előtér maszkokból meghatározza az egymásnak megfelelő pontokat, melyeket pontpáros listájaként ad vissza. Konstruktorában azért, hogy a találatokat szűrni tudja megkapja a kamera objektumokat és a fundamentális mátrixot. Mindkét konkrét \texttt{ObjectSelector} megvalósítás \texttt{Object} listával tér vissza, mely tartalmazza a két maszkot a két képen, valamint az összetartozó pontokat.
+Annak érdekében, hogy a következő lépéseket könnyebben tudjam tesztelni, aktívan fogom használni a csak egy objektum detekciójára képes algoritmust is, ezért a két megoldásnak interoperábilisnak kell lennie. Tehát mindkettő egy közös \texttt{ObjectSelector} absztrakt osztályból származik, lásd \ref{fig:cd:objectselector}. ábra. Későbbiekben fogjuk látni, hogy ennél a módszernél is jó, ha meghatározzuk az egymásnak megfelelő pontokat, így végülis mindkettő megkapja konstruktorában a \texttt{Matcher} osztály egy példányát, melyet a \texttt{ObjectSelector} őriz. A \texttt{Matcher} két képkockából és az előtér maszkokból meghatározza az egymásnak megfelelő pontokat ORB-bal, melyeket pontpáros listájaként ad vissza. Konstruktorában azért, hogy a találatokat szűrni tudja megkapja a kamera objektumokat és a fundamentális mátrixot. Mindkét konkrét \texttt{ObjectSelector} megvalósítás \texttt{Object} listával tér vissza, mely tartalmazza a két maszkot a két képen, valamint az összetartozó pontokat.
 
 
 \begin{figure}[tbh]
@@ -639,8 +639,6 @@ Ezen három vizualizációjának eredménye a bal oldali kamera nézpontjából 
 
 Ahogy \aref{chapter3}. fejezetben említettem, a választott nézőpont, ahonnan érdemes lehet rekonstruálni az objektumot, a két kamera nézőpont között helyezkedhet el. Tehát a két kamera között szeretném interpolálni a virtuális kamera helyzetét és irányát, és innen elvégezni a vetítést. Fontos, hogy nem elég csak a kamera helyzetét ($\mathbf{t_v}$), a forgatási mátrixát ($\mathbf{R_v}$) is meg kell határozni. Jelölje $r \in [0; 1]$ a virtuális kamera pozícióját a pályáján, ahol $r = 0$, ha a bal oldali kamera, és $r = 1$, ha a jobb oldali kamera helyzetében van. Ekkor a virtuális kamera eltolási vektora $\mathbf{t_v} = (1-r)\mathbf{t_b} + r\mathbf{t_j}$, ahol $\mathbf{t_v}$ jelöli a bal oldali, $\mathbf{t_j}$ a jobb oldali kamera eltolási vektorát. \cite{quaternion} alapján célszerű a forgatási mátrixok (vagy akár az ebből nyerhető Euler-szögek) helyett kvanterniókra áttérni, és ezek között úgynevezett gömbi lineáris interpolációval (\textit{slerp}) kiszámolni a kívánt köztes lépést. Ennek implementációját az Eigen \cite{eigenweb} alkalmazáskönyvtárral valósítottam meg. Először az OpenCV-s \texttt{cv::Mat} mátrix objektumokat Eigen-es \texttt{Eigen::Matrix} objektumokká konvertáltam, majd ezeket már az API-t használva kvaterniókká alakítva a \texttt{slerp()} metódus segítségével egy köztes kvaterniót interpoláltam. Végül ezt visszaalakítottam OpenCV-s mátrix-szá ($\mathbf{R_v}$), amit fel tudtam használni a pontok vetítésénél.
 
-Ezt a logikát a \texttt{Visualization} osztályban implementáltam, mely konstruktorában vár egy \texttt{CameraPose} példányt (eltolási vektor és forgatási mátrix), valamint egy kamera-mátrixot. 4 további metódusa van, ebből a fenti 3 megjelenítési típust valósítja meg, az utolsó pedig visszaadja magát az elkészült képet. Az áttekintő osztálydiagramot \aref{fig:cd:visualization}. ábra mutatja be.
-
 \begin{figure}[tbh]
 \centering
 
@@ -666,14 +664,234 @@ Ezt a logikát a \texttt{Visualization} osztályban implementáltam, mely konstr
 \caption{Vizualizációs osztály \label{fig:cd:visualization}}
 \end{figure}
 
+Ezt a logikát a \texttt{Visualization} osztályban implementáltam, mely konstruktorában vár egy \texttt{CameraPose} példányt (eltolási vektor és forgatási mátrix), valamint egy kamera-mátrixot. 4 további metódusa van, ebből a fenti 3 megjelenítési típust valósítja meg, az utolsó pedig visszaadja magát az elkészült képet. Az áttekintő osztálydiagramot \aref{fig:cd:visualization}. ábra mutatja be.
+
 %----------------------------------------------------------------------------
-\section{Teljes folyamat egybe, eredmények, mérések, értékelés {\color{red} külön fejezet?}}
+\section{Teljes folyamat együtt, implementációk kiválasztása}
 %----------------------------------------------------------------------------
 
-{\color{red} Algoritmusok választása!!!}
+Egy képkockapár feldolgozásának a folyamata látható \aref{fig:sd:objects}. és \aref{fig:sd:tria}. ábrákon. Az első ábra mutatja be a képkockák lekérésétől az objektumok lekéréséig a folyamatot, a második pedig az objektumok rekonstruálását és vizualizációját.
+
+\begin{figure}[tbh]
+\centering
+
+\resizebox{\textwidth}{!}{
+
+\begin{sequencediagram}
+\newthread{m}{: main}
+
+\newinst[0.5]{cam}{: Camera}
+\newinst[0.5]{maskCalc}{: F.MaskCalculator}
+
+\newinst{objSelector}{: ObjectSelector}
+\newinst[1.2]{matcher}{: Matcher}
+
+
+\begin{sdblock}{Kamera ciklus}{mindkét kamerára}
+
+    \begin{call}{m}{read(frame)}{cam}{frame}
+    \end{call}
+    
+    \begin{call}{m}{calculate(frame)}{maskCalc}{mask}
+    \end{call}
+
+\end{sdblock}
+
+\begin{call}{m}{selectObjects(frames, masks)}{objSelector}{objects}
+    
+    \begin{call}{objSelector}{blobok létrehozása}{objSelector}{}
+    \end{call}
+    
+    \begin{call}{objSelector}{match(frames, newMasks)}{matcher}{matches}
+    \end{call}
+
+    \begin{call}{objSelector}{blobok párosítása}{objSelector}{}
+    \end{call}
+
+\end{call}
+
+\end{sequencediagram}
+}
+
+\caption{Szekvencia diagram, mely bemutatja 1 képkocka párra az objektumok kijelöléséhez szükséges lépéseket \label{fig:sd:objects}}
+
+\end{figure}
+
+\begin{figure}[tbh]
+\centering
+
+\begin{sequencediagram}
+
+\tikzstyle{every node}=[font=\small]
+
+\newthread{m}{: main}
+
+\newinst[1]{of}{: OpticalFlowCalculator}
+\newinst{triang}{: Triangulator}
+\newinst{vis}{: Visualization}
+
+
+\begin{sdblock}{Objektum ciklus}{object : objects}
+
+    \begin{call}{m}{calcDenseMatches(frames, object)}{of}{(pts1, pts2)}
+    
+        \begin{call}{of}{calcTexturedRegion(frame, mask)}{of}{}\end{call}
+
+        \begin{call}{of}{calcOpticalFlows()}{of}{flows}\end{call}
+        
+        \begin{call}{of}{collectMatchingPoints(flows)}{of}{(pts1, pts2)}\end{call}
+    
+    \end{call}
+    
+    \begin{call}{m}{triangulateCv(pts1, pts2, pcloud)}{triang}{pcloud}
+    \end{call}
+
+    \begin{call}{m}{pontfelhők összevonása}{m}{}
+    \end{call}
+
+\end{sdblock}
+
+
+\begin{call}{m}{renderWithDepth(pointcloud)}{vis}{}
+\end{call}
+    
+\end{sequencediagram}
+
+\caption{Szekvencia diagram, mely bemutatja objektumonként történő rekonstrukciót, majd a vizualizációt \label{fig:sd:tria}}
+
+\end{figure}
+
+Az előző szekciókban felvázolt lépéseknél 3 helyen készítettem 2 különböző implementációt, ezek között az alábbiak szerint döntöttem. Az előtér maszk meghatározásához végül az \texttt{OFForegroundMaskCalculator}t választottam. Ugyan tovább tart, mint a párja, viszont sokkal pontosabb maszkot eredményez, ami jobb rekonstrukciót tesz lehetővé. A \texttt{MOG2ForegroundMaskCalculator} által kiszámolt előterek nagyon hiányosak voltak, és nem sikerült a paraméterezését úgy módosítanom, hogy ez javuljon. Az objektumdetekcióhoz természetesen a \texttt{MultiObjectSelector}-t választottam, hiszen a másik csak tesztelés miatt került implementálásra, hogy két képkockáról gyorsan kapjak egy objektumot, amire a további lépéseket végrehajthatom. A \texttt{Triangulator} osztály esetén pedig az OpenCV-s metódust választottam (\texttt{triangulateCv}), mert csak kicsit pontatlanabb ({\color{red} átlagos reprojection error??}), ellenben jóval gyorsabb (átlagosan 5-ször), mint az iteratív megoldás.
+
+
+% -------------------------------------------------------
+\section{Első mérések}
+% -------------------------------------------------------
+
+A teszteket egy olyan számítógépen végeztem, amiben egy Intel\textsuperscript{\textregistered} Core\texttrademark{} i5-4440 processzor és 8GB memória volt, és a kódot Linux operációs rendszerre fordítottam és azon futtattam.
+
+Elsőként egy olyan jeleneten próbáltam ki az elkészült alkalmazást, amely esetén a két kamera egymás mellett van (lásd \ref{fig:scene1_camerapose}. ábra), egy irányba néznek, és két teás dobozt mozgatok előttük. A jelenet 178 képkockából áll (\textasciitilde 5 másodperc), melyből 3 látható \aref{fig:scene1_frames}. ábrán. Az alkalmazást lefuttatva erre a jelenetre \aref{table:result_scene1_single}. táblázatban látható időket kaptam, lebontva a fontosabb lépésekre sorrendben, majd a teljes folyamatra is nézve. \Aref{fig:scene1_stats}. ábrán jól látszódik az egyes folyamatok megoszlása az egészre nézve. A legtöbb időt az optikai folyam meghatározása viszi el, utána az előtér maszkok, majd a textúrázottság meghatározása. A teljes folyamat átlaga alapján 1 képkockapár rekonstrukciója majdnem 1 másodperc volt, azaz kb. 1,1 FPS sebességgel lehet rekonstruálni ezzel a megközelítéssel. Ezen a következő szekcióban javítunk.
+
+\begin{figure}[tbh]
+\centering
+\includegraphics[width=300pt]{figures/scene1_camerapose.jpg}
+\caption{Kamerák helyzete az első jelenetnél \label{fig:scene1_camerapose}}
+\end{figure}
+
+\begin{figure}[tbh]
+\centering
+\begin{subfigure}[b]{.32\linewidth}
+	\centering
+	\includegraphics[width=135pt]{figures/left_93.png}
+  \end{subfigure}
+\begin{subfigure}[b]{.32\linewidth}
+	\centering
+	\includegraphics[width=135pt]{figures/left_153.png}
+  \end{subfigure}
+\begin{subfigure}[b]{.32\linewidth}
+	\centering
+	\includegraphics[width=135pt]{figures/left_223.png}
+  \end{subfigure}\\\vspace{5pt}
+\begin{subfigure}[b]{.32\linewidth}
+	\centering
+	\includegraphics[width=135pt]{figures/vis_93.png}
+  \end{subfigure}
+\begin{subfigure}[b]{.32\linewidth}
+	\centering
+	\includegraphics[width=135pt]{figures/vis_153.png}
+  \end{subfigure}
+\begin{subfigure}[b]{.32\linewidth}
+	\centering
+	\includegraphics[width=135pt]{figures/vis_223.png}
+  \end{subfigure}
+\caption{A bal oldali kamera 3 képkockája (40., 100. és 170. képkocka) az első jelenetből, valamint a helyreállított képek a baloldali kamera nézőpontjából \label{fig:scene1_frames}}
+\end{figure}
+
+\begin{table}[tbh]
+\centering
+
+\begin{tabular}{|l|l|l|l|l|}
+\hline
+\multirow{2}{*}{Tevékenység képkockánként} & \multicolumn{4}{ |c| }{Eltöltött idő (s)} \\\cline{2-5}
+ & min & max & átlag & szórás \\ \hline\hline
+
+Előtér maszk (2 kamerára) & 0.039 & 0.229 & 0.178 & 0.0122 \\ \hline
+Pontpárosítások ORB-bal & 0.0194 & 0.0629 & 0.0235 & 0.00474 \\ \hline
+Objektumok párosítása & 0.0362 & 0.146 & 0.0583 & 0.0101 \\ \hline
+
+Textúrázottság meghatározása & 0.0391 & 0.251 & 0.163 & 0.043 \\ \hline
+Optikai folyam oda-vissza & 0.149 & 0.6 & 0.427 & 0.103 \\ \hline
+Sűrű pontmegfeleltetések & 0.00222 & 0.0173 & 0.0119 & 0.00282 \\ \hline
+
+Háromszögelés & 0.0008 & 0.0855 & 0.0587 & 0.0147 \\ \hline
+Vizualizáció & 0.00226 & 0.0162 & 0.00845 & 0.00165 \\
+\hline \hline
+Teljes folyamat & 0.0695 & 1.16 & 0.908 & 0.17 \\ \hline
+\end{tabular} 
+
+\caption{Első jelenet esetén az egyes lépések futási idejükhöz kapcsolódó statisztikái (178 képkocka) \label{table:result_scene1_single}}
+\end{table}
+
+\definecolor{color1}{HTML}{4D4D4D}
+\definecolor{color2}{HTML}{5DA5DA}
+\definecolor{color3}{HTML}{FAA43A}
+\definecolor{color4}{HTML}{60BD68}
+\definecolor{color5}{HTML}{F17CB0}
+\definecolor{color6}{HTML}{B2912F}
+\definecolor{color7}{HTML}{B276B2}
+\definecolor{color8}{HTML}{DECF3F}
+\definecolor{color9}{HTML}{F15854}
+
+\begin{figure}[tbh]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+    xbar stacked,
+    legend style={
+    legend columns=3,
+        at={(xticklabel cs:0.5)},
+        anchor=north,
+        draw=none
+    },
+    ytick=data,
+    axis y line*=none,
+    axis x line*=bottom,
+    tick label style={font=\footnotesize},
+    legend style={font=\footnotesize},
+    label style={font=\footnotesize},
+    xtick={0.25, 0.5, 0.75, 1},
+    width=.9\textwidth,
+    bar width=6mm,
+    xlabel={Idő másodpercben},
+    yticklabels={átlag idők},
+    xmin=0,
+    xmax=1,
+    area legend,
+    y=8mm,
+    enlarge y limits={abs=0.625},
+    legend cell align=left
+]
+\addplot[color1,fill=color1!40] coordinates {(0.178,0)};
+\addplot[color2,fill=color2!40] coordinates {(0.0235,0)};
+\addplot[color3,fill=color3!40] coordinates {(0.0583,0)};
+\addplot[color4,fill=color4!40] coordinates {(0.163,0)};
+\addplot[color5,fill=color5!40] coordinates {(0.427,0)};
+\addplot[color6,fill=color6!40] coordinates {(0.0119,0)};
+\addplot[color7,fill=color7!40] coordinates {(0.0587,0)};
+\addplot[color8,fill=color8!40] coordinates {(0.00845,0)};
+
+\legend{Előtér maszk, Pontpárosítások ORB-bal, Objektumok párosítása, Textúrázottság meghatározása, Optikai folyam oda-vissza, Sűrű pontmegfeleltetések, Háromszögelés, Vizualizáció}
+\end{axis}  
+
+\end{tikzpicture}
+\caption{Első jelenet esetén az egyes lépések képkockánti átlagos időigénye másodpercben \label{fig:scene1_stats}}
+\end{figure}
 
 %----------------------------------------------------------------------------
 \section{Párhuzamosítás, többszálúsítás, újra-kalkulált eredmények}
 %----------------------------------------------------------------------------
 
 
+%----------------------------------------------------------------------------
+\section{Értékelés}
+%----------------------------------------------------------------------------
