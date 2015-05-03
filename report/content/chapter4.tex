@@ -211,7 +211,7 @@ Megfigyelhető, hogy a bal oldali dobozhoz tartozó maszk része annyira zajos v
 \end{figure}
 
     %----------------------------------------------------------------------------
-    \subsubsection{Előtér meghatározása optikai folyamokkal}
+    \subsubsection{Előtér meghatározása optikai folyamokkal \label{sec:of-mask}}
     %----------------------------------------------------------------------------
     
 Másik megközelítésem, hogy már az előtér meghatározásához is az optikai folyamokat hívom segítségül. 
@@ -329,19 +329,33 @@ Ehhez először szükség van az összefüggő komponensek kiválasztására. K�
 
 A következő feladat, amit meg kell oldanom, az több objektum együttes detekciója, úgy, hogy a két képen az egymásnak megfelelő blobokat párosítsam. Ehhez jellegzetes pontokat, és ezekhez tartozó leírókat keresek, illetve számolok ki a képi információkból.
 
-A szakirodalomban több algoritmust is találhatunk, mely vagy a jellegzetes pontok (\textit{feature}) detektálásában (pl. FAST \cite{FAST}, MSER \cite{MSER}), vagy ezen pontokhoz tartozó leírók (\textit{feature descriptor}) kinyerésében (pl. FREAK \cite{FREAK}), vagy mindkettőre használhatóak (pl. ORB \cite{ORB}, SIFT \cite{SIFT} és SURF \cite{SURF}). SIFT és a SURF a tradícionális leírók közé sorolhatóak abban a tekintetben, hogy vektor-alapú leírokat készítenek, ellenben az újabbakkal, amelyek bináris-füzéreket. Előbbi algoritmusok kiszámolása idő- és erőforrásigényes, valós idejű, valamint mobil eszközökön történő alkalmazásra nem alkalmasak, ellenben utóbbiak igen, és a kinyert leírók összehasonlítása is gyors (Hamming-távolság). Dolgozatomnak nem célja ezek mélgyreható vizsgálata és rangsorolása, de \cite{feature-detection-comparison} alapján a FAST-ot választottam detekcióhoz és a FREAK-et a leírók kinyeréséhez, mert \cite{FREAK}-ben meggyőzőek voltak az eredmények.
+A szakirodalomban több algoritmust is találhatunk, mely vagy a jellegzetes pontok (\textit{feature}) detektálásában (pl. FAST \cite{FAST}, MSER \cite{MSER}), vagy ezen pontokhoz tartozó leírók (\textit{feature descriptor}) kinyerésében (pl. FREAK \cite{FREAK}), vagy mindkettőre használhatóak (pl. ORB \cite{ORB}, SIFT \cite{SIFT} és SURF \cite{SURF}). SIFT és a SURF a tradícionális leírók közé sorolhatóak abban a tekintetben, hogy vektor-alapú leírokat készítenek, ellenben az újabbakkal, amelyek bináris-füzéreket. Előbbi algoritmusok kiszámolása idő- és erőforrásigényes, valós idejű, valamint mobil eszközökön történő alkalmazásra kevésbéalkalmasak, ellenben utóbbiak igen, és a kinyert leírók összehasonlítása is gyors (Hamming-távolság). Dolgozatomnak nem célja ezek mélyreható vizsgálata és rangsorolása, de \cite{feature-detection-comparison} alapján először a FREAK-ket próbáltam meg alkalmazni több különböző forgatás- és skálainvariáns detektor által visszaadott kulcspontokra, sajnos kevés sikerrel. Minden bizonnyal a paraméterezést rontottam el, de nem sikerült javítanom a végeredményen. \cite{ORB} után az ORB-ot próbáltam ki, és már kielégítő eredményt kaptam, hasonlóan a SURF-fel végzett kísérletekhez, ellenben jóval kevesebb idő alatt, így ennél maradtam.
 
-Miután mindkét képen megkerestem a jellegzetes pontjaikat, és kinyertem hozzájuk a leírókat, ezeket párosítani kell. Ehhez használhatunk brute-force módszert (mindent mindennel összehasonlítva és kiválasztva a legközelebbit), vagy a FLANN (Fast Approximate Nearest Neighbor Search Library \cite{flann_pami_2014}) könyvtárat, melyhez OpenCV-ben is elkészült az interfész \cite{opencv-flann}. Ez első sorban arra használható, hogy gyorsan tudjunk több dimenziós vektortérben egy vektorhoz megkeresni a hozzá legközelebbi vektort, amely SIFT és SURF esetben ideális, de használható bináris leírókhoz is \cite{flann-binary}. Mivel a halmaz mérete, ahol a párosítást keressük, nem olyan nagy, hogy a brute-force módszer hátránya kiütközzön, ezért emellett maradtam, melynek OpenCV-ben az implementációját a \texttt{cv::BFMatcher} osztályban találjuk.
+Miután mindkét képen megkerestem a jellegzetes pontokat, és kinyertem hozzájuk a leírókat, ezeket párosítanom kell. Ehhez használhatunk brute-force módszert (mindent mindennel összehasonlítva és kiválasztva a legközelebbit), vagy a FLANN (Fast Approximate Nearest Neighbor Search Library \cite{flann_pami_2014}) könyvtárat, melyhez OpenCV-ben is elkészült az interfész \cite{opencv-flann}. Ez első sorban arra használható, hogy gyorsan tudjunk több dimenziós vektortérben egy vektorhoz megkeresni a hozzá legközelebbi vektort, amely SIFT és SURF esetben ideális, de használható bináris leírókhoz is \cite{flann-binary}. Mivel a halmaz mérete, ahol a párosítást keressük, nem olyan nagy, hogy a brute-force módszer hátránya kiütközzön, ezért emellett maradtam, melynek OpenCV-ben az implementációját a \texttt{cv::BFMatcher} osztályban találjuk.
 
-Végül a kapott párosításokat a fundamentális mátrix segítségével validálom és kiszűröm, vagyis megnézem, hogy a már használt epipoláris ($\mathbf{u}'^T \mathbf{F} \mathbf{u} = 0$) kényszer egy adott hibahatáron belül teljesül-e. Gondoljuk meg, hogy ettől még maradhat teljesen rossz párosítás is a halmazban, hiszen az adott ponthoz csak azt nézi meg, hogy a másik pont rajta van-e a hozzá tartozó epipoláris egyenesen. \Aref{fig:multi-obj-matches}. ábrán látható néhány találat. {\color{red}Megfigyelhető, hogy van olyan egyezőség, amely ugyanazon ismétlődő motívum (teás doboz logója a bal oldali képen) egy részét találta meg két különböző helyen a dobozon, valamint, hogy talál egyezőséget a két doboz között is.}
+Végül a kapott párosításokat a fundamentális mátrix segítségével validálom és kiszűröm, vagyis megnézem, hogy a már használt epipoláris ($\mathbf{u}'^T \mathbf{F} \mathbf{u} = 0$) kényszer egy adott hibahatáron belül teljesül-e. Gondoljuk meg, hogy ettől még maradhat teljesen rossz párosítás is a halmazban, hiszen az adott ponthoz csak azt nézi meg, hogy a másik pont rajta van-e a hozzá tartozó epipoláris egyenesen. \Aref{fig:multi-obj-matches}. ábrán látható a legközelebbi 20 találat. 
 
 \begin{figure}[tbh]
 \centering
-\includegraphics[width=400pt]{figures/multi_obj_matches.png}
-\caption{\color{red} REGGEL JOBBAT!!! RÁZZOMOLVA! Blobok által kijelölt képrészleteken az egymásnak megfelelő pontok keresése (29 találat) \label{fig:multi-obj-matches}}
+
+\begin{tikzpicture}[spy using outlines={circle,white,magnification=3,size=1.5cm, connect spies}]
+
+\node {\includegraphics[width=400pt]{figures/multi_obj_matches.png}};
+\spy on (-5.33,-1.5) in node [left] at (-5.5,0.5);
+\spy on (2.0,-1.58) in node [left] at (4.7,-1.7);
+
+\spy on (-1.8,-0.1) in node [left] at (-2.8,1.7);
+\spy on (5.4,-0.14) in node [left] at (4,1.7);
+
+%\tikzset{help lines/.style={color=blue!50}}
+%\draw[thick,step=1cm,help lines] (-7,-2) grid (7,2);
+
+\end{tikzpicture}
+
+\caption{Blobok által kijelölt képrészleteken az egymásnak megfelelő pontok keresése. A találatok szempontjából érdemi rész látható, a 20 legközelebbi találattal és ezekből 1-1 kiemelve közelről \label{fig:multi-obj-matches}}
 \end{figure}
 
-Ezt követően a blobokat a következőképpen párosítom. Veszem azt a képet, amelyiken több blob van, mint a másikon (ha ugyanannyi, akkor a választás tetszőleges), majd egyesével az itt lévő blobokhoz megkeresem, hogy a benne lévő párosításbeli pontok párjainak többségét melyik másik képen lévő blob tartalmazza. Így kapok egy projekciót a több elemű halmazból a kisebbe. Nem feltétlen lesz minden blobnak párja (nem tartalmaz \textit{feature} pontot), valamint lehet, hogy több különböző blob is ugyanahhoz a blobhoz fog tartozni, ekkor ezeket összevonom egy blobbá. Így a végén a blobok egy részhalmazához egy kölcsönösen egyértelmű relációt, párosítást kapok, ezek jelölik ugyanazon objektum két maszkját a két képen. {\color{red}Párosításért lásd... ábra}
+Ezt követően a blobokat a következőképpen párosítom. Veszem azt a képet, amelyiken több blob van, mint a másikon (ha ugyanannyi, akkor a választás tetszőleges), majd egyesével az itt lévő blobokhoz megkeresem, hogy a benne lévő párosításbeli pontok párjainak többségét melyik másik képen lévő blob tartalmazza. Így kapok egy projekciót a több elemű halmazból a kisebbe. Nem feltétlen lesz minden blobnak párja (nem tartalmaz \textit{feature} pontot), valamint lehet, hogy több különböző blob is ugyanahhoz a blobhoz fog tartozni, ekkor ezeket eggyesítem. Így a végén a blobok egy részhalmazához egy kölcsönösen egyértelmű relációt, párosítást kapok, ezek jelölik ugyanazon objektum két maszkját a két képen. %\Aref{fig:multi-obj-matches} képrészleten látható objektumok esetén például a 367 talált párosításból a 1 objektumhoz tartozó maszkból atból összesen 30 volt két nem egymáshoz tartozó blobok között
 
 Annak érdekében, hogy a következő lépéseket könnyebben tudjam tesztelni, aktívan fogom használni a csak egy objektum detekciójára képes algoritmust is, ezért a két megoldásnak interoperábilisnak kell lennie. Tehát mindkettő egy közös \texttt{ObjectSelector} absztrakt osztályból származik, lásd \ref{fig:cd:objectselector}. ábra. Későbbiekben fogjuk látni, hogy ennél a módszernél is jó, ha meghatározzuk az egymásnak megfelelő pontokat, így végülis mindkettő megkapja konstruktorában a \texttt{Matcher} osztály egy példányát, melyet a \texttt{ObjectSelector} őriz. A \texttt{Matcher} két képkockából és az előtér maszkokból meghatározza az egymásnak megfelelő pontokat, melyeket pontpáros listájaként ad vissza. Konstruktorában azért, hogy a találatokat szűrni tudja megkapja a kamera objektumokat és a fundamentális mátrixot. Mindkét konkrét \texttt{ObjectSelector} megvalósítás \texttt{Object} listával tér vissza, mely tartalmazza a két maszkot a két képen, valamint az összetartozó pontokat.
 
@@ -405,13 +419,11 @@ Annak érdekében, hogy a következő lépéseket könnyebben tudjam tesztelni, 
 \section{Optikai folyam meghatározása}
 %----------------------------------------------------------------------------
 
-{\color{red} Kicsit átírni...}
+\Aref{sec:of-mask}. szekcióban bemutattam, hogyan lehet felhasználni a sűrű optika folyamokat előtér maszk meghatározására, a következőkben pedig azt, hogyan lehet sűrű pontmegfeleltetést meghatározni segítségével a két kamera egy objektumhoz tartozó két képén.
 
-\Aref{chapter2}. fejezetben bemutattam a sűrű optikai folyamok meghatározására Gunner Farnebäck módszerét. Ennek alkalmazását, valamint OpenCV-ben történő implementációjáról lesz szó ebben a részben.
+Előzőekben bemutattam a \texttt{cv::calcOpticalFlowFarneback()} függvényt, és annak néhány paraméterét, amelyeket úgy állítottam be, hogy a lehető leggyorsabban kapjak még használható becslést a mozgásról. Most viszont fontos, hogy amit kapunk eredmény az pontosabb legyen, tehát ezeken kicsit változtatni kell. Ezért 6 szintes piramist (\texttt{levels = 6}), és köztük 0,75-ös skálázást (\texttt{pyr\_scale = 0.75}) állítottam be, hogy a nagyobb mozgásokat is detektálni tudjam. A gaussi zaj feltételezése miatt bekapcsoltam, hogy egyszerű dobozszűrő helyett gaussi filtert használjon az algoritmus, és az ehhez kapcsolódó paramétereket a dokumentációban adott javaslatok alapján állítottam be, valamint emiatt az ablakméretet is növeltem (\texttt{winsize = 21}). A futási idő természetesen függ a kép méretétől, így fontos, hogy kihasználjuk az objektum maszkjából nyerhető információt.
 
-A \texttt{cv::calcOpticalFlowFarneback()} függvény segítségével két képkockán meghatározhatom az optikai folyamot. Az algoritmus jellegéből adódóan nagy mozgásokat nem tud követni, de az implementáció támogatja a piramis-módszert, azaz nagy mozgások esetén a képeket több lépcsőben kicsinyíti, így az eredeti képen lévő nagy mozgások kisebbek lesznek, a kicsik pedig eltűnnek. A futási idő természetesen függ a kép méretétől, így fontos, hogy kihasználjuk az objektum maszkjából nyerhető információt.
-
-A következőkben \aref{fig:of_original}. ábrán látható két képkocka lesz a kiinduló állapot, már az előbbiekben bemutatott előtér maszk által kijelölve. A képkockák két olyan kamera beállításal készültek, ahol a két kamera képsíkja nagyjából egybe esik (egy irányba néznek), és csak víszintes irányban vannak egymáshoz képest eltolva.
+A következőkben \aref{fig:of_original}. ábrán látható két képkocka lesz a kiinduló állapot, már az előbbiekben bemutatott objektum detekció után, az előtér maszk által kijelölve. A képkockák két olyan kamera beállításal készültek, ahol a két kamera képsíkja nagyjából egybe esik (egy irányba néznek), és csak víszintes irányban vannak egymáshoz képest eltolva.
 
 \begin{figure}[tbh]
 \centering
@@ -436,28 +448,7 @@ Első megközelítésem, hogy a két objektum befoglaló téglalapját tekintem,
 
 A következő lépésem, hogy meghatározom azt a vektort, amivel eltolva az egyik képet, az egymásnak megfelelő képpontok elmozdulásai a lehető legkisebbek lesznek. Ehhez először szükségem van néhány egymásnak megfelelő pontpárra.
 
-A SURF (Speeded Up Robust Features \cite{surf}) segítségével a képeken jellegzetes pontokat detektálhatunk és kiszámolhatunk ezek leíró vektorait, mely a pontokat és azok környezetét skála- és forgatás-invariáns módon azonosítja. Utóbbi tulajdonságra szükségünk is van, hiszen az objektumokról a képek más szögben és irányban készülnek. Ennek az implementációját OpenCV-ben a \texttt{cv::SURF} \cite{opencv-surf} osztályban találhatjuk, amely mind a pontok detekcióját, mind azok leírásának módját tartalmazza és megvalósítja.
-
-Miután mindkét képen kinyertem a leíró vektorokat ezeket párosítanom kell. Ehhez a FLANN (Fast Approximate Nearest Neighbor Search Library \cite{flann_pami_2014}) könyvtárat használom, melyhez OpenCV-ben is elkészült az interfész \cite{opencv-flann}. Ennek segítségével gyorsan tudunk több dimenziós vektortérben egy vektorhoz (előzőkben kiszámolt leírók) megkeresni a hozzá legközelebbi vektort.
-
-{\color{red} Valami kis implementációs dolog az osztályokról}
-
-Annak ellenére, hogy a leírók nagyon hasonlóak, a párosításban szerepelhetnek rossz párok. Ismétlődő mintáknál előfordul, hogy két különböző pont képe nagyon közeli leíróvektort kap. Ezen a már használt epipoláris ($\mathbf{u}'^T \mathbf{F} \mathbf{u} = 0$) kényszert érvényesítve segítettem, azaz azokat a párokat kiszűrtem ahol az előző érték egy küszöbértéknél nagyobb. \Aref{fig:flann-matched}. ábrán látható a szűrés előtti és utáni párosítások.
-
-\begin{figure}[tbh]
-\centering
-\begin{subfigure}[b]{.49\linewidth}
-	\centering
-	\includegraphics[width=205pt]{figures/matches_flann.png}
-  \end{subfigure}
-\begin{subfigure}[b]{.49\linewidth}
-	\centering
-	\includegraphics[width=205pt]{figures/matches_f.png}
-  \end{subfigure}
-\caption{Szűrés előtti (100 db) és utáni (25 db) párosítások a SURF és FLANN együttes használatával \label{fig:flann-matched}}
-\end{figure}
-
-Ezek után a párosítások jelentette vektorokból kell meghatároznom azt a vektort, amellyel az egyik képet eltolva az összetartozó pontok közötti távolság minimális. Azaz
+Az objektumok meghatározásánál (legyen az egy vagy több), már meghatároztam néhány egymásnak megfelelő pontot, így ezeket itt fel tudom használni (\texttt{Object::matches}). Ezek után a párosítások jelentette vektorokból kell meghatároznom azt a vektort, amellyel az egyik képet eltolva az összetartozó pontok közötti távolság minimális. Azaz
 
 \[\min_{\mathbf{v}(x, y)} \sum_{i=1}^{n} |\mathbf{v} - \mathbf{d_i}|\]
 
@@ -500,9 +491,33 @@ ahol $\Omega_\mathbf{X}$ jelöli $\mathbf{X}$ képpont egy környezetét, $I_\ma
 
 {\color{red}A kitakart pontok kiszűrésére én \cite{optical-flow-rectification}-től eltérő megközelítést alkalmaztam.} Legyen két képkocka $K_1$ és $K_2$, valamint $F_{1, 2} = \mathcal{F}(K_1, K_2)$ és $F_{2, 1} = \mathcal{F}(K_2, K_1)$, ahol $\mathcal{F}$ jelöli két képkocka közti optikai-folyam operátort, melynek eredménye egy vektormező ($F_{1, 2}, F_{2, 1} : \mathbb{R}^2 \rightarrow \mathbb{R}^2$). Gondoljuk meg, hogy ha $x\in K_1$ és $x + F_{1,2}(x) = x' \in K_2$, akkor $x' + F_{1,2}(x') \approx x \in K_1$, vagyis ha egy $x$ pont $K_1$-ről $K_2$-re az $x'$ pontba mozog, akkor visszafelé nézve $x'$ pontnak ideális esetben $x$ pontba kell, hogy mozogjon. Tehát oda-vissza számolva 1-1 optikai folyamot a kitakart pontokat kiszűrhetjük, hiszen a másik irányban nem fogjuk megtalálni a párosítást.
 
-{\color{red} Valami implementációs dolog az egészről?}
+A fent leírtakat az \texttt{OpticalFlowCalculator} osztályban implementáltam (rövid áttekintő látható \aref{fig:cd:ofcalc}. ábrán). Egy publikus metódusa van \texttt{calcDenseMatches()} néven, mely megkapja a két képkockát és egy objektumot, amelyre a sűrű pontmegfeleltetést szeretnénk számolni. Ez lényegében három dolgot csinál: meghatározza a textúrázott régiókat (\texttt{calcTexturedRegion}) a két képen, meghatározza oda és vissza az optikai folyamokat (\texttt{calcOpticalFlows}), majd ezek alapján meghatározza a párosításokat (\texttt{collectMatchingPoints}).
 
-Miután az előzőekben leírtakat felhasználtam és implementáltam, \aref{fig:vis_full}. ábrán kiemeltem néhány párosítást. Szabad szemmel is jól látható, hogy egész pontos párosításokat kaptam, összesen 16 841-et, tehát ennyi pontpárt tudunk majd a háromszögeléshez felhasználni. Vessük össze ezt a SURF leírókka történő párosításnál nyert 100, majd abból meghagyott 25 párral, számottevő a különbség.
+\begin{figure}[tbh]
+\centering
+
+\begin{tikzpicture} 
+
+\begin{class}[text width=8 cm]{OpticalFlowCalculator}{0, 0}
+
+\attribute{- frames : Mat[]}
+\attribute{- masks : Mat[]}
+\attribute{- texturedRegions : Mat[]}
+
+\operation{- calcTexturedRegion(frame, mask) : Mat}
+\operation{- calcOpticalFlows() : vector<Mat>}
+\operation{- collectMatchingPoints(flows) : pair<vector<Point2f>, vector<Point2f>{}>}
+
+\operation{+ calcDenseMatches(frames, object) : pair<vector<Point2f>, vector<Point2f>{}>}
+
+\end{class}
+
+\end{tikzpicture}
+
+\caption{Sűrű pontmegfeleltetések optikai folyamok segítségével meghatározó \texttt{OpticalFlowCalculator} osztály \label{fig:cd:ofcalc}}
+\end{figure}
+
+Az algoritmust lefuttatva egész pontos párosításokat kaptam, \aref{fig:vis_full}. ábra mutat ezek közül néhányat. Összesen 16 841 pár jött létre, tehát ennyit fogok tudni felhasználni a háromszögeléshez. %Vessük össze ezt a SURF leírókka történő párosításnál nyert 100, majd abból meghagyott 25 párral, számottevő a különbség.
 
 \begin{figure}[tbh]
 \centering
