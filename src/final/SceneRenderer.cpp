@@ -10,6 +10,7 @@
 #include "Common.h"
 #include "Triangulator.h"
 #include "Visualization.h"
+#include "PerformanceMonitor.h"
 
 using namespace cv;
 using namespace std;
@@ -44,6 +45,11 @@ int main(int argc, char **argv) {
 
     while (cam1->frame != cam1->lastFrame) {
 
+        PerformanceMonitor::get()->frameStarted();
+
+        std::cout << "======== NEXT FRAME ===== " << std::endl;
+        double t0 = getTickCount();
+
         std::vector<std::vector<Mat>> selected = getFramesFromCameras(camera, maskCalculators);
         std::vector<Mat> &frames = selected[0];
         std::vector<Mat> &masks = selected[1];
@@ -53,11 +59,15 @@ int main(int argc, char **argv) {
         std::vector<CloudPoint> finalResult;
         std::vector<Point2f> totalPoints;
 
-        imshow("frame1", frames[0]);
-        imshow("frame2", frames[1]);
+        //imshow("frame1", frames[0]);
+        //imshow("frame2", frames[1]);
+
+        PerformanceMonitor::get()->objFound(objects.size());
 
         for (int i = 0; i < objects.size(); i++) {
             std::pair<std::vector<Point2f>, std::vector<Point2f>> matches = calculator.calcDenseMatches(frames, objects[i]);
+
+            PerformanceMonitor::get()->triangulationStarted();
 
             Triangulator triangulator(camera[Camera::LEFT], camera[Camera::RIGHT],
                                       cameraPose[Camera::LEFT], cameraPose[Camera::RIGHT]);
@@ -67,16 +77,45 @@ int main(int argc, char **argv) {
 
             totalPoints.insert(totalPoints.end(), matches.first.begin(), matches.first.end());
             finalResult.insert(finalResult.end(), cvPointcloud.begin(), cvPointcloud.end());
+
+            PerformanceMonitor::get()->triangulationFinished();
         }
 
+        if (objects.size() > 0) {
+            PerformanceMonitor::get()->objectBasedStuff();
+        }
+
+        PerformanceMonitor::get()->visualizationStarted();
         Visualization matVis(cameraPose[Camera::LEFT], camera[Camera::LEFT]->cameraMatrix);
         matVis.renderWithDepth(finalResult);
-        imshow("FinalResult", matVis.getResult());
+        PerformanceMonitor::get()->visualizationFinished();
 
-        char ch = (char) waitKey(33);
-        if (ch == 27) {
-            break;
-        }
+        imwrite("/media/balint/Data/Linux/diploma/scene_1/vis_" + to_string(cam1->frame - 1) + ".png", matVis.getResult());
+
+        std::cout << "FRAME FINISHED IN: " << (getTickCount() - t0) / getTickFrequency() << " s" << endl;
+        PerformanceMonitor::get()->frameFinished();
+    }
+
+    std::cout << "################" << std::endl;
+    PerformanceMonitor::get()->frameTotal.print("Frame");
+    PerformanceMonitor::get()->maskCalculation.print("MaskCalculation");
+    PerformanceMonitor::get()->extracting.print("Matching/Features");
+    PerformanceMonitor::get()->objSelection.print("Matching/ObjSelection");
+
+    PerformanceMonitor::get()->ofInit.print("OF/Init/Object");
+    PerformanceMonitor::get()->ofInitPerFrame.print("OF/Init/Frame");
+    PerformanceMonitor::get()->ofCalc.print("OF/Calculation/Object");
+    PerformanceMonitor::get()->ofCalcPerFrame.print("OF/Calculation/Frame");
+    PerformanceMonitor::get()->ofMatching.print("OF/PointMatching/Object");
+    PerformanceMonitor::get()->ofMatchingPerFrame.print("OF/PointMatching/Frame");
+    PerformanceMonitor::get()->triangulation.print("Triangulate/Object");
+    PerformanceMonitor::get()->triangulationPerFrame.print("Triangulate/Frame");
+
+    PerformanceMonitor::get()->visualization.print("Visualization");
+
+    std::cout << "################" << std::endl;
+    for (auto it = PerformanceMonitor::get()->objectCount.begin(); it != PerformanceMonitor::get()->objectCount.end(); ++it) {
+        std::cout << "Objects: " << it->first << " count: " << it->second << std::endl;
     }
 
     return 0;

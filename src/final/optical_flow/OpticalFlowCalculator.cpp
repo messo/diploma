@@ -5,11 +5,14 @@
 #include <omp.h>
 #include <iomanip>
 #include "../Common.h"
+#include "../PerformanceMonitor.h"
 
 using namespace cv;
 using namespace std;
 
 pair<vector<Point2f>, vector<Point2f>> OpticalFlowCalculator::calcDenseMatches(std::vector<cv::Mat> &frames, const Object &object) {
+
+    PerformanceMonitor::get()->ofInitStarted();
 
     double t0 = getTickCount();
 
@@ -74,6 +77,7 @@ pair<vector<Point2f>, vector<Point2f>> OpticalFlowCalculator::calcDenseMatches(s
     t0 = ((double) getTickCount() - t0) / getTickFrequency();
     std::cout << "[" << std::setw(20) << "OFCalculator" << "] " << "Feed init done in " << t0 << "s" << std::endl;
     std::cout.flush();
+    PerformanceMonitor::get()->ofInitFinished();
 
     std::vector<Mat> flows = this->calcOpticalFlows();
 
@@ -148,6 +152,7 @@ Mat OpticalFlowCalculator::calcTexturedRegion(const Mat frame, const Mat mask) c
 
 std::vector<Mat> OpticalFlowCalculator::calcOpticalFlows() const {
 
+    PerformanceMonitor::get()->ofCalcStarted();
     double t0 = getTickCount();
 
     std::vector<Mat> flows(2);
@@ -177,6 +182,7 @@ std::vector<Mat> OpticalFlowCalculator::calcOpticalFlows() const {
     t0 = ((double) getTickCount() - t0) / getTickFrequency();
     std::cout << "[" << std::setw(20) << "OFCalculator" << "] Optical flows have been calculated in " << t0 << "s" << std::endl;
     std::cout.flush();
+    PerformanceMonitor::get()->ofCalcFinished();
 
 //    visualizeMatchesROI(frames[0], points1, frames[1], points2);
 
@@ -185,6 +191,7 @@ std::vector<Mat> OpticalFlowCalculator::calcOpticalFlows() const {
 
 pair<vector<Point2f>, vector<Point2f>> OpticalFlowCalculator::collectMatchingPoints(const vector<Mat> &flows) const {
     double t0 = getTickCount();
+    PerformanceMonitor::get()->ofMatchingStarted();
 
     Rect rect0(boundingRect(masks[0]));
     Rect rect1(boundingRect(masks[1]));
@@ -232,6 +239,7 @@ pair<vector<Point2f>, vector<Point2f>> OpticalFlowCalculator::collectMatchingPoi
     t0 = ((double) getTickCount() - t0) / getTickFrequency();
     std::cout << "[" << std::setw(20) << "OFCalculator" << "] Found matches: " << points1.size() << " in " << t0 << "s" << std::endl;
     std::cout.flush();
+    PerformanceMonitor::get()->ofMatchingFinished();
 
     return make_pair(points1, points2);
 }

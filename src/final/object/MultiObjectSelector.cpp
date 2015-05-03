@@ -5,11 +5,13 @@
 #include <iomanip>
 
 #include "MultiObjectSelector.h"
+#include "../PerformanceMonitor.h"
 
 using namespace std;
 using namespace cv;
 
 vector<Object> MultiObjectSelector::selectObjects(const std::vector<cv::Mat> &frames, const std::vector<cv::Mat> &masks) {
+    PerformanceMonitor::get()->objSelectionStarted();
     double t0 = getTickCount();
 
     std::vector<std::vector<std::vector<cv::Point>>> contours(2);
@@ -211,6 +213,8 @@ vector<Object> MultiObjectSelector::selectObjects(const std::vector<cv::Mat> &fr
     t0 = ((double) getTickCount() - t0) / getTickFrequency();
     std::cout << "[" << std::setw(20) << "MultiObjectSelector" << "] " << "MultiObject selection done in " << t0 << "s" << std::endl;
     std::cout.flush();
+
+    PerformanceMonitor::get()->objSelectionFinished();
 
     return objects;
 }

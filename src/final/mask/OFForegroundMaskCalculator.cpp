@@ -1,8 +1,12 @@
 #include "OFForegroundMaskCalculator.h"
 
 #include <opencv2/video/tracking.hpp>
+#include <iostream>
+#include <iomanip>
 
 cv::Mat OFForegroundMaskCalculator::calculate(cv::Mat nextFrame_) {
+    double t0 = cv::getTickCount();
+
     cv::Mat nextFrame;
     if (nextFrame_.channels() != 1) {
         cv::cvtColor(nextFrame_, nextFrame, cv::COLOR_BGR2GRAY);
@@ -21,6 +25,9 @@ cv::Mat OFForegroundMaskCalculator::calculate(cv::Mat nextFrame_) {
     cv::Mat mask(this->getMaskFromFlow(flow));
 
     nextFrame.copyTo(previousFrame);
+
+    t0 = ((double) cv::getTickCount() - t0) / cv::getTickFrequency();
+    std::cout << "[" << std::setw(20) << "MaskCalculator" << "] " << "Mask calculated in: " << t0 << "s" << std::endl;
 
     return mask;
 }

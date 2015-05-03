@@ -1,5 +1,6 @@
 #include "Matcher.h"
 #include "../Common.h"
+#include "../PerformanceMonitor.h"
 
 #include <opencv2/features2d.hpp>
 #include <opencv2/xfeatures2d.hpp>
@@ -89,6 +90,8 @@ void Matcher::detectKeypointsAndExtractDescriptors(const std::vector<cv::Mat> &i
                                                    const std::vector<cv::Mat> &masks) {
     double t0 = cv::getTickCount();
 
+    PerformanceMonitor::get()->extractingStarted();
+
     cv::OrbFeatureDetector detector;
 //    cv::FastFeatureDetector detector(100);
 //    cv::xfeatures2d::SURF detector(600);
@@ -110,6 +113,8 @@ void Matcher::detectKeypointsAndExtractDescriptors(const std::vector<cv::Mat> &i
     t0 = ((double) cv::getTickCount() - t0) / cv::getTickFrequency();
     std::cout << "[" << std::setw(20) << "Matcher" << "] " << "Detection and extraction done in " << t0 << "s" << std::endl;
     std::cout.flush();
+
+    PerformanceMonitor::get()->extractingFinished();
 }
 
 std::vector<cv::DMatch> Matcher::matchDescriptors() {

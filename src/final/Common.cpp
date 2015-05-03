@@ -2,6 +2,7 @@
 #include "camera/CameraPose.h"
 #include "camera/RealCamera.hpp"
 #include "Common.h"
+#include "PerformanceMonitor.h"
 
 #include <fstream>
 #include <opencv2/highgui.hpp>
@@ -317,6 +318,8 @@ Point moveToTheCenter(Mat image, Mat mask) {
 std::vector<std::vector<Mat>> getFramesFromCameras(std::vector<Ptr<Camera>> &cameras,
                                       std::vector<Ptr<ForegroundMaskCalculator>> &maskCalculators) {
 
+    PerformanceMonitor::get()->maskCalculationStarted();
+
     std::vector<std::vector<Mat>> result(2);
     result[0].resize(2);
     result[1].resize(2);
@@ -344,6 +347,8 @@ std::vector<std::vector<Mat>> getFramesFromCameras(std::vector<Ptr<Camera>> &cam
 
         //drawGridXY(leftImage, leftCamera, leftCameraPose);
     }
+
+    PerformanceMonitor::get()->maskCalculationFinished();
 
     return result;
 }

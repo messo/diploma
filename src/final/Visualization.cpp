@@ -1,11 +1,14 @@
 #include <opencv2/highgui.hpp>
 #include <opencv2/calib3d.hpp>
 #include <opencv2/imgproc.hpp>
+#include <iomanip>
 #include "Visualization.h"
 
 using namespace cv;
 
 void Visualization::renderWithDepth(const std::vector<CloudPoint> &points) {
+    double t0 = getTickCount();
+
     std::vector<cv::Point3f> objectPoints;
     std::vector<cv::Point2f> imagePoints;
 
@@ -45,6 +48,10 @@ void Visualization::renderWithDepth(const std::vector<CloudPoint> &points) {
 
     ScopedLock lock(mutexType);
     cvtColor(img, result, COLOR_HSV2BGR);
+
+    t0 = ((double) getTickCount() - t0) / getTickFrequency();
+    std::cout << "[" << std::setw(20) << "Visualization" << "] " << "Done in " << t0 << "s" << std::endl;
+    std::cout.flush();
 }
 
 void Visualization::renderWithColors(const std::vector<CloudPoint> &points,
