@@ -543,7 +543,7 @@ f_x & 0 & o_x \\
 
 ahol $(u', v')$ az $(u, v)$ pont normalizáltja (kamera-mátrixtól független koordináták), majd a torzítási együtthatóakat felhasználva az $(u', v')$ pontoknak meghatározta a javított koordinátájukat. Ezután a \texttt{cv::triangulatePoints} függvénynek a projekciós mátrixok helyett csak az $\Big(\,\mathbf{R}\,|\,\mathbf{t}\,\Big)$ mátrixokat kellett átadnom. Fontos, hogy az előbbiekben kialakított pontpárosítás azon osztályához tartozó pontokat, melyek az eltolt képhez tartoznak, az eltoláshoz használt vektor ellentettjével vissza kell tolni, hogy valós koordinátákat kapjunk.
 
-Miután megvannak a valóvilágbeli koordináták ezek pontosságát a képsíkokra történő visszavetítéssel vizsgáltam meg. A pontokat a \texttt{cv::projectPoints} függvénnyel vetítettem a bal oldali és jobb oldali kamera képére, majd a vetített és az eredeti pontok távolságainak átlagát -- átlagos visszavetítési hiba -- vizsgáltam. Ez az előzőekben mutatott bemenetre 8,68716 pixel lett, és \aref{fig:cv-triangulation}. ábrán látható az eredményeket bemutató két vizualizáció, melyeken a szín a pontok $z$ koordinátáját mutatja.
+Miután megvannak a valóvilágbeli koordináták ezek pontosságát a képsíkokra történő visszavetítéssel vizsgáltam meg. A pontokat a \texttt{cv::projectPoints} függvénnyel vetítettem a bal és jobb oldali kamera képére, majd a vetített és az eredeti pontok távolságainak átlagát -- átlagos visszavetítési hiba -- vizsgáltam. Ez az előzőekben mutatott bemenetre 8,68716 pixel lett, és \aref{fig:cv-triangulation}. ábrán látható az eredményeket bemutató két vizualizáció, melyeken a szín a pontok $z$ koordinátáját jelzi.
 
 \begin{figure}[tbh]
 \centering
@@ -557,10 +557,10 @@ Miután megvannak a valóvilágbeli koordináták ezek pontosságát a képsíko
 	\includegraphics[width=205pt]{figures/visu_pcl.png}
 	\caption{PCL vizualizációs szoftverrel ráközelítve}
   \end{subfigure}
-\caption{Háromszögelés \textit{Linear-LS}-sel. Jól látható a közeli nézőpontból, hogy egy kissé hullámos lett a felület, de a pontatlanságra a hiba alapján számítottunk \label{fig:cv-triangulation}}
+\caption{Háromszögelés \textit{Linear-LS}-sel. Jól látható a közeli nézőpontból, hogy egy kissé hullámos lett a felület \label{fig:cv-triangulation}}
 \end{figure}
 
-Az OpenCV keretrendszerben megtalálhatjuk a \cite{hartley-triangulation}-ben leírt optimális, de polinomiális algoritmust is implementálva \texttt{cv::correctMatches()} néven, amely a fundamentális mátrix segítségével \aref{sec:triangulation}. szakaszban említett módon javítja a pontpárokat, azaz $\mathbf{u} \leftrightarrow \mathbf{u}'$ összerendelések helyett olyan $\mathbf{\hat{u}} \leftrightarrow \mathbf{\hat{u}}'$ párokat ad, melyekre $d(\mathbf{u}, \mathbf{\hat{u}})^2 + d(\mathbf{u}', \mathbf{\hat{u}}')^2$ minimális és teljesül, hogy $\mathbf{\hat{u}}'^T \mathbf{F} \mathbf{\hat{u}} = 0$. Ez az előbbi átlagos visszavetítési hibát 8,054 pixelre javította, de rohamos teljesítménycsökkenés mellett (0,06 másodperces futási idő helyett 0,64 másodperc lett, csak a háromszögelés), mely az eredményeket szabad szemmel megnézve nem meggyőző.
+Az OpenCV keretrendszerben megtalálhatjuk a \cite{hartley-triangulation}-ben leírt optimális, de polinomiális algoritmust is implementálva \texttt{cv::correctMatches()} néven, amely a fundamentális mátrix segítségével \aref{sec:triangulation}. szakaszban említett módon javítja a pontpárokat, azaz $\mathbf{u} \leftrightarrow \mathbf{u}'$ összerendelések helyett olyan $\mathbf{\hat{u}} \leftrightarrow \mathbf{\hat{u}}'$ párokat ad, melyekre $d(\mathbf{u}, \mathbf{\hat{u}})^2 + d(\mathbf{u}', \mathbf{\hat{u}}')^2$ minimális és teljesül, hogy $\mathbf{\hat{u}}'^T \mathbf{F} \mathbf{\hat{u}} = 0$. Ez az előbbi átlagos visszavetítési hibát 8,054 pixelre javította, de rohamos teljesítménycsökkenés mellett (0,06 másodperces futási idő helyett 0,64 másodperc lett a háromszögelés), mely az eredményeket szabad szemmel megnézve nem meggyőző.
 
 
 \subsection{Iteratív lineáris legkisebb négyzetek (\textit{Iterative-LS})}
@@ -569,7 +569,7 @@ Az OpenCV keretrendszerben megtalálhatjuk a \cite{hartley-triangulation}-ben le
 
 Ehhez én Roy Shilkrot online elérhető alkalmazás-könyvtárából \cite{sfm-toy-library} merítettem a kiindulási alapot, és azt alakítottam az általam használt adatszerkezetekhez. Ehhez is előtte minden pontot normalizálni, valamint a torzítási együtthatóknak megfelelően javítani kellett. Ezzel a megközelítéssel 8,21 pixelnyi lett az átlagos visszavetítési hiba, de a sebesség harmadára csökkent (0,06 másodperc helyett 0,18 másodperc lett a futási idő), melyet szintén nem tekinthetünk kifizetődő kompromisszumnak.
 
-A fentieket összegyűjtve a \texttt{Triangulator} osztályban (lásd \ref{fig:cd:triangulator}. ábra) implementáltam, melynek két metódusa a fent említett két módszert (OpenCV-s \texttt{triangulatePoints}, valamint az Iterative-LS) valósítja meg. Mindkettő az egymásnak megfelelő pontpárokat várja bemenetként, és harmadik paraméterében visszaadja az eredményt egy pontfelhőben, mely \texttt{CloudPoint}-ok vektoraként áll elő. Egy \texttt{CloudPoint} az aktuális koordinátákon kívül azt is tudja magáról, hogy mekkora a hozzátartozó visszavetítési hiba, így a megjelenítésnél eszerint tudunk is tudunk szűrni.
+A fentieket összegyűjtve a \texttt{Triangulator} osztályban (lásd \ref{fig:cd:triangulator}. ábra) implementáltam, melynek két metódusa a fent említett két módszert (OpenCV-s \texttt{triangulatePoints}, valamint az Iterative-LS) valósítja meg. Mindkettő az egymásnak megfelelő pontpárokat várja bemenetként, és harmadik paraméterében visszaadja az eredményt egy pontfelhőben, mely \texttt{CloudPoint}-ok vektoraként áll elő. Egy \texttt{CloudPoint} az aktuális koordinátákon kívül azt is tudja magáról, hogy mekkora a hozzátartozó visszavetítési hiba, így a megjelenítésnél eszerint tudunk is majd szűrni.
 
 \begin{figure}[tbh]
 \centering
@@ -637,12 +637,37 @@ Ezen három vizualizációjának eredménye a bal oldali kamera nézpontjából 
 \caption{Különböző vizualizációk, ráközelítve a hasznos területre \label{fig:different-vis}}
 \end{figure}
 
-Ahogy \aref{chapter3}. fejezetben említettem, a választott nézőpont, ahonnan érdemes lehet rekonstruálni az objektumot, a két kamera nézőpont között helyezkedhet el. Tehát a két kamera között szeretnénk interpolálni egy virtuális kamerát, és innen elvégezni a vetítést. Fontos, hogy nem elég csak a kamera helyzetét ($\mathbf{t_v}$), hanem a forgatási mátrixát ($\mathbf{R_v}$) is meg kell határozni. Jelölje $r \in [0; 1]$ a virtuális kamera pozícióját a pályáján, ahol $r = 0$, ha a bal oldali kamera, és $r = 1$, ha a jobb oldali kamera helyzetében van. Ekkor a virtuális kamera eltolási vektora $\mathbf{t_v} = (1-r)\mathbf{t_v} + r\mathbf{t_j}$, ahol $\mathbf{t_v}$ jelöli a bal oldali, $\mathbf{t_j}$ a jobb oldali kamera eltolási vektorát.
-{\color{red} Kvaterniók...}
+Ahogy \aref{chapter3}. fejezetben említettem, a választott nézőpont, ahonnan érdemes lehet rekonstruálni az objektumot, a két kamera nézőpont között helyezkedhet el. Tehát a két kamera között szeretném interpolálni a virtuális kamera helyzetét és irányát, és innen elvégezni a vetítést. Fontos, hogy nem elég csak a kamera helyzetét ($\mathbf{t_v}$), a forgatási mátrixát ($\mathbf{R_v}$) is meg kell határozni. Jelölje $r \in [0; 1]$ a virtuális kamera pozícióját a pályáján, ahol $r = 0$, ha a bal oldali kamera, és $r = 1$, ha a jobb oldali kamera helyzetében van. Ekkor a virtuális kamera eltolási vektora $\mathbf{t_v} = (1-r)\mathbf{t_b} + r\mathbf{t_j}$, ahol $\mathbf{t_v}$ jelöli a bal oldali, $\mathbf{t_j}$ a jobb oldali kamera eltolási vektorát. \cite{quaternion} alapján célszerű a forgatási mátrixok (vagy akár az ebből nyerhető Euler-szögek) helyett kvanterniókra áttérni, és ezek között úgynevezett gömbi lineáris interpolációval (\textit{slerp}) kiszámolni a kívánt köztes lépést. Ennek implementációját az Eigen \cite{eigenweb} alkalmazáskönyvtárral valósítottam meg. Először az OpenCV-s \texttt{cv::Mat} mátrix objektumokat Eigen-es \texttt{Eigen::Matrix} objektumokká konvertáltam, majd ezeket már az API-t használva kvaterniókká alakítva a \texttt{slerp()} metódus segítségével egy köztes kvaterniót interpoláltam. Végül ezt visszaalakítottam OpenCV-s mátrix-szá ($\mathbf{R_v}$), amit fel tudtam használni a pontok vetítésénél.
 
+Ezt a logikát a \texttt{Visualization} osztályban implementáltam, mely konstruktorában vár egy \texttt{CameraPose} példányt (eltolási vektor és forgatási mátrix), valamint egy kamera-mátrixot. 4 további metódusa van, ebből a fenti 3 megjelenítési típust valósítja meg, az utolsó pedig visszaadja magát az elkészült képet. Az áttekintő osztálydiagramot \aref{fig:cd:visualization}. ábra mutatja be.
+
+\begin{figure}[tbh]
+\centering
+
+\begin{tikzpicture} 
+
+\begin{class}[text width=9.5 cm]{Visualization}{0, 0}
+\attribute{- cameraPose : CameraPose}
+\attribute{- cameraMatrix : Mat}
+\attribute{- result : Mat}
+
+\operation{+ Visualization(cameraPose, cameraMatrix)}
+
+\operation{+ renderWithDepth(points) : void}
+\operation{+ renderWithContours(points) : void}
+\operation{+ renderWithColors(points, imgPoints, img) : void}
+
+\operation{+ getResult() : Mat}
+
+\end{class}
+
+\end{tikzpicture}
+
+\caption{Vizualizációs osztály \label{fig:cd:visualization}}
+\end{figure}
 
 %----------------------------------------------------------------------------
-\section{Eredmények, mérések, értékelés {\color{red} külön fejezet?}}
+\section{Teljes folyamat egybe, eredmények, mérések, értékelés {\color{red} külön fejezet?}}
 %----------------------------------------------------------------------------
 
 {\color{red} Algoritmusok választása!!!}
