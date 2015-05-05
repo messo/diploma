@@ -12,7 +12,7 @@ A kitűzött feladat szempontjából két fontos részproblémát kell több kam
 
 Amennyiben a videófolyamba időpecséteket kódolunk, a kamerák szinkronizációja megoldható. A képsorokat a kódolt információ alapján egymáshoz tudjuk időzíteni, feltéve, hogy a kamerák óráit már előtte szinkronizáltuk.
 
-Amennyiben ilyen adat nem áll rendelkezésre a videófolyamban, egyéb módszert kell keresnünk. Megoldás lehet, ha a kamerák képsorain egy közös trigger-eseményt keresünk. Az Önálló laboratórium 1. című tárgy keretében \cite{onlab-1} egy lézerpontot kerestem mindegyik képen, és a felvillanás időpontját tekintettem referenciának. Ehhez nagyon hasonló a filmiparban használt \textit{clapperboard}, aminek összeütését használják szinkronizációra, de akár egy egyszerű taps is megfelelhet, amennyiben a kamerák hangot is rögzítenek.
+Amennyiben ilyen adat nem áll rendelkezésre a videófolyamban, egyéb módszert kell keresnünk. Megoldás lehet, ha a kamerák képsorain egy közös trigger-eseményt keresünk. Egy korábbi munkám során \cite{onlab-1} egy lézerpontot kerestem mindegyik képen, és a felvillanás időpontját tekintettem referenciának. Ehhez nagyon hasonló a filmiparban használt \textit{clapperboard}, aminek összeütését használják szinkronizációra, de akár egy egyszerű taps is megfelelhet, amennyiben a kamerák hangot is rögzítenek.
 
 
 %----------------------------------------------------------------------------
@@ -112,13 +112,13 @@ Ezen mátrixegyenletből kiindulva, egyező képpontpárokból kiszámolhatjuk $
 %----------------------------------------------------------------------------
 
 
-A dolgozat során kettő, lényegében eltérő módszerre térek ki. Az első a sztereó-látás elvén alapszik, azaz a kamerákat párosával használva -- azokat sztereó-kalibrálva -- alkotunk mélységképet, mely segítségével a képpontokat mélységinformációval ruházzuk fel. A második eljárás az optikai-folyamok segítségével a kamerák képein meghatározza az egymásnak megfelelő pontokat, és ezekből a párosításokból háromszögelés után meghatározza a pontok világbeli koordinátáját.
+A dolgozat során kettő, alapvetően eltérő módszerre térek ki. Az első a sztereó-látás elvén alapszik, azaz a kamerákat párosával használva -- azokat sztereó-kalibrálva -- alkotunk mélységképet, mely segítségével a képpontokat mélységinformációval ruházzuk fel. A második eljárás az optikai folyamok segítségével a kamerák képein meghatározza az egymásnak megfelelő pontokat, és ezekből a párosításokból háromszögelés után meghatározza a pontok világbeli koordinátáját.
 
 \subsection{Sztereó-látás, sztereó-kalibráció}
 
 Sztereó-kalibráció \cite{camera-calib-3d} során egy már ismert háromdimenziós objektumot használunk fel, és attól függően, hogy az objektum ismert pontjait a két kamera képén hol látjuk, kiszámolhatjuk a kamerák belső és külső paramétereit (lásd előző fejezet), valamint a kamerák egymáshoz való viszonyát (eltolás, forgatás). 
 
-Amennyiben a két kamera képsíkja egybe esik, akkor a bázisegyenesek a képsíkokkal a végtelenben metszik egymást, ebből adódóan az epipoláris egyenesek párhuzamosak. Amennyiben a két kamera közötti transzformáció csak tisztán egy $x$ tengellyel párhuzamos eltolás (standard sztereókamerák), akkor az epipoláris egyenesek is párhuzamosak az $x$ tengellyel, tehát a pontpárok keresése pusztán a képkocka egy adott sorára korlátozódik.
+Amennyiben a két kamera képsíkja egybeesik, akkor a bázisegyenesek a képsíkokkal a végtelenben metszik egymást, ebből adódóan az epipoláris egyenesek párhuzamosak. Amennyiben a két kamera közötti transzformáció csak tisztán egy $x$ tengellyel párhuzamos eltolás (standard sztereókamerák), akkor az epipoláris egyenesek is párhuzamosak az $x$ tengellyel, tehát a pontpárok keresése pusztán a képkocka egy adott sorára korlátozódik.
 
 Mivel a gyakorlatban nehéz pontosan úgy elhelyezni a kamerákat, hogy csak víszintes irányú eltolás legyen köztük, ezért a kamerák képeit \textit{rektifikál}ni kell. Ekkor a kamerák képeit úgy transzformáljuk, hogy a képsíkok egy képzeletbeli közös síkba essenek, lásd \aref{fig:rectification}. ábrát.
 
@@ -336,14 +336,14 @@ A rektifikált képpárokra pedig már léteznek algoritmusok \cite{SGBM, stereo
 
 Fontos megemlíteni, hogy gyakorlatban a kameráknak már eleve nagyon közel kell lenniük az ideális elhelyezkedéshez, azaz, egymás mellett (vagy egymás felett, attól függően, hogy horizontális, vagy vertikális sztereó-kamerákat használunk) legyenek, úgy hogy képsíkjuk közel egybeessenek. Így érhető el az, hogy a rektifikáció sikeres legyen, valamint, hogy utána a kép legnagyobb része ,,használható'' legyen, lásd \aref{fig:stereo-calibration-after}. ábrán a szélén lévő fekete részeket.
 
-\subsection{Optikai-folyam \label{methods:optic}}
+\subsection{Optikai folyam \label{methods:optic}}
 
 Az előzőekben megismert eljárás azt feltételezi, hogy a kamerák párosával sztereó-kalib\-ráltak, és ezt kihasználva számol mélységképet a kalibráció során felhasznált segéd-objek\-tum alapján.
 
-A most ismertetésre kerülő eljárás, az \textit{optikai-folyam}okat \cite{optic-flow} hívja segítségül. Vegyünk egymás utáni képsorokat egy mozgó objektumról. Az objektum mindegyik pontja egy háromdimenziós $\mathbf{P}(t)$ útvonalon mozog, mely a kamerák képén egy $\mathbf{p}(t) = \big(x(t), y(t)\big)$ kétdimenziós útvonalnak feleltethető meg. Minden pontra nézve az elmozdulás $d\mathbf{p}(t) / dt$ irányát egy vektormezőt kapunk, ezt hívjuk optikai-folyamnak.
+A most ismertetésre kerülő eljárás, az \textit{optikai folyam}okat \cite{optic-flow} hívja segítségül. Vegyünk egymás utáni képsorokat egy mozgó objektumról. Az objektum mindegyik pontja egy háromdimenziós $\mathbf{P}(t)$ útvonalon mozog, mely a kamerák képén egy $\mathbf{p}(t) = \big(x(t), y(t)\big)$ kétdimenziós útvonalnak feleltethető meg. Minden pontra nézve az elmozdulás $d\mathbf{p}(t) / dt$ irányát egy vektormezőt kapunk, ezt hívjuk optikai folyamnak.
 
 Jelöljük $I(x, y, t)$-vel a kép $(x, y)$ pontjának intenzitását a $t$ időpillanatban. Feltehető, hogy két egymás utáni képkockán ugyanazon pont képpontjainak intenzitása konstans (\textit{világosság állandóság}, az angol \textit{brightness constancy} kifejezésből), vagyis:
-\[I(x, y, t) = I(x+dx, y+dy, t+dt)\]
+\[I(x,\; y,\; t) = I(x+dx,\; y+dy,\; t+dt)\]
 ahol az $(x,y)$ képpont $dt$ idő alatt $(dx,dy)$-nal mozdult el. A jobb oldal jól közelíthető az első-rendű Taylor-sor kifejtésével:
 
 \[I(x+dx, y+dy, t+dt) \approx I(x, y, t) + \frac{\partial I}{\partial x} dx + \frac{\partial I}{\partial y} dy + \frac{\partial I}{\partial t} dt\]
@@ -360,7 +360,7 @@ Végül bevezetve a $\nabla \mathbf{I} = \left(\frac{\partial I}{\partial x}, \f
 
 \[\nabla \mathbf{I} \cdot \mathbf{V} = -\frac{\partial I}{\partial t}\]
 
-Ezt nevezzük az optikai folyam feltételi egyenletének \cite{phd}. Mivel $\mathbf{V}\left(\frac{dx}{dt}, \frac{dy}{dt}\right)$ nem ismert, ezért egy egyenletben két ismeretlenünk van, így az optikai-folyam általános esetben nem oldható meg.
+Ezt nevezzük az optikai folyam feltételi egyenletének \cite{phd}. Mivel $\mathbf{V}\left(\frac{dx}{dt}, \frac{dy}{dt}\right)$ nem ismert, ezért egy egyenletben két ismeretlenünk van, így az optikai folyam általános esetben nem oldható meg.
 
 \subsubsection{Lucas-Kanade módszer \cite{LK}}
 
@@ -409,15 +409,15 @@ Kapjuk az előbbi egyenletekkel összevetve a következőt:
 
 Ekkor $\mathbf{d}(\mathbf{x})$ szerepében megkaptuk a vektor-mezőt. Ez az egyenlet pontonként felírva megoldható, de a gyakorlatban zajos eredményt szolgáltat. Ezt elkerülendő azzal a feltevéssel élünk, hogy a pontok egy környezetében az elmozdulás vektorok csak kicsit változnak, és így a fenti megoldása egy költség-minimalizálási problémává változik \cite{farneback}.
 
-Ez utóbbi algoritmust \cite{opencv-lk} fogom a dolgozat során alkalmazni, mert sűrű optikai-folyamokat szolgáltat, és nem kell sarokpontokat keresni a kiinduló képen. \Aref{fig:dense-of}. ábrán látható egy példa, ami egy kanyon felett elrepülő helikopter videójának két egymás utáni képkockájából meghatározott sűrű optikai-folyamot mutatja.
+Ez utóbbi algoritmust \cite{opencv-lk} fogom a dolgozat során alkalmazni, mert sűrű optikai folyamokat szolgáltat, és nem kell sarokpontokat keresni a kiinduló képen. \Aref{fig:dense-of}. ábrán látható egy példa, ami egy kanyon felett elrepülő helikopter videójának két egymás utáni képkockájából meghatározott sűrű optikai folyamot mutatja.
 
 \begin{figure}[tbh]
 \centering
 \includegraphics[width=420pt]{figures/farneback.png}
-\caption{Minta sűrű optikai-folyam meghatározásra \cite{farneback} \label{fig:dense-of}}
+\caption{Minta sűrű optikai folyam meghatározásra \cite{farneback} \label{fig:dense-of}}
 \end{figure}
 
-Az optikai-folyamokat felhasználhatjuk statikus objektumok (pl. szobrok, kastélyok) modellezésére, ezt a problémát \textit{structure-from-motion}-nek hívjuk \cite{sfm}. Tekintsünk egy adott objektum felé néző, de körülötte mozgó kamera két helyzetében ($C_1$ és $C_2$) látott képet (lásd \aref{fig:triangulation}. ábrát). Az objektumról a kamera mozgása során több képet készítve, és ezeken az egymásnak megfelelő pontokat az optikai-folyamok segítségével meghatározva a már említett háromszögelés módszerével meghatározhatóak a pontok háromdimenziós koordinátái, valamint a nézőpontok közötti transzformációk is \cite[4. fejezet]{book}.
+Az optikai folyamokat felhasználhatjuk statikus objektumok (pl. szobrok, kastélyok) modellezésére, ezt a problémát \textit{structure-from-motion}-nek hívjuk \cite{sfm}. Tekintsünk egy adott objektum felé néző, de körülötte mozgó kamera két helyzetében ($C_1$ és $C_2$) látott képet (lásd \aref{fig:triangulation}. ábrát). Az objektumról a kamera mozgása során több képet készítve, és ezeken az egymásnak megfelelő pontokat az optikai folyamok segítségével meghatározva a már említett háromszögelés módszerével meghatározhatóak a pontok háromdimenziós koordinátái, valamint a nézőpontok közötti transzformációk is \cite[4. fejezet]{book}.
 
 \begin{figure}[tbh]
 \centering
@@ -512,7 +512,7 @@ Az optikai-folyamokat felhasználhatjuk statikus objektumok (pl. szobrok, kasté
 \caption{Mozgó kamera két állapotban \label{fig:triangulation}}
 \end{figure}
 
-Ennél lényegesen eltérő felhasználási mód, ha az optikai-folyamokat nem egy mozgó kamera két képkockáján, hanem két különböző kamera egy időponthoz tartozó két képkockáján határozzuk meg, melyek megközelítőleg ugyanazon térrészt veszik, de kicsit más pontból és szögből. Ekkor az optikai folyam lényegében a két kamera képén egy megfeleltetést tesz lehetővé. Feltéve, hogy előzetesen a kamerák pozícióját meghatároztuk (külső paraméterek), valamint ismerjük a projekciójukat leíró mátrixokat (belső paraméterek), akkor az egyező képontokat felhasználva háromszögeléssel kaphatjuk a mindkét kamera által látott pontok világbeli koordinátájukat.
+Ennél lényegesen eltérő felhasználási mód, ha az optikai folyamokat nem egy mozgó kamera két képkockáján, hanem két különböző kamera egy időponthoz tartozó két képkockáján határozzuk meg, melyek megközelítőleg ugyanazon térrészt veszik, de kicsit más pontból és szögből. Ekkor az optikai folyam lényegében a két kamera képén egy megfeleltetést tesz lehetővé. Feltéve, hogy előzetesen a kamerák pozícióját meghatároztuk (külső paraméterek), valamint ismerjük a projekciójukat leíró mátrixokat (belső paraméterek), akkor az egyező képontokat felhasználva háromszögeléssel kaphatjuk a mindkét kamera által látott pontok világbeli koordinátájukat.
 
 Az előbbi módszer, jól használható nagy felbontású képeknél, ahol az objektum a kép nagy részét teszi ki, így sok hasznos képpontot gyűjthetünk. A feladatom során éppen ellenkezőleg, a képek csak egy részén megjelenő és ott mozgó objektumokat kell rekonstruálni, így az utóbbi megközelítést valósítom meg.
 

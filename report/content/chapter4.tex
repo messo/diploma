@@ -489,7 +489,7 @@ ahol $\Omega_\mathbf{X}$ jelöli $\mathbf{X}$ képpont egy környezetét, $I_\ma
 \caption{$\zeta$ függvény alkalmazva az objektum összes pontjára \label{fig:textures}}
 \end{figure}
 
-{\color{red}A kitakart pontok kiszűrésére én \cite{optical-flow-rectification}-től eltérő megközelítést alkalmaztam.} Legyen két képkocka $K_1$ és $K_2$, valamint $F_{1, 2} = \mathcal{F}(K_1, K_2)$ és $F_{2, 1} = \mathcal{F}(K_2, K_1)$, ahol $\mathcal{F}$ jelöli két képkocka közti optikai-folyam operátort, melynek eredménye egy vektormező ($F_{1, 2}, F_{2, 1} : \mathbb{R}^2 \rightarrow \mathbb{R}^2$). Gondoljuk meg, hogy ha $x\in K_1$ és $x + F_{1,2}(x) = x' \in K_2$, akkor $x' + F_{1,2}(x') \approx x \in K_1$, vagyis ha egy $x$ pont $K_1$-ről $K_2$-re az $x'$ pontba mozog, akkor visszafelé nézve $x'$ pontnak ideális esetben $x$ pontba kell, hogy mozogjon. Tehát oda-vissza számolva 1-1 optikai folyamot a kitakart pontokat kiszűrhetjük, hiszen a másik irányban nem fogjuk megtalálni a párosítást.
+{\color{red}A kitakart pontok kiszűrésére én \cite{optical-flow-rectification}-től eltérő megközelítést alkalmaztam.} Legyen két képkocka $K_1$ és $K_2$, valamint $F_{1, 2} = \mathcal{F}(K_1, K_2)$ és $F_{2, 1} = \mathcal{F}(K_2, K_1)$, ahol $\mathcal{F}$ jelöli két képkocka közti optikai folyam operátort, melynek eredménye egy vektormező ($F_{1, 2}, F_{2, 1} : \mathbb{R}^2 \rightarrow \mathbb{R}^2$). Gondoljuk meg, hogy ha $x\in K_1$ és $x + F_{1,2}(x) = x' \in K_2$, akkor $x' + F_{1,2}(x') \approx x \in K_1$, vagyis ha egy $x$ pont $K_1$-ről $K_2$-re az $x'$ pontba mozog, akkor visszafelé nézve $x'$ pontnak ideális esetben $x$ pontba kell, hogy mozogjon. Tehát oda-vissza számolva 1-1 optikai folyamot a kitakart pontokat kiszűrhetjük, hiszen a másik irányban nem fogjuk megtalálni a párosítást.
 
 A fent leírtakat az \texttt{OpticalFlowCalculator} osztályban implementáltam (rövid áttekintő látható \aref{fig:cd:ofcalc}. ábrán). Egy publikus metódusa van \texttt{calcDenseMatches()} néven, mely megkapja a két képkockát és egy objektumot, amelyre a sűrű pontmegfeleltetést szeretnénk számolni. Ez lényegében három dolgot csinál: meghatározza a textúrázott régiókat (\texttt{calcTexturedRegion}) a két képen, meghatározza oda és vissza az optikai folyamokat (\texttt{calcOpticalFlows}), majd ezek alapján meghatározza a párosításokat (\texttt{collectMatchingPoints}).
 
@@ -565,9 +565,9 @@ Az OpenCV keretrendszerben megtalálhatjuk a \cite{hartley-triangulation}-ben le
 
 \subsection{Iteratív lineáris legkisebb négyzetek (\textit{Iterative-LS})}
 
-\Aref{sec:triangulation}. szakaszban leírt iteratív módszert nem tudjuk alkalmazni a fenti \texttt{cv::triangulatePoints} függvénnyel, mert nem tudjuk az egyenleteket pontonként külön-külön súlyozni. Ennek megfelelően először a ,,szimpla'' \textit{Linear-LS} megközelítést kell implementálni, majd ezt már tudjuk majd iteratívan különböző súlyokkal meghívni.
+\Aref{sec:triangulation}. szakaszban leírt iteratív módszert nem tudjuk alkalmazni a fenti \texttt{cv::triangulatePoints} függvénnyel, mert nem tudjuk az egyenleteket pontonként külön-külön súlyozni. Ennek megfelelően először a ,,szimpla'' \textit{Linear-LS} megközelítést kell implementálni, majd ezt már tudjuk iteratívan különböző súlyokkal meghívni.
 
-Ehhez én Roy Shilkrot online elérhető alkalmazás-könyvtárából \cite{sfm-toy-library} merítettem a kiindulási alapot, és azt alakítottam az általam használt adatszerkezetekhez. Ehhez is előtte minden pontot normalizálni, valamint a torzítási együtthatóknak megfelelően javítani kellett. Ezzel a megközelítéssel 8,21 pixelnyi lett az átlagos visszavetítési hiba, de a sebesség harmadára csökkent (0,06 másodperc helyett 0,18 másodperc lett a futási idő), melyet szintén nem tekinthetünk kifizetődő kompromisszumnak.
+Ehhez én Roy Shilkrot online elérhető alkalmazás-könyvtárából \cite{sfm-toy-library} merítettem a kiindulási alapot, és azt alakítottam az általam használt adatszerkezetekhez. Ehhez is előtte minden pontot normalizálni, valamint a torzítási együtthatóknak megfelelően javítani kellett. Ezzel a megközelítéssel 8,21 pixelnyi lett az átlagos visszavetítési hiba, de a sebesség harmadára csökkent (0,06 másodperc helyett 0,18 másodperc lett a futási idő). % melyet szintén nem tekinthetünk kifizetődő kompromisszumnak.
 
 A fentieket összegyűjtve a \texttt{Triangulator} osztályban (lásd \ref{fig:cd:triangulator}. ábra) implementáltam, melynek két metódusa a fent említett két módszert (OpenCV-s \texttt{triangulatePoints}, valamint az Iterative-LS) valósítja meg. Mindkettő az egymásnak megfelelő pontpárokat várja bemenetként, és harmadik paraméterében visszaadja az eredményt egy pontfelhőben, mely \texttt{CloudPoint}-ok vektoraként áll elő. Egy \texttt{CloudPoint} az aktuális koordinátákon kívül azt is tudja magáról, hogy mekkora a hozzátartozó visszavetítési hiba, így a megjelenítésnél eszerint tudunk is majd szűrni.
 
@@ -770,7 +770,7 @@ Az előző szekciókban felvázolt lépéseknél 3 helyen készítettem 2 külö
 
 A teszteket egy olyan számítógépen végeztem, amiben egy Intel\textsuperscript{\textregistered} Core\texttrademark{} i5-4440 processzor és 8GB memória volt, és a kódot Linux operációs rendszerre fordítottam és azon futtattam.
 
-Elsőként egy olyan jeleneten próbáltam ki az elkészült alkalmazást, amely esetén a két kamera egymás mellett van (lásd \ref{fig:scene1_camerapose}. ábra), egy irányba néznek, és két teás dobozt mozgatok előttük. A jelenet 178 képkockából áll (\textasciitilde 5 másodperc), melyből 3 látható \aref{fig:scene1_frames}. ábrán. Az alkalmazást lefuttatva erre a jelenetre \aref{table:result_scene1_single}. táblázatban látható időket kaptam, lebontva a fontosabb lépésekre sorrendben, majd a teljes folyamatra is nézve. \Aref{fig:scene1_stats}. ábrán jól látszódik az egyes folyamatok megoszlása az egészre nézve. A legtöbb időt az optikai folyam meghatározása viszi el, utána az előtér maszkok, majd a textúrázottság meghatározása. A teljes folyamat átlaga alapján 1 képkockapár rekonstrukciója majdnem 1 másodperc volt, azaz kb. 1,1 FPS sebességgel lehet rekonstruálni ezzel a megközelítéssel. Ezen a következő szekcióban javítunk.
+Elsőként egy olyan jeleneten próbáltam ki az elkészült alkalmazást, amely esetén a két kamera egymás mellett van (lásd \ref{fig:scene1_camerapose}. ábra), egy irányba néznek, és két teás dobozt mozgatok előttük. A jelenet 178 képkockából áll (\textasciitilde 5 másodperc), melyből 3 látható \aref{fig:scene1_frames}. ábrán. Az alkalmazást lefuttatva erre a jelenetre \aref{table:result_scene1_single}. táblázatban látható időket kaptam, lebontva a fontosabb lépésekre sorrendben, majd a teljes folyamatra is nézve. \Aref{fig:scene1_stats}. ábrán jól látszódik az egyes folyamatok megoszlása az egészre nézve. A legtöbb időt az optikai folyam meghatározása viszi el, utána az előtér maszkok, majd a textúrázottság meghatározása. A teljes folyamat átlaga alapján 1 képkockapár rekonstrukciója majdnem 1 másodperc volt, azaz kb. 1,1 FPS sebességgel lehet rekonstruálni ezzel a megközelítéssel.
 
 \begin{figure}[tbh]
 \centering
@@ -890,6 +890,15 @@ Teljes folyamat & 0.0695 & 1.16 & 0.908 & 0.17 \\ \hline
 %----------------------------------------------------------------------------
 \section{Párhuzamosítás, többszálúsítás, újra-kalkulált eredmények}
 %----------------------------------------------------------------------------
+
+Az előző szekcióbak leírtak alapján látható, hogy szekvenciális végrehajtás mekkora sebességet várhatunk az adott hardveren. A következőkben a párhuzamosításban rejlő lehetőségeket vizsgálom meg.
+
+Különböző platformokon, különböző megoldásokat találhatunk többszálú feladatvégrehajtásra. C++-ban az egyik legelterjedtebb az OpenMP API \cite{OpenMP}. Felhasználásával platform-független, megosztott-memóriás párhuzamos programokat írhatunk. Nagy előnye, hogy ha a cél nem támogatja (legyen az a fordító, vagy a platform), akkor az API megfelelő alkalmazása esetén az alkalmazás ugyanúgy fordítható, azzal a különbséggel, hogy az elkészült bináris csak egy szálon hajtra végje az utasításokat. A következőkben röviden áttekintem az általam használt funkciókat.
+
+A leggyakoribb funkciók deklaratív alapon történnek. 
+A legfontosabb koncepció a szál-csoportok. OpenMP esetén az alkalmazás indítása esetén, po
+
+
 
 
 %----------------------------------------------------------------------------
