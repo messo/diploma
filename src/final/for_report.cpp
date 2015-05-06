@@ -387,7 +387,7 @@ int main_SAVE(int argc, char **argv) {
 }
 
 
-int main(int argc, char **argv) {
+int main______(int argc, char **argv) {
     vector<Ptr<Camera>> camera(2);
     camera[Camera::LEFT] = Ptr<Camera>(
             new RealCamera(Camera::LEFT, "/media/balint/Data/Linux/diploma/src/final/intrinsics_left.yml"));
@@ -492,7 +492,7 @@ enum VIS_TYPE {
     PIXELS, DEPTH, CONTOURS
 };
 
-int main_________(int argc, char **argv) {
+int main(int argc, char **argv) {
 
     vector<Ptr<Camera>> camera(2);
     camera[Camera::LEFT] = Ptr<Camera>(
@@ -525,14 +525,19 @@ int main_________(int argc, char **argv) {
 
     Mat originalImage = imread("/media/balint/Data/Linux/diploma/of_img_left.png");
 
-    Mat left = imread("/media/balint/Data/Linux/for_report/390_1left_img.png", IMREAD_GRAYSCALE); // of_img_left
-    Mat right = imread("/media/balint/Data/Linux/for_report/390_3right_img.png", IMREAD_GRAYSCALE); // of_img_right
-    Mat maskLeft = imread("/media/balint/Data/Linux/for_report/390_2left_mask.png", IMREAD_GRAYSCALE);
-    Mat maskRight = imread("/media/balint/Data/Linux/for_report/390_4right_mask.png", IMREAD_GRAYSCALE);
+//    Mat left = imread("/media/balint/Data/Linux/for_report/390_1left_img.png", IMREAD_GRAYSCALE); // of_img_left
+//    Mat right = imread("/media/balint/Data/Linux/for_report/390_3right_img.png", IMREAD_GRAYSCALE); // of_img_right
+//    Mat maskLeft = imread("/media/balint/Data/Linux/for_report/390_2left_mask.png", IMREAD_GRAYSCALE);
+//    Mat maskRight = imread("/media/balint/Data/Linux/for_report/390_4right_mask.png", IMREAD_GRAYSCALE);
 
-//    Mat eqLeft, eqRight;
-//    equalizeHist(left, eqLeft);
-//    equalizeHist(right, eqRight);
+    Mat left = imread("/media/balint/Data/Linux/diploma/of_img_left.png", IMREAD_GRAYSCALE); // of_img_left
+    Mat right = imread("/media/balint/Data/Linux/diploma/of_img_right.png", IMREAD_GRAYSCALE); // of_img_right
+    Mat maskLeft = imread("/media/balint/Data/Linux/diploma/of_mask_left.png", IMREAD_GRAYSCALE);
+    Mat maskRight = imread("/media/balint/Data/Linux/diploma/of_mask_right.png", IMREAD_GRAYSCALE);
+
+    Mat eqLeft, eqRight;
+    equalizeHist(left, eqLeft);
+    equalizeHist(right, eqRight);
 
     // SURF
 //    vector<Mat> images(2);
@@ -570,8 +575,8 @@ int main_________(int argc, char **argv) {
 
 
     vector<Mat> frames(2);
-    frames[0] = left;
-    frames[1] = right;
+    frames[0] = eqLeft;
+    frames[1] = eqRight;
 
     vector<Mat> masks(2);
     masks[0] = maskLeft;
@@ -594,7 +599,7 @@ int main_________(int argc, char **argv) {
 
 //    matVis.renderWithDepth(pointcloud);
 
-    namedWindow("Result", 1);
+    namedWindow("Vizualizáció", 1);
 
     //imshow("magic", matVis.getResult());
 
@@ -604,7 +609,7 @@ int main_________(int argc, char **argv) {
 
     int pos = 0;
     char const *xTrackbar = "Váltás kamerák között";
-    createTrackbar(xTrackbar, "Result", &pos, 100);
+    createTrackbar(xTrackbar, "Vizualizáció", &pos, 100);
 
     VIS_TYPE type = VIS_TYPE::DEPTH;
 
@@ -622,7 +627,7 @@ int main_________(int argc, char **argv) {
         } else {
             matVis2.renderWithContours(cvPointcloud);
         }
-        imshow("Result", matVis2.getResult());
+        imshow("Vizualizáció", matVis2.getResult());
 
         char ch = (char) waitKey(33);
         if (ch == 27) {

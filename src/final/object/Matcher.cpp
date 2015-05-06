@@ -29,7 +29,7 @@ std::vector<std::pair<cv::Point2f, cv::Point2f>> Matcher::match(const std::vecto
     std::cout.flush();
 
     // DEBUG ------
-    debug2(images, masks, keptMatches);
+//    debug2(images, masks, keptMatches);
 
     // DEBUG ------
 
@@ -105,6 +105,7 @@ void Matcher::detectKeypointsAndExtractDescriptors(const std::vector<cv::Mat> &i
     keypoints.resize(images.size());
     descriptors.resize(images.size());
 
+#pragma omp parallel for
     for (int i = 0; i < images.size(); i++) {
         detector.detect(images[i], keypoints[i], masks[i]);
         extractor.compute(images[i], keypoints[i], descriptors[i]);
@@ -153,7 +154,7 @@ std::vector<cv::DMatch> Matcher::matchDescriptors() {
 //    std::vector<cv::DMatch> good_matches;
 //    std::cout << "Matches before distnace selection: " << matches.size() << std::endl;
 //    for (int i = 0; i < descriptors[0].rows; i++) {
-//        if (matches[i].distance <= cv::max(2 * min_dist, 0.02)) {
+//        if (matches[i].distance <= cv::max(2 * min_dist, 0.35)) {
 //            good_matches.push_back(matches[i]);
 //        }
 //    }
@@ -164,16 +165,19 @@ std::vector<cv::DMatch> Matcher::matchDescriptors() {
 std::vector<std::pair<cv::Point2f, cv::Point2f>> Matcher::buildMatches(const std::vector<cv::DMatch> &matches,
                                                                        std::vector<cv::DMatch> &keptMatches) {
 
-    std::vector<cv::Point2f> points1, points2;
-    for (auto it = matches.begin(); it != matches.end(); ++it) {
+    std::vector<cv::Point2f> points1(matches.size()), points2(matches.size());
+#pragma omp parallel for
+    for (int i = 0; i < matches.size(); i++) {
+        const cv::DMatch &match = matches[i];
+
         // Get the position of left keypoints
-        float x = keypoints[0][it->queryIdx].pt.x;
-        float y = keypoints[0][it->queryIdx].pt.y;
-        points1.push_back(cv::Point2f(x, y));
+        float x = keypoints[0][match.queryIdx].pt.x;
+        float y = keypoints[0][match.queryIdx].pt.y;
+        points1[i] = cv::Point2f(x, y);
         // Get the position of right keypoints
-        x = keypoints[1][it->trainIdx].pt.x;
-        y = keypoints[1][it->trainIdx].pt.y;
-        points2.push_back(cv::Point2f(x, y));
+        x = keypoints[1][match.trainIdx].pt.x;
+        y = keypoints[1][match.trainIdx].pt.y;
+        points2[i] = cv::Point2f(x, y);
     }
 
     std::vector<std::pair<cv::Point2f, cv::Point2f>> matchingPoints;

@@ -11,11 +11,14 @@
 #include "Triangulator.h"
 #include "Visualization.h"
 #include "PerformanceMonitor.h"
+#include "mask/MOG2ForegroundMaskCalculator.h"
 
 using namespace cv;
 using namespace std;
 
 int main(int argc, char **argv) {
+
+    omp_set_nested(1);
 
     vector<Ptr<Camera>> camera(2);
     DummyCamera *cam1 = new DummyCamera(Camera::LEFT, "/media/balint/Data/Linux/diploma/scene_1", 228);
@@ -41,8 +44,6 @@ int main(int argc, char **argv) {
     Matcher matcher = Matcher(camera[Camera::LEFT], camera[Camera::RIGHT], F);
     MultiObjectSelector objSelector(matcher);
 
-    OpticalFlowCalculator calculator;
-
     while (cam1->frame != cam1->lastFrame) {
 
         PerformanceMonitor::get()->frameStarted();
@@ -64,7 +65,12 @@ int main(int argc, char **argv) {
 
         PerformanceMonitor::get()->objFound(objects.size());
 
+        std::vector<std::vector<CloudPoint>> clouds(objects.size());
+        std::vector<std::vector<Point2f>> points(objects.size());
+
+#pragma omp parallel for
         for (int i = 0; i < objects.size(); i++) {
+            OpticalFlowCalculator calculator;
             std::pair<std::vector<Point2f>, std::vector<Point2f>> matches = calculator.calcDenseMatches(frames, objects[i]);
 
             PerformanceMonitor::get()->triangulationStarted();
@@ -72,11 +78,8 @@ int main(int argc, char **argv) {
             Triangulator triangulator(camera[Camera::LEFT], camera[Camera::RIGHT],
                                       cameraPose[Camera::LEFT], cameraPose[Camera::RIGHT]);
 
-            std::vector<CloudPoint> cvPointcloud;
-            triangulator.triangulateCv(matches.first, matches.second, cvPointcloud);
-
-            totalPoints.insert(totalPoints.end(), matches.first.begin(), matches.first.end());
-            finalResult.insert(finalResult.end(), cvPointcloud.begin(), cvPointcloud.end());
+            triangulator.triangulateCv(matches.first, matches.second, clouds[i]);
+            points[i] = matches.first;
 
             PerformanceMonitor::get()->triangulationFinished();
         }
@@ -85,12 +88,21 @@ int main(int argc, char **argv) {
             PerformanceMonitor::get()->objectBasedStuff();
         }
 
+        // collecting results...
+        for (int i = 0; i < objects.size(); i++) {
+            totalPoints.insert(totalPoints.end(), points[i].begin(), points[i].end());
+            finalResult.insert(finalResult.end(), clouds[i].begin(), clouds[i].end());
+        }
+
         PerformanceMonitor::get()->visualizationStarted();
         Visualization matVis(cameraPose[Camera::LEFT], camera[Camera::LEFT]->cameraMatrix);
         matVis.renderWithDepth(finalResult);
         PerformanceMonitor::get()->visualizationFinished();
 
-        imwrite("/media/balint/Data/Linux/diploma/scene_1/vis_" + to_string(cam1->frame - 1) + ".png", matVis.getResult());
+//        imshow("result", matVis.getResult());
+//        waitKey(10);
+
+        // imwrite("/media/balint/Data/Linux/diploma/scene_1_vis/vis_" + to_string(cam1->frame - 1) + ".png", matVis.getResult());
 
         std::cout << "FRAME FINISHED IN: " << (getTickCount() - t0) / getTickFrequency() << " s" << endl;
         PerformanceMonitor::get()->frameFinished();
@@ -102,13 +114,13 @@ int main(int argc, char **argv) {
     PerformanceMonitor::get()->extracting.print("Matching/Features");
     PerformanceMonitor::get()->objSelection.print("Matching/ObjSelection");
 
-    PerformanceMonitor::get()->ofInit.print("OF/Init/Object");
+//    PerformanceMonitor::get()->ofInit.print("OF/Init/Object");
     PerformanceMonitor::get()->ofInitPerFrame.print("OF/Init/Frame");
-    PerformanceMonitor::get()->ofCalc.print("OF/Calculation/Object");
+//    PerformanceMonitor::get()->ofCalc.print("OF/Calculation/Object");
     PerformanceMonitor::get()->ofCalcPerFrame.print("OF/Calculation/Frame");
-    PerformanceMonitor::get()->ofMatching.print("OF/PointMatching/Object");
+//    PerformanceMonitor::get()->ofMatching.print("OF/PointMatching/Object");
     PerformanceMonitor::get()->ofMatchingPerFrame.print("OF/PointMatching/Frame");
-    PerformanceMonitor::get()->triangulation.print("Triangulate/Object");
+//    PerformanceMonitor::get()->triangulation.print("Triangulate/Object");
     PerformanceMonitor::get()->triangulationPerFrame.print("Triangulate/Frame");
 
     PerformanceMonitor::get()->visualization.print("Visualization");

@@ -18,6 +18,7 @@ vector<Object> MultiObjectSelector::selectObjects(const std::vector<cv::Mat> &fr
     std::vector<Mat> newMasks(2);
     std::vector<std::vector<Blob>> blobs(2);
 
+#pragma omp parallel for
     for (int i = 0; i < 2; i++) {
         contours[i] = this->getContours(masks[i]);
         newMasks[i] = getTotalMask(contours[i]);

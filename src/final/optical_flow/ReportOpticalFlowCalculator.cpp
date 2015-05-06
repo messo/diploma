@@ -21,7 +21,7 @@ pair<vector<Point2f>, vector<Point2f>> ReportOpticalFlowCalculator::calcDenseMat
         this->masks[i] = object.masks[i].clone();
 
 //         this->texturedRegions[i] = masks[i].clone();
-        this->calcTexturedRegion(this->frames[i], this->masks[i], this->texturedRegions[i]);
+        this->texturedRegions[i] = this->calcTexturedRegion(this->frames[i], this->masks[i]);
     }
 
     // SHIFTING....
