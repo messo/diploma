@@ -373,8 +373,6 @@ Ez a módszer ritka vektor-mezőt generál a jellegzetes pontok elmozdulására.
 
 ahol $\mathbf{q_1},\mathbf{q_2},\ldots,\mathbf{q_n}$ a vizsgált pont környezetében lévő pontok és $\nabla \mathbf{I}_{\mathbf{q_i}} = \left(\frac{\partial I}{\partial x}(\mathbf{q_i}), \frac{\partial I}{\partial y}(\mathbf{q_i})\right)$. Ez így viszont már egy túlhatározott egyenletrendszer, melyhez közelítő megoldás a legkisebb-négyzetek módszerével kereshető \cite{LK, lk-wiki}. A gyakorlatban a követendő pontokra a Shi-Thomasi \cite{shi-thomasi} módszer által adott sarokpontokat szokták használni (lásd \aref{fig:lk}. ábra).
 
-%Ez önmagában így csak kis mozgásokat tud követni, ezért nagy mozgások esetén a piramis-módszert használjuk; amikor is a képeket több lépcsőben kicsinyítjük, és ezeken is lefuttatjuk az algoritmusokat (ekkor a kis mozgások eltűnnek, a nagyok pedig kisebbekké válnak).
-
 \begin{figure}[tbh]
 \centering
 \includegraphics[width=300pt]{figures/opticalflow_lk.jpg}
@@ -409,7 +407,7 @@ Kapjuk az előbbi egyenletekkel összevetve a következőt:
 
 Ekkor $\mathbf{d}(\mathbf{x})$ szerepében megkaptuk a vektor-mezőt. Ez az egyenlet pontonként felírva megoldható, de a gyakorlatban zajos eredményt szolgáltat. Ezt elkerülendő azzal a feltevéssel élünk, hogy a pontok egy környezetében az elmozdulás vektorok csak kicsit változnak, és így a fenti megoldása egy költség-minimalizálási problémává változik \cite{farneback}.
 
-Ez utóbbi algoritmust \cite{opencv-lk} fogom a dolgozat során alkalmazni, mert sűrű optikai folyamokat szolgáltat, és nem kell sarokpontokat keresni a kiinduló képen. \Aref{fig:dense-of}. ábrán látható egy példa, ami egy kanyon felett elrepülő helikopter videójának két egymás utáni képkockájából meghatározott sűrű optikai folyamot mutatja.
+Ez utóbbi algoritmust \cite{opencv-lk} fogom a dolgozat során alkalmazni, mert sűrű optikai folyamokat szolgáltat, és nem kell sarokpontokat keresni a kiinduló képen. \Aref{fig:dense-of}. ábrán látható egy példa, ami egy kanyon felett elrepülő helikopter videójának két egymás utáni képkockájából meghatározott sűrű optikai folyamot mutatja. Fontos megemlíteni, hogy mindkét eljárás önmagában csak kis mozgásokat tud követni, ezért nagy elmozdulások esetén a piramis-módszert használjuk: a képeket több lépcsőben kicsinyítjük, és ezeken is lefuttatjuk az algoritmusokat, így a kis mozgások eltűnnek, a nagyok pedig kisebbekké, ezáltal detektálhatóvá válnak.
 
 \begin{figure}[tbh]
 \centering

@@ -6,9 +6,11 @@ Az elméleti megfontolások, alapelvek bemutatását követően rátérek a fela
 
 \section{A célkitűzés}
 
-A diplomamunka során elkészítendő rendszernek képesnek kell lennie egy zárt térrész tetszőlegesen választott pontjában és irányában látható, a mozgó objektumokat tartalmazó kép helyreállítására fix telepítésű kamerák valós idejű videofolyamai alapján. A helyreállítást akkor tekintjük sikeresnek, ha a mozgó objektumokat detektálom és választott nézőpontból azok megközelítő kontúrjait sikeresen meghatározom. A tényleges objektum struktúrájának illetve textúrájának meghatározása nem esik a dolgozat hatáskörébe. A választott nézőpontra is vannak korlátaink, érdemi rekonstrukciót csak a kamerákat összekötő képzeletbeli szakaszon és annak környezetében várhatunk, így a tesztelést is így fogom végezni.
+A diplomamunka során elkészített rendszernek képesnek kellett lennie egy zárt térrész tetszőlegesen választott pontjában és irányában látható, a mozgó objektumokat tartalmazó kép helyreállítására fix telepítésű kamerák valós idejű videofolyamai alapján. A helyreállítást akkor tekintettem sikeresnek, ha a mozgó objektumokat detektáltam és választott nézőpontból azok megközelítő kontúrjait sikeresen meghatároztam. A tényleges objektum struktúrájának illetve textúrájának meghatározása nem esett a dolgozat hatáskörébe. A választott nézőpontra is voltak korlátaink, érdemi rekonstrukciót csak a kamerákat összekötő képzeletbeli szakaszon és annak környezetében várhatunk, így a tesztelést is így végeztem.
 
-A rendszer tervezése során figyelembe vettem, hogy lényegében tetszőleges számú kamerát is felhasználhatok a probléma megoldásához, ennek megfelelően a megvalósított rendszer architektúráját így készítettem el, de az elérhető eszközök korlátozott száma miatt csak két kamerával teszteltem. Egyre több kamera bevonásával a rekonstrukció minősége, valamint a helyesen rekonstruálható nézőpontok száma növekszik, de ezzel együtt a rendszer teljesítménye a megnövekedő számítási szükséglet miatt csökken. Fontos megemlíteni, hogy a feladat és a megoldás jellegéből adódóan a független kamerákból meghatározott rekonstrukciók párhuzamosíthatóak, így ezek megfelelő feldolgozó egységet feltételezve egy időben elvégezhetőek. Ez azt jelenti, hogy a kamerák számának növelése valóban megoldás lehet a robusztus eredmény eléréséhez.
+A rendszer tervezése során figyelembe vettem, hogy lényegében tetszőleges számú kamerát is felhasználhattam a probléma megoldásához, ennek megfelelően a megvalósított rendszer architektúráját így készítettem el, de az elérhető eszközök korlátozott száma miatt csak két kamerával teszteltem.
+
+Egyre több kamera bevonásával a rekonstrukció minősége, valamint a helyesen rekonstruálható nézőpontok száma növekszik, de ezzel együtt a rendszer teljesítménye a megnövekedő számítási szükséglet miatt csökken. Fontos megemlíteni, hogy a feladat és a megoldás jellegéből adódóan a független kamerákból meghatározott rekonstrukciók párhuzamosíthatóak, így ezek megfelelő feldolgozó egységet feltételezve egy időben elvégezhetőek. Ez azt jelenti, hogy a kamerák számának növelése valóban megoldás lehet a robusztus eredmény eléréséhez.
 
 \section{Keretrendszer}
 
@@ -16,19 +18,17 @@ A diplomamunka során az OpenCV \cite{opencv} keretrendszert használtam melynek
 
 \section{A tervezett rendszer működése}
 
-A feladat megoldásához \aref{methods:optic}. alszekcióban leírt optikai folyam alapú eljárást használom fel. A rendszer tervét, átfogó képét mutatom be a következőkben.
+A feladat megoldásához \aref{methods:optic}. alszekcióban leírt optikai folyam alapú eljárást használtam fel. A rendszer tervét, átfogó képét a következőkben mutatom be.
 
-A kamerákat két lépésben kalibrálom; először, hogy a torzításukat minimalizáljam, majd azért, hogy meghatározhassam az elhelyezkedésüket egy rögzített koordinátarendszerben. 
+A kamerákat két lépésben kalibráltam; először, hogy a torzításukat minimalizáljam, majd azért, hogy meghatározhassam az elhelyezkedésüket egy rögzített koordinátarendszerben.
 
-Ezt követően a kamerák képeiből meghatározom az előtér maszkot. Erre két féle megközelítést is implementálok; az egyik az optikai folyamokat használja a mozgás érzékeléséhez, ami kijelöli az előteret, a másik pedig egy előtér-háttér szegmentációs eljárás. Ezek közül összehasonlítás után végül egy mellett fogok dönteni.
+Ezt követően a kamerák képeiből meghatároztam az előtér maszkot. Erre két féle megközelítést is implementáltam; az egyik az optikai folyamokat használja a mozgás érzékeléséhez, ami kijelöli az előteret, a másik pedig egy előtér-háttér szegmentációs eljárás. Ezek közül összehasonlítás után választottam, lásd a következő fejezet.
 
-Miután a vélt előtér objektumok maszkjait meghatároztam, ezeket a képeken egymással párosítanom kell. Itt is kétféle megközelítést próbálok ki és implementálok. Az első egy egyszerű ,,legnagyobb-területű'' kiválasztás lesz, amely mindkét képen a legnagyobb területű blobot keresi, és ezeket feleltetni meg egymásnak. Természetesen ilyenkor csak 1 objektumot fogunk tudni rekonstruálni, de a további lépéseket jól lehet rajta tesztelni. A másik eljárás pedig, hogy ezen a blobokon keresek jellegzetes pontokat, és megpróbálom egymásnak megfeleltetni őket. Ezekből a megfeleltetések alapján többségi döntéssel fogok dönteni, hogy az egyik kép blobja, melyik másik blobnak felel meg.
+Miután a vélt előtér objektumok maszkjait meghatároztam, ezeket a képeken egymással párosítottam. Itt is kétféle megközelítést próbáltam ki és implementáltam. Az első egy egyszerű ,,legnagyobb-területű'' kiválasztás, amely mindkét képen a legnagyobb területű blobot keresi, és ezeket feleltetni meg egymásnak. Természetesen ilyenkor csak 1 objektumot tudunk rekonstruálni, de a további lépéseket jól lehet rajta tesztelni. A másik eljárás pedig, hogy ezen a blobokon jellegzetes pontokat kerestem, és megpróbáltam egymásnak megfeleltetni őket. Ezekből a megfeleltetések alapján többségi döntést alkalmazva határoztam meg, hogy az egyik kép blobja, melyik másik blobnak felel meg.
 
-A blob-párosítások alapján, külön-külön tudok optikai folyam alapján sűrű pont-pont megfeleltetést számolni a két képen. Felhasználva, hogy a kamerák helyzetét ismerem, háromszögeléssel megkaphatom a pontok világbeli koordinátájukat. 
+A blob-párosítások alapján, külön-külön optikai folyam alapján sűrű pont-pont megfeleltetést számoltam a két képen. Felhasználva, hogy a kamerák helyzetét ismertem, háromszögeléssel megkaptam a pontok világbeli koordinátájukat. 
 
-Végül a választott nézőpontból projekció segítségével meghatározom az onnan látható becsült képet (felhasználva az eredeti képből kinyerhető színinformációkat), valamint az objektumokhoz tartozó kontúrokat.
-
-Gondoljuk meg, hogy a fenti leírás tetszőleges számú kamera-párra (amelyek nem feltétlen diszjunktak) általánosítható, és az így kapott pontfelhőket, felhasználva, hogy az adatokat az előzetes kalibrációnak köszönhetően egy közös világ-koordinátarendszerben kapjuk meg, ezeket könnyen egyesíthetjük. Ezt a folyamatot mutatja be \aref{fig:of-method}. ábra. A diplomaterv keretében a színezett hátterű lépések készültek el, a több kamerákra vonatkozó együttes kezelés nem.
+Végül a választott nézőpontból projekció segítségével meghatároztam az onnan látható becsült képet (felhasználva az eredeti képből kinyerhető színinformációkat), valamint az objektumokhoz tartozó kontúrokat.
 
 \begin{sidewaysfigure}
 \centering
@@ -175,6 +175,9 @@ graybox/.style = {box, gray}
 \caption{Optikai folyamok módszere \label{fig:of-method}}
 \end{sidewaysfigure}
 
+Gondoljuk meg, hogy a fenti eljárás tetszőleges számú kamera-párra (amelyek nem feltétlen diszjunktak) általánosítható, és az így kapott pontfelhőket, felhasználva, hogy az adatokat az előzetes kalibrációnak köszönhetően egy közös világ-koordinátarendszerben kapjuk meg, ezeket könnyen egyesíthetjük. Ezt a folyamatot mutatja be \aref{fig:of-method}. ábra. A diplomaterv keretében a színezett hátterű lépések készültek el, a több kamerára vonatkozó együttes kezelés nem.
+
+
 \section{Összefoglaló}
 
-{\color{red}Ebben a fejezetben bemutattam az alkalmazott keretrendszert, melyre a megoldásom épít. Megfogalmaztam a célkitűzésem, valamint rögzítettem a futási körülményeket, kritériumokat és a validáció során alkalmazandó mérőszámokat. Végül leírtam az implementálásra kerülő rendszerek logikáját, kitérve a két megoldás közötti hasonlóságokra és különbségekre.}
+Ebben a fejezetben bemutattam az alkalmazott keretrendszert, melyre a megoldásomat építettem. Megfogalmaztam a célkitűzésem, rögzítettem a sikerkritériumot, valamint a választott nézőpontra vonatkozó korlátot. Végül leírtam az implementálásra kerülő rendszer lépésekre bontott logikáját.
