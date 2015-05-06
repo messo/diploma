@@ -2,7 +2,7 @@
 \chapter{Több kamerából álló kamera-rendszerek \label{chapter2}}
 %----------------------------------------------------------------------------
 
-A kitűzött feladat szempontjából két fontos részproblémát kell több kamerából álló rendszerek esetén megoldani. Az első a kamerák szinkronizációjának problémája, ami akkor merül fel, ha a kamerák nem egy közös feldolgozó egységhez kapcsolódnak, hanem például a kamerák képeit egy videófolyamként kapjuk. A második pedig, hogy a kamerák képei alapján a háromdimenziós teret, vagy annak egy részét a lehető legjobban rekonstruáljuk. Ez a fejezet ezen két problémát járja körbe, valamint végül bemutat egy megoldást a mozgó objektumok detekciójára.
+A kitűzött feladat szempontjából két fontos részproblémát kell több kamerából álló rendszerek esetén megoldani. Az első a kamerák szinkronizációjának problémája, ami akkor merül fel, ha a kamerák nem egy közös feldolgozó egységhez kapcsolódnak, hanem például a kamerák képeit egy videófolyamként kapjuk. A második pedig, hogy a kamerák képei alapján a háromdimenziós teret, vagy annak egy részét a lehető legjobban rekonstruáljuk. Ez a fejezet ezen két problémát járja körbe, valamint végül bemutat egy megoldást a mozgó objektumok detektálására.
 
 
 %----------------------------------------------------------------------------
@@ -10,7 +10,7 @@ A kitűzött feladat szempontjából két fontos részproblémát kell több kam
 %----------------------------------------------------------------------------
 
 
-Amennyiben a videófolyamba időpecséteket kódolunk, a kamerák szinkronizációja megoldható. A képsorokat a kódolt információ alapján egymáshoz tudjuk időzíteni, feltéve, hogy a kamerák óráit már előtte szinkronizáltuk.
+Amennyiben a videófolyamba időpecséteket kódolunk, a kamerák szinkronizációja könnyen megoldható. A képsorokat a kódolt információ alapján egymáshoz tudjuk időzíteni, feltéve, hogy a kamerák óráit már előtte szinkronizáltuk.
 
 Amennyiben ilyen adat nem áll rendelkezésre a videófolyamban, egyéb módszert kell keresnünk. Megoldás lehet, ha a kamerák képsorain egy közös trigger-eseményt keresünk. Egy korábbi munkám során \cite{onlab-1} egy lézerpontot kerestem mindegyik képen, és a felvillanás időpontját tekintettem referenciának. Ehhez nagyon hasonló a filmiparban használt \textit{clapperboard}, aminek összeütését használják szinkronizációra, de akár egy egyszerű taps is megfelelhet, amennyiben a kamerák hangot is rögzítenek.
 
@@ -105,18 +105,18 @@ ahol $\mathbf{x}$ egy $X$ pont képe az egyik képsíkon, $\mathbf{l}'$ pedig a 
 
 \[\mathbf{x}'^T\mathbf{F}\mathbf{x} = 0\]
 
-Ezen mátrixegyenletből kiindulva, egyező képpontpárokból kiszámolhatjuk $\mathbf{F}$-et, 8 pontpárból egy skála erejéig, 8-nál több esetén pedig legkisebb négyzetek módszerével (7 esetén pedig van nem-lineáris megoldás) \cite[10.1 alfejezet]{HZ}.
+Ezen mátrixegyenletből kiindulva, egyező képpontpárokból kiszámolhatjuk $\mathbf{F}$-et, 8 pontpárból egy skála erejéig, 8-nál több esetén pedig legkisebb négyzetek módszerével (7 esetén pedig létezik nem-lineáris megoldás) \cite[10.1 alfejezet]{HZ}.
 
 %----------------------------------------------------------------------------
 \section{A háromdimenziós tér rekonstrukciója \label{sec:methods}}
 %----------------------------------------------------------------------------
 
 
-A dolgozat során kettő, alapvetően eltérő módszerre térek ki. Az első a sztereó-látás elvén alapszik, azaz a kamerákat párosával használva -- azokat sztereó-kalibrálva -- alkotunk mélységképet, mely segítségével a képpontokat mélységinformációval ruházzuk fel. A második eljárás az optikai folyamok segítségével a kamerák képein meghatározza az egymásnak megfelelő pontokat, és ezekből a párosításokból háromszögelés után meghatározza a pontok világbeli koordinátáját.
+A dolgozat során két, alapvetően eltérő módszerre térek ki. Az első a sztereó-látás elvén alapszik, azaz a kamerákat párosával használva, azokat sztereó-kalibrálva alkotunk mélységképet, mely segítségével a képpontokat mélységinformációval ruházzuk fel. A második eljárás az optikai folyamok segítségével a kamerák képein meghatározza az egymásnak megfelelő pontokat, és ezekből a párosításokból háromszögelés után meghatározza a pontok világbeli koordinátáját.
 
 \subsection{Sztereó-látás, sztereó-kalibráció}
 
-Sztereó-kalibráció \cite{camera-calib-3d} során egy már ismert háromdimenziós objektumot használunk fel, és attól függően, hogy az objektum ismert pontjait a két kamera képén hol látjuk, kiszámolhatjuk a kamerák belső és külső paramétereit (lásd előző fejezet), valamint a kamerák egymáshoz való viszonyát (eltolás, forgatás). 
+Sztereó-kalibráció \cite{camera-calib-3d} során egy már ismert háromdimenziós objektumot használunk, és az alapján, hogy az objektum ismert pontjait a két kamera képén hol látjuk, kiszámolhatjuk a kamerák belső és külső paramétereit (lásd előző fejezet), valamint a kamerák egymáshoz való viszonyát (eltolás, forgatás). 
 
 Amennyiben a két kamera képsíkja egybeesik, akkor a bázisegyenesek a képsíkokkal a végtelenben metszik egymást, ebből adódóan az epipoláris egyenesek párhuzamosak. Amennyiben a két kamera közötti transzformáció csak tisztán egy $x$ tengellyel párhuzamos eltolás (standard sztereókamerák), akkor az epipoláris egyenesek is párhuzamosak az $x$ tengellyel, tehát a pontpárok keresése pusztán a képkocka egy adott sorára korlátozódik.
 
@@ -334,7 +334,7 @@ A rektifikált képpárokra pedig már léteznek algoritmusok \cite{SGBM, stereo
   \caption{Elmozdulás és mélység kapcsolata; a kameráktól távolabbi $P_2$ pont képeinek $d_2$ távolsága kisebb, mint a közelebbi $P_1$ pont képeinek $d_1$ távolsága \label{fig:depth-showcase}}
 \end{figure}
 
-Fontos megemlíteni, hogy gyakorlatban a kameráknak már eleve nagyon közel kell lenniük az ideális elhelyezkedéshez, azaz, egymás mellett (vagy egymás felett, attól függően, hogy horizontális, vagy vertikális sztereó-kamerákat használunk) legyenek, úgy hogy képsíkjuk közel egybeessenek. Így érhető el az, hogy a rektifikáció sikeres legyen, valamint, hogy utána a kép legnagyobb része ,,használható'' legyen, lásd \aref{fig:stereo-calibration-after}. ábrán a szélén lévő fekete részeket.
+Fontos megemlíteni, hogy gyakorlatban a kameráknak már eleve nagyon közel kell lenniük az ideális elhelyezkedéshez, azaz, egymás mellett (vagy egymás felett, attól függően, hogy horizontális, vagy vertikális sztereó-kamerákat használunk) legyenek, úgy hogy képsíkjuk közel egybeessenek. Így érhető el az, hogy a rektifikáció sikeres legyen, valamint, hogy utána a kép legnagyobb része ,,használható'' legyen, lásd \aref{fig:stereo-calibration-after}. ábrán a képszéleken lévő fekete részeket.
 
 \subsection{Optikai folyam \label{methods:optic}}
 
@@ -512,16 +512,16 @@ Az optikai folyamokat felhasználhatjuk statikus objektumok (pl. szobrok, kasté
 \caption{Mozgó kamera két állapotban \label{fig:triangulation}}
 \end{figure}
 
-Ennél lényegesen eltérő felhasználási mód, ha az optikai folyamokat nem egy mozgó kamera két képkockáján, hanem két különböző kamera egy időponthoz tartozó két képkockáján határozzuk meg, melyek megközelítőleg ugyanazon térrészt veszik, de kicsit más pontból és szögből. Ekkor az optikai folyam lényegében a két kamera képén egy megfeleltetést tesz lehetővé. Feltéve, hogy előzetesen a kamerák pozícióját meghatároztuk (külső paraméterek), valamint ismerjük a projekciójukat leíró mátrixokat (belső paraméterek), akkor az egyező képontokat felhasználva háromszögeléssel kaphatjuk a mindkét kamera által látott pontok világbeli koordinátájukat.
+Ennél lényegesen eltérő felhasználási mód, ha az optikai folyamokat nem egy mozgó kamera két képkockáján, hanem két különböző kamera egy időponthoz tartozó két képkockáján határozzuk meg, melyek megközelítőleg ugyanazon térrészt veszik, de kissé eltérő pontból és szögből. Ekkor az optikai folyam lényegében a két kamera képén egy megfeleltetést tesz lehetővé. Feltéve, hogy előzetesen a kamerák pozícióját meghatároztuk (külső paraméterek), valamint ismerjük a projekciójukat leíró mátrixokat (belső paraméterek), akkor az egyező képontokat felhasználva háromszögeléssel kaphatjuk a mindkét kamera által látott pontok világbeli koordinátájukat.
 
-Az előbbi módszer, jól használható nagy felbontású képeknél, ahol az objektum a kép nagy részét teszi ki, így sok hasznos képpontot gyűjthetünk. A feladatom során éppen ellenkezőleg, a képek csak egy részén megjelenő és ott mozgó objektumokat kell rekonstruálni, így az utóbbi megközelítést valósítom meg.
+Az előbbi módszer, jól használható nagy felbontású képeknél, ahol az objektum a kép nagy részét teszi ki, és így sok hasznos képpontot gyűjthetünk. A feladatom során éppen ellenkezőleg, a képek csak egy részén megjelenő és ott mozgó objektumokat kell rekonstruálni, így az utóbbi megközelítést valósítom meg.
 
 
 %----------------------------------------------------------------------------
 \subsection{Háromszögelés \label{sec:triangulation}}
 %----------------------------------------------------------------------------
 
-Legyen adott két kamera a belső és külső paramétereivel együtt, tehát ismerjük a kamerák $\mathbf{P}$ és $\mathbf{Q}$ projekciós mátrixukat. Amennyiben veszünk egy $P$ pontnak egy-egy képét a kamerák képein, akkor háromszögeléssel meghatározhatjuk ezen pont valóvilágbeli koordinátáit.
+Legyen adott két kamera a belső és külső paramétereivel együtt, tehát ismerjük a kamerák $\mathbf{P}$ és $\mathbf{Q}$ projekciós mátrixát. Amennyiben vesszük egy $P$ pont vetületei a kamerák képein, akkor háromszögeléssel meghatározhatjuk ezen pont valóvilágbeli koordinátáit.
 
 Legyen a két egymásnak megfeleltetett képpont $\mathbf{u}$ és $\mathbf{u}'$. A megfeleltetés zajos jellege miatt, ezek általánosságban nem elégítik ki az epipoláris $\mathbf{u}'^T \mathbf{F} \mathbf{u} = 0$ kényszert, ahol $\mathbf{F}$ a két kamera fundamentális mátrixa. Ilyenkor ezek helyett olyan $\mathbf{\hat{u}} \leftrightarrow \mathbf{\hat{u}}'$ megfeleltetést keresünk, mely minimalizálja az alábbi
 
@@ -531,13 +531,13 @@ költségfüggvényt, ahol $d(., .)$ két pont euklideszi távolsága, és kiel�
 
 \[\mathbf{\hat{u}}'^T \mathbf{F} \mathbf{\hat{u}} = 0\]
 
-epipoláris kényszert \cite{hartley-triangulation}. Amikor megvan $\mathbf{\hat{u}}$ és $\mathbf{\hat{u}}'$ már meghatározhatjuk a kameraközéppontokból induló ezen pontokon átmenő sugarak metszéspontjait, hiszen biztosan létezni fog. Hartley és Sturm \cite{hartley-triangulation} megad Gauss-eloszlású zaj feltételezése esetén egy optimális polinomiális megoldást, mely a fenti költségfüggvényt minimalizálja.
+epipoláris kényszert \cite{hartley-triangulation}. Amikor megvan $\mathbf{\hat{u}}$ és $\mathbf{\hat{u}}'$, már meghatározhatjuk a kameraközéppontokból induló ezen pontokon átmenő sugarak metszéspontjait, hiszen biztosan létezni fog. Hartley és Sturm \cite{hartley-triangulation} megad egy optimális polinomiális megoldást, mely a fenti költségfüggvényt minimalizálja Gauss-eloszlású zaj feltételezése esetén.
 
 Ennek ellenére a gyakorlatban inkább lineáris háromszögelést szoktak alkalmazni \cite[5.1 szekció]{hartley-triangulation}. Legyen $\mathbf{x}$ egy pont és ennek vetülete az első kamera képén $\mathbf{u}$, vagyis $\mathbf{u} = \mathbf{P}\mathbf{x}$. Legyen $\mathbf{u}$ homogén koordinátákkal $\mathbf{u} = w_u(x_u, y_u, 1)^T$, tehát:
 
 \[w_u\left( \begin{array}{c} x_u \\ y_u \\ 1 \end{array} \right) = \left( \begin{array}{c} \mathbf{p}_1^T \\ \mathbf{p}_2^T \\ \mathbf{p}_3^T \end{array} \right) \mathbf{x}\]
 
-ahol $\mathbf{p}_i^T$ jelöli a $\mathbf{P}$ mátrix $i$. sorvektorát. Tehát összesen 3 egyenletet kapunk:
+ahol $\mathbf{p}_i^T$ jelöli a $\mathbf{P}$ mátrix $i$. sorvektorát. Így összesen 3 egyenletet kapunk:
 
 \[w_ux_u = \mathbf{p}_1^T\mathbf{x} \quad w_uy_u = \mathbf{p}_2^T\mathbf{x} \quad w_u = \mathbf{p}_3^T\mathbf{x}\]
 
@@ -555,12 +555,12 @@ A fenti négy egyenletet rendezve:
 
 \[\left( \begin{array}{c} x_u\mathbf{p}_3^T - \mathbf{p}_1^T \\ y_u\mathbf{p}_3^T - \mathbf{p}_2^T \\ x_v\mathbf{q}_3^T - \mathbf{q}_1^T \\ y_v\mathbf{q}_3^T - \mathbf{q}_2^T \end{array} \right) \mathbf{x} = 0\]
 
-Ez meghatározza $\mathbf{x}$-et egy faktor erejéig, és ennek nem-zérus megoldását keressük. Zajos adatokat feltételezve, ennek nem feltétlen lesz pontos megoldása, így közelítenünk kell. Egy lehetséges megközelítés a \textit{Linear-LS} (lineáris, legkisebb négyzetek) módszer, mely $\mathbf{x} = (x, y, z, 1)^T$ alakú megoldások között keresi az egyenletrendszer legkisebb négyzetek megoldását (pl. szinguláris érték szerinti felbontással (SVD) \cite{cs-svd}). 
+Ez meghatározza $\mathbf{x}$-et egy faktor erejéig, és ennek nem-zérus megoldását keressük. Zajos adatokat feltételezve ennek nem feltétlen találunk pontos megoldást, így közelítenünk kell. Egy lehetséges megközelítés a \textit{Linear-LS} (lineáris, legkisebb négyzetek) módszer, mely $\mathbf{x} = (x, y, z, 1)^T$ alakú megoldások között keresi az egyenletrendszer legkisebb négyzetek megoldását (pl. szinguláris érték szerinti felbontással (SVD) \cite{cs-svd}). 
 
-Általános esetben a talált $\mathbf{x}$ nem pontos megoldása a fenti egyenleteknek, azaz egy $\varepsilon = x_u\mathbf{p}_3^T\mathbf{x} - \mathbf{p}_1^T\mathbf{x}$ hibával számolhatunk az egyenletrendszer első egyenleténél. Mi nem ezt, hanem $x_u$ és $\mathbf{x}$ vetületének első koordinátája közötti eltérését szeretnénk minimalizálni, azaz $\varepsilon' = \frac{\varepsilon}{\mathbf{p}_3^T\mathbf{x}} = x_u - \frac{\mathbf{p}_1^T\mathbf{x}}{\mathbf{p}_3^T\mathbf{x}}$. Tehát, ha az egyenletet $1 / \mathbf{p}_3^T\mathbf{x}$-szel súlyoztuk volna, akkor az úgy kapott hiba pont az általunk minimalizálandó hiba lett volna. Természetesen ezt nem tudjuk megcsinálni, hiszen $\mathbf{x}$ még nem ismert, csak miután megoldottuk az egyenletrendszert, de egy iteratív megközelítést tudunk alkalmazni. Minden iteráció végén újrasúlyozzuk a megfelelő sorokat $1 / \mathbf{p}_3^T\mathbf{x}_i$, valamint $1 / \mathbf{q}_3^T\mathbf{x}_i$-vel, ahol $\mathbf{x}_i$ az $i$. iteráció végén kapott megoldás. Ha a lépéseknél az aktuális megoldást az előbbi \textit{Linear-LS}-sel keressük, akkor az így kapott eljárást \textit{Iterative-LS}-nek hívjuk. \cite[5.2 szekció]{hartley-triangulation}-ben úgy találták, hogy az esetek 95\%-ban a megoldás konvergens (epipólus melletti pontokra volt divergens), és amikor az új súly már csak kis mértékben változik az előzőhöz képest, megszakíthatjuk az iterációt.
+Általános esetben a talált $\mathbf{x}$ nem pontos megoldása a fenti egyenleteknek, azaz egy $\varepsilon = x_u\mathbf{p}_3^T\mathbf{x} - \mathbf{p}_1^T\mathbf{x}$ hibával számolhatunk az egyenletrendszer első egyenleténél. Mi nem ezt, hanem $x_u$ és $\mathbf{x}$ vetületének első koordinátája közötti eltérését szeretnénk minimalizálni, azaz $\varepsilon' = \frac{\varepsilon}{\mathbf{p}_3^T\mathbf{x}} = x_u - \frac{\mathbf{p}_1^T\mathbf{x}}{\mathbf{p}_3^T\mathbf{x}}$. Tehát, ha az egyenletet $1 / \mathbf{p}_3^T\mathbf{x}$-szel súlyoztuk volna, akkor az úgy kapott hiba pont az általunk minimalizálandó hiba lett volna. Természetesen ezt nem tudjuk megtenni, hiszen $\mathbf{x}$ még nem ismert, csak miután megoldottuk az egyenletrendszert, de egy iteratív megközelítést tudunk alkalmazni. Minden iteráció végén újrasúlyozzuk a megfelelő sorokat $1 / \mathbf{p}_3^T\mathbf{x}_i$, valamint $1 / \mathbf{q}_3^T\mathbf{x}_i$-vel, ahol $\mathbf{x}_i$ az $i$. iteráció végén kapott megoldás. Ha a lépéseknél az aktuális megoldást az előbbi \textit{Linear-LS}-sel keressük, akkor az így kapott eljárást \textit{Iterative-LS}-nek hívjuk. Hartley és Sturm \cite[5.2 szekció]{hartley-triangulation} munkája alapján az esetek 95\%-ban a megoldás konvergens (epipólus melletti pontokra volt divergens), és amikor az új súly már csak kis mértékben változik az előzőhöz képest, megszakíthatjuk az iterációt.
 
 %----------------------------------------------------------------------------
-\section{Objektum-detekció \label{sec:obj_detection}}
+\section{Objektum-detektálás \label{sec:obj_detection}}
 %----------------------------------------------------------------------------
 
 
@@ -583,4 +583,4 @@ A választott algoritmus előnye, hogy az árnyékokat nagy valószínűséggel 
 \section{Összefoglaló}
 %----------------------------------------------------------------------------
 
-Ebben a fejezetben a több kamerából álló kamera-rendszerek során felmerülő és a dolgozat során is megoldandó problémákat, valamint ezek lehetséges megoldásait mutattam be. Kitértem a kamerák szinkronizációjára, az epipoláris geometriára, mely kapcsolatot teremt a kamerák képei között, és leírtam két lényegében eltérő rekonstrukciós eljárást, és azok mögött meghúzódó elméleti hátteret. Bemutattam a háromszögelés elméleti hátterét, végül a fejezetet az objektum-detekció problémakörével zártam.
+Ebben a fejezetben a több kamerából álló kamera-rendszerek során felmerülő és a dolgozat során is megoldandó problémákat, valamint ezek lehetséges megoldásait mutattam be. Kitértem a kamerák szinkronizációjára, az epipoláris geometriára, mely kapcsolatot teremt a kamerák képei között, és leírtam két lényegében eltérő rekonstrukciós eljárást, és azok mögött meghúzódó elméleti hátteret. Bemutattam a háromszögelés elméleti módszerét, végül a fejezetet az objektum-detekció problémakörével zártam.

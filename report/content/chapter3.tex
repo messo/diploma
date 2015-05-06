@@ -6,21 +6,21 @@ Az elméleti megfontolások, alapelvek bemutatását követően rátérek a fela
 
 \section{A célkitűzés}
 
-A diplomamunka során elkészítendő rendszernek képesnek kell lennie egy zárt térrész tetszőlegesen választott pontjában és irányában látható, a mozgó objektumokat tartalmazó kép helyreállítására fix telepítésű kamerák valós idejű videofolyamai alapján. A helyreállítást akkor tekintjük sikeresnek, ha a mozgó objektumokat detektálom és választott nézőpontból azok megközelítő kontúrjait sikeresen meghatározom. A tényleges objektum struktúrájának illetve textúrájának meghatározása nem esik e dolgozat hatáskörébe. Gondoljuk meg, hogy a választott nézőpontra is vannak korlátaink, érdemi rekonstrukciót csak a kamerákat összekötő képzeletbeli szakaszon és annak környezetében várhatunk, így a tesztelést is így fogom végezni.
+A diplomamunka során elkészítendő rendszernek képesnek kell lennie egy zárt térrész tetszőlegesen választott pontjában és irányában látható, a mozgó objektumokat tartalmazó kép helyreállítására fix telepítésű kamerák valós idejű videofolyamai alapján. A helyreállítást akkor tekintjük sikeresnek, ha a mozgó objektumokat detektálom és választott nézőpontból azok megközelítő kontúrjait sikeresen meghatározom. A tényleges objektum struktúrájának illetve textúrájának meghatározása nem esik a dolgozat hatáskörébe. A választott nézőpontra is vannak korlátaink, érdemi rekonstrukciót csak a kamerákat összekötő képzeletbeli szakaszon és annak környezetében várhatunk, így a tesztelést is így fogom végezni.
 
-A rendszer tervezése során figyelembe veszem, hogy lényegében tetszőleges számú kamerát is felhasználhatok a probléma megoldásához, ennek megfelelően a megvalósított rendszer architektúráját így készítem el, de az elérhető eszközök korlátozott száma miatt csak két kamerával lesz tesztelve. Egyre több kamera bevonásával a rekonstrukció minősége, valamint a helyesen rekonstruálható nézőpontok száma növekszik, de ezzel együtt a rendszer teljesítménye a megnövekedő számítási szükséglet miatt csökken. Fontos megemlíteni, hogy a feladat és a megoldás jellegéből adódóan a független kamerákból meghatározott rekonstrukciók párhuzamosíthatóak, így ezek megfelelő feldolgozó egységet feltételezve egy időben elvégezhetőek. Ez azt jelenti, hogy a kamerák számának növelése valóban megoldás lehet a robusztus eredmény eléréséhez.
+A rendszer tervezése során figyelembe vettem, hogy lényegében tetszőleges számú kamerát is felhasználhatok a probléma megoldásához, ennek megfelelően a megvalósított rendszer architektúráját így készítettem el, de az elérhető eszközök korlátozott száma miatt csak két kamerával teszteltem. Egyre több kamera bevonásával a rekonstrukció minősége, valamint a helyesen rekonstruálható nézőpontok száma növekszik, de ezzel együtt a rendszer teljesítménye a megnövekedő számítási szükséglet miatt csökken. Fontos megemlíteni, hogy a feladat és a megoldás jellegéből adódóan a független kamerákból meghatározott rekonstrukciók párhuzamosíthatóak, így ezek megfelelő feldolgozó egységet feltételezve egy időben elvégezhetőek. Ez azt jelenti, hogy a kamerák számának növelése valóban megoldás lehet a robusztus eredmény eléréséhez.
 
 \section{Keretrendszer}
 
-A diplomamunka során az OpenCV \cite{opencv} keretrendszert fogom használni melynek célja, hogy a fejlesztőknek, egy szabadon és ingyenes elérhető alkalmazás-könyvtárat biztosítson a gépi látás területén elterjedt és gyakran használt algoritmusokhoz. Több nyelvhez is biztosít API-t, én ezek közül a C++-os interfészét fogom használni, a lehető legnagyobb teljesítmény elérése érdekében. Az OpenCV-t már az előző félévekben megismertem, így a diplomamunka során már eredményesen tudok építkezni az általa nyújtott funkciókra.
+A diplomamunka során az OpenCV \cite{opencv} keretrendszert használtam melynek célja, hogy a fejlesztőknek, egy szabadon és ingyenes elérhető alkalmazás-könyvtárat biztosítson a gépi látás területén elterjedt és gyakran használt algoritmusokhoz. Több nyelvhez is biztosít API-t, én ezek közül a C++-os interfészét alkalmaztam, a lehető legnagyobb teljesítmény elérése érdekében. Az OpenCV-t már az előző félévekben megismertem, így a diplomamunka során már eredményesen tudtam építkezni az általa nyújtott funkciókra.
 
 \section{A tervezett rendszer működése}
 
-A feladat megoldásához \aref{methods:optic}. alszekcióban leírt optikai folyamos eljárást használom fel. A rendszer tervét, átfogó képét mutatom be a következőkben.
+A feladat megoldásához \aref{methods:optic}. alszekcióban leírt optikai folyam alapú eljárást használom fel. A rendszer tervét, átfogó képét mutatom be a következőkben.
 
 A kamerákat két lépésben kalibrálom; először, hogy a torzításukat minimalizáljam, majd azért, hogy meghatározhassam az elhelyezkedésüket egy rögzített koordinátarendszerben. 
 
-Ezt követően a kamerák képeiből meghatározom az előtér maszkot. Erre két féle megközelítést is implementálok; az egyik az optikai folyamokat használja a mozgás érzékeléséhez, ami kijelöli az előteret, a másik pedig egy előtér-háttér szegmentációs eljárás használata lesz. Ezek közül összehasonlítás után végül egy mellett fogok dönteni.
+Ezt követően a kamerák képeiből meghatározom az előtér maszkot. Erre két féle megközelítést is implementálok; az egyik az optikai folyamokat használja a mozgás érzékeléséhez, ami kijelöli az előteret, a másik pedig egy előtér-háttér szegmentációs eljárás. Ezek közül összehasonlítás után végül egy mellett fogok dönteni.
 
 Miután a vélt előtér objektumok maszkjait meghatároztam, ezeket a képeken egymással párosítanom kell. Itt is kétféle megközelítést próbálok ki és implementálok. Az első egy egyszerű ,,legnagyobb-területű'' kiválasztás lesz, amely mindkét képen a legnagyobb területű blobot keresi, és ezeket feleltetni meg egymásnak. Természetesen ilyenkor csak 1 objektumot fogunk tudni rekonstruálni, de a további lépéseket jól lehet rajta tesztelni. A másik eljárás pedig, hogy ezen a blobokon keresek jellegzetes pontokat, és megpróbálom egymásnak megfeleltetni őket. Ezekből a megfeleltetések alapján többségi döntéssel fogok dönteni, hogy az egyik kép blobja, melyik másik blobnak felel meg.
 
@@ -28,7 +28,7 @@ A blob-párosítások alapján, külön-külön tudok optikai folyam alapján s�
 
 Végül a választott nézőpontból projekció segítségével meghatározom az onnan látható becsült képet (felhasználva az eredeti képből kinyerhető színinformációkat), valamint az objektumokhoz tartozó kontúrokat.
 
-Gondoljuk meg, hogy a fenti leírás tetszőleges számú kamera-párokra (amelyek nem feltétlen diszjunktak) általánosítható, és az így kapott pontfelhőket, felhasználva, hogy az adatokat az előzetes kalibrációnak köszönhetően egy közös világ-koordinátarendszerben kapjuk meg, ezek könnyen egyesíthetőek. Ezt a folyamatot mutatja be \aref{fig:of-method}. ábra. A diplomaterv keretében a színezett hátterű lépések készültek el, a több kamerákra vonatkozó együttes kezelés nem.
+Gondoljuk meg, hogy a fenti leírás tetszőleges számú kamera-párra (amelyek nem feltétlen diszjunktak) általánosítható, és az így kapott pontfelhőket, felhasználva, hogy az adatokat az előzetes kalibrációnak köszönhetően egy közös világ-koordinátarendszerben kapjuk meg, ezeket könnyen egyesíthetjük. Ezt a folyamatot mutatja be \aref{fig:of-method}. ábra. A diplomaterv keretében a színezett hátterű lépések készültek el, a több kamerákra vonatkozó együttes kezelés nem.
 
 \begin{sidewaysfigure}
 \centering
@@ -52,7 +52,7 @@ graybox/.style = {box, gray}
 
 \node[box,fill=green!10] (GetFrames1) [below of=Calib1,yshift=-1.5em] {Aktuális képkocka lekérése};
 
-\node[box,fill=green!10] (OD1) [below of=GetFrames1,yshift=-1.5em] {Objektum(ok) detekciója};
+\node[box,fill=green!10] (OD1) [below of=GetFrames1,yshift=-1.5em] {Objektum(ok) detektálása};
 
 \draw (Calib1) -- (GetFrames1);
 \draw (GetFrames1) -- (OD1);
@@ -65,7 +65,7 @@ graybox/.style = {box, gray}
 
 \node[box,fill=green!10] (GetFrames2) [below of=Calib2,yshift=-1.5em] {Aktuális képkocka lekérése};
 
-\node[box,fill=green!10] (OD2) [below of=GetFrames2,yshift=-1.5em] {Objektum(ok) detekciója};
+\node[box,fill=green!10] (OD2) [below of=GetFrames2,yshift=-1.5em] {Objektum(ok) detektálása};
 
 \draw (Calib2) -- (GetFrames2);
 \draw (GetFrames2) -- (OD2);
@@ -78,7 +78,7 @@ graybox/.style = {box, gray}
 
 \node[box] (GetFrames3) [below of=Calib3,yshift=-1.5em] {Aktuális képkocka lekérése};
 
-\node[box] (OD3) [below of=GetFrames3,yshift=-1.5em] {Objektum(ok) detekciója};
+\node[box] (OD3) [below of=GetFrames3,yshift=-1.5em] {Objektum(ok) detektálása};
 
 \draw (Calib3) -- (GetFrames3);
 \draw (GetFrames3) -- (OD3);
@@ -91,7 +91,7 @@ graybox/.style = {box, gray}
 
 \node[box] (GetFramesN) [below of=CalibN,yshift=-1.5em] {Aktuális képkocka lekérése};
 
-\node[box] (ODN) [below of=GetFramesN,yshift=-1.5em] {Objektum(ok) detekciója};
+\node[box] (ODN) [below of=GetFramesN,yshift=-1.5em] {Objektum(ok) detektálása};
 
 \draw (CalibN) -- (GetFramesN);
 \draw (GetFramesN) -- (ODN);
