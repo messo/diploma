@@ -2,7 +2,7 @@
 \chapter{Elméleti bevezetés}\label{ch:elmelet}
 %----------------------------------------------------------------------------
 
-Ezt a fejezetet a feladat értelmezésével fogom kezdeni, majd az alkalmazott matematikai hátteret mutatom be. Rövid lineáris algebrai bevezető után a háromdimenziós tér alapvető transzformációit tárgyalom. A fejezetet a lyukkamera-modell leírásával zárom.
+Ezt a fejezetet a feladat értelmezésével kezdem, majd az alkalmazott matematikai hátteret mutatom be. Rövid lineáris algebrai bevezető után a háromdimenziós tér alapvető transzformációit tárgyalom. A fejezetet a lyukkamera-modell leírásával zárom.
 
 %----------------------------------------------------------------------------
 \section{Feladat értelmezése}
@@ -232,12 +232,12 @@ A gyakorlatban gyakran használt modell, hogy a radiális torzítás esetében a
 
 \[\left(\begin{array}{c}x_{\hbox{\small jav}}\\ y_{\hbox{\small jav}}\end{array}\right) = (1 + k_1r^2 + k_2r^4 + k_3r^6) \left(\begin{array}{c}x\\y\end{array}\right)\]
 
-ahol $(x,y)$ volt az eredeti kép egy pixelének koordinátája, és $(x_{\hbox{\small jav}}, y_{\hbox{\small jav}})$ pedig az új koordináta a korrigált képen. Tangenciális torzítás pedig a következő egyenletek segítségével javítható:
+ahol $(x,y)$ volt az eredeti kép egy pixelének koordinátája, $r^2 = x^2 + y^2$ és $(x_{\hbox{\small jav}}, y_{\hbox{\small jav}})$ pedig az új koordináta a korrigált képen. Tangenciális torzítás pedig a következő egyenletek segítségével javítható:
 \[x_{\hbox{\small jav}} = x + \Big(2p_1xy + p_2(r^2+2x^2)\Big)\]
 \[y_{\hbox{\small jav}} = y + \Big(p_1(r^2+2y^2) + 2p_2xy\Big)\]
 Ekkor $k_1, k_2$ és $k_3$ a radiális, $p_1$ és $p_2$ pedig a tangenciális torzítás együtthatói.
 
-Kalibrálás során ezeket az együtthatókat határozzuk meg. A képen szereplő egyenesek görbületét, mint költség-függvényt, minimalizálva kiszámolhatjuk a radiális torzítást, hiszen ideális esetben nincs görbület. A gyakorlatban ez úgy történik, hogy egy előre ismert objektumot -- például egy sakktáblát -- detektálunk a képeken (lásd \aref{fig:chessboards}. ábra), és a sarokpontokat összekötő egyeneseket vizsgáljuk.
+Kalibrálás során ezeket az együtthatókat határozzuk meg. A képen szereplő egyenesek görbületét, mint költség-függvényt minimalizálva kiszámolhatjuk a radiális torzítást, hiszen ideális esetben nincs görbület. A gyakorlatban ez úgy történik, hogy egy előre ismert objektumot -- például egy sakktáblát -- detektálunk a képeken (lásd \aref{fig:chessboards}. ábra), és a sarokpontokat összekötő egyeneseket vizsgáljuk.
 
 \begin{figure}[tbh]
 \centering
@@ -254,7 +254,7 @@ Kalibrálás során ezeket az együtthatókat határozzuk meg. A képen szerepl�
 \caption{Radiális torzítás meghatározása \cite{pinhole-model} \label{fig:chessboards}}
 \end{figure}
 
-Az előzőekben a kamera \textit{belső paramétereit} vizsgáltuk, melyeket a kamera lencséi és fókusztávolsága határoznak meg. Azonban szükséges beszélnük a \textit{külső paraméterekről} is, amely a kamera pozícióját és irányát mutatja a világ-koordinátához képest.
+Az előzőekben a kamera \textit{belső paramétereit} tekintettük át, melyeket a kamera lencséi és fókusztávolsága határoznak meg. Azonban szükséges beszélnük a \textit{külső paraméterekről} is, amely a kamera pozícióját és irányát mutatja a világ-koordinátához képest.
 
 A gyakorlatban a kamera helyét és irányát egy $\mathbf{c} = (c_1, c_2, c_3)^T$ vektorral és egy $\mathbf{R}$ forgatási mátrixszal adjuk meg. Így ahhoz, hogy egy 3D-s pont képét megkapjuk, először a kamerát el kell tolni a világkoordináta-rendszer origójába, majd forgatni, vagyis:
 
@@ -303,7 +303,7 @@ Z \\
 1
 \end{array}\right)\]
 
-$\mathbf{t} = -\mathbf{R}\mathbf{c}$ helyettesítéssel, valamint a fókusztávolságot az effektív pixelméretekkel beszorozva kapjuk \cite{camera-calib}-ben is található egyenletet:
+$\mathbf{t} = -\mathbf{R}\mathbf{c}$ helyettesítéssel, valamint a fókusztávolságot az effektív pixelméretekkel beszorozva kapjuk \cite{camera-calib}-ban is található egyenletet:
 
 \[s \left(\begin{array}{c}
 u \\ 
@@ -329,10 +329,10 @@ ahol:
 \item $\mathbf{A}$ a kamera-mátrix (\textit{belső paraméterek mátrixa})
 \item $(o_x, o_y)$ a főpont képsíkbeli koordinátája, amely általában a kép közepe
 \item $(f_x, f_y)$ pedig a fókusztávolságok pixelekben kifejezve
-\item $\mathbf{R}$ a forgatási mátrix és $\mathbf{t} = (t_1, t_2, t_3)^T$ az eltolás-vektor -- együttesen $\Big(\,\mathbf{R}\,|\,\mathbf{t}\,\Big)$ a forgatás-eltolás mátrix, mely a \textit{külső paraméterek mátrixa}; azt határozza meg, hogy a statikus világhoz képest a kamera hol helyezkedik el, vagy fordítva, a statikus kamerához a világ hogyan van pozícionálva.
+\item $\mathbf{R}$ a forgatási mátrix és $\mathbf{t} = (t_1, t_2, t_3)^T$ az eltolás-vektor -- együttesen $\Big(\,\mathbf{R}\,|\,\mathbf{t}\,\Big)$ a forgatás-eltolás mátrix, mely a \textit{külső paraméterek mátrixa}; azt határozza meg, hogy a statikus világhoz képest a kamera hol helyezkedik el, vagy fordítva, a statikus kamerához képest a világ hogyan van pozícionálva.
 \end{itemize}
 
-A kamera külső paramétereit, a belső paraméterekhez hasonlóan kalibrálással kapjuk meg. Ehhez egy ismert objektumot használunk fel, az előzőekhez hasonlóan egy sakktáblát: a sarokpontokat a világ-koordinátarend\-szerben koordinátázzuk például úgy, hogy azok az $x$-$y$ síkba essenek, 3. koordinátájukat pedig fixen zérusnak választjuk. Ezeket a világbeli koordinátákat a képpontoknak megfeleltetve meghatározható $\mathbf{R}$ és $\mathbf{t}$ \cite{camera-calib}, feltéve, hogy a használt kamerát már az előbbiek alapján rektifikáltuk.
+A kamera külső paramétereit, a belső paraméterekhez hasonlóan kalibrálással kapjuk meg. Ehhez egy ismert objektumot használunk fel, pl. egy sakktáblát: a sarokpontokat a világ-koordinátarend\-szerben koordinátázzuk például úgy, hogy azok az $x$-$y$ síkba essenek, 3. koordinátájukat pedig fixen zérusnak választjuk. Ezeket a világbeli koordinátákat a képpontoknak megfeleltetve meghatározható $\mathbf{R}$ és $\mathbf{t}$ \cite{camera-calib}, feltéve, hogy a kamera képét már az előbbiek alapján rektifikáltuk.
 
 \section{Összefoglaló}
 

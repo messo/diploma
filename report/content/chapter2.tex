@@ -97,15 +97,15 @@ Az epipoláris geometria adja meg a kapcsolatot két kamera képe között \cite
 \caption{Epipoláris geometria szemléltetése \label{fig:epipolar}}
 \end{figure}
 
-Az $\mathbf{F}$ fundamentális mátrix az epipoláris geometria algebrai megfeleltetése, mely az előbb említett képpontból epipoláris egyenesre történő leképezést adja meg.
+Az $\mathbf{F}$ fundamentális mátrix az epipoláris geometria algebrai megfeleltetése, mely az előbb említett képpontból epipoláris egyenesre történő leképezést adja meg:
 
 \[\mathbf{l}' = \mathbf{F}\mathbf{x}\]
 
-ahol $\mathbf{x}$ egy $X$ pont képe az egyik képsíkon, $\mathbf{l}'$ pedig a hozzátartozó epipoláris egyenes a másik képsíkon. Legyen $\mathbf{x}'$ az $X$ képe a másik képsíkon, mivel rajta van $\mathbf{l}'$-n ezért $\mathbf{x}'^T \mathbf{l}' = 0$, tehát:
+ahol $\mathbf{x}$ egy $X$ pont képe az egyik képsíkon, $\mathbf{l}'$ pedig a hozzá tartozó epipoláris egyenes a másik képsíkon. Legyen $\mathbf{x}'$ az $X$ képe a másik képsíkon, mivel rajta van $\mathbf{l}'$-n ezért $\mathbf{x}'^T \mathbf{l}' = 0$, tehát:
 
 \[\mathbf{x}'^T\mathbf{F}\mathbf{x} = 0\]
 
-Ezen mátrixegyenletből kiindulva, egyező képpontpárokból kiszámolhatjuk $\mathbf{F}$-et, 8 pontpárból egy skála erejéig, 8-nál több esetén pedig legkisebb négyzetek módszerével (7 esetén pedig létezik nem-lineáris megoldás) \cite[10.1 alfejezet]{HZ}.
+Ezen mátrixegyenletből kiindulva, egymásnak megfelelő képpontpárokból kiszámolhatjuk $\mathbf{F}$-et, 8 pontpárból egy skála erejéig, 8-nál több esetén pedig legkisebb négyzetek módszerével (7 esetén pedig létezik nem-lineáris megoldás) \cite[10.1 alfejezet]{HZ}.
 
 %----------------------------------------------------------------------------
 \section{A háromdimenziós tér rekonstrukciója \label{sec:methods}}
@@ -118,7 +118,7 @@ A dolgozat során két, alapvetően eltérő módszerre térek ki. Az első a sz
 
 Sztereó-kalibráció \cite{camera-calib-3d} során egy már ismert háromdimenziós objektumot használunk, és az alapján, hogy az objektum ismert pontjait a két kamera képén hol látjuk, kiszámolhatjuk a kamerák belső és külső paramétereit (lásd előző fejezet), valamint a kamerák egymáshoz való viszonyát (eltolás, forgatás). 
 
-Amennyiben a két kamera képsíkja egybeesik, akkor a bázisegyenesek a képsíkokkal a végtelenben metszik egymást, ebből adódóan az epipoláris egyenesek párhuzamosak. Amennyiben a két kamera közötti transzformáció csak tisztán egy $x$ tengellyel párhuzamos eltolás (standard sztereókamerák), akkor az epipoláris egyenesek is párhuzamosak az $x$ tengellyel, tehát a pontpárok keresése pusztán a képkocka egy adott sorára korlátozódik.
+Amennyiben a két kamera képsíkja egybeesik, akkor a bázisegyenesek a képsíkokkal a végtelenben metszik egymást, ebből adódóan az epipoláris egyenesek párhuzamosak. Ha a két kamera közötti transzformáció csak tisztán egy $x$ tengellyel párhuzamos eltolás (standard sztereókamerák), akkor az epipoláris egyenesek az $x$ tengellyel is párhuzamosak, tehát a pontpárok keresése pusztán a képkockák egy adott sorára korlátozódik.
 
 Mivel a gyakorlatban nehéz pontosan úgy elhelyezni a kamerákat, hogy csak víszintes irányú eltolás legyen köztük, ezért a kamerák képeit \textit{rektifikál}ni kell. Ekkor a kamerák képeit úgy transzformáljuk, hogy a képsíkok egy képzeletbeli közös síkba essenek, lásd \aref{fig:rectification}. ábrát.
 
@@ -334,7 +334,7 @@ A rektifikált képpárokra pedig már léteznek algoritmusok \cite{SGBM, stereo
   \caption{Elmozdulás és mélység kapcsolata; a kameráktól távolabbi $P_2$ pont képeinek $d_2$ távolsága kisebb, mint a közelebbi $P_1$ pont képeinek $d_1$ távolsága \label{fig:depth-showcase}}
 \end{figure}
 
-Fontos megemlíteni, hogy gyakorlatban a kameráknak már eleve nagyon közel kell lenniük az ideális elhelyezkedéshez, azaz, egymás mellett (vagy egymás felett, attól függően, hogy horizontális, vagy vertikális sztereó-kamerákat használunk) legyenek, úgy hogy képsíkjuk közel egybeessenek. Így érhető el az, hogy a rektifikáció sikeres legyen, valamint, hogy utána a kép legnagyobb része ,,használható'' legyen, lásd \aref{fig:stereo-calibration-after}. ábrán a képszéleken lévő fekete részeket.
+Fontos megemlíteni, hogy gyakorlatban a kameráknak már eleve nagyon közel kell lenniük az ideális elhelyezkedéshez, azaz egymás mellett (vagy egymás felett, attól függően, hogy horizontális, vagy vertikális sztereó-kamerákat használunk) legyenek, úgy hogy képsíkjuk közel egybeessenek. Így érhető el az, hogy a rektifikáció sikeres legyen, valamint, hogy utána a kép legnagyobb része ,,használható'' legyen, lásd \aref{fig:stereo-calibration-after}. ábrán a képszéleken lévő fekete részeket.
 
 \subsection{Optikai folyam \label{methods:optic}}
 
@@ -512,7 +512,7 @@ Az optikai folyamokat felhasználhatjuk statikus objektumok (pl. szobrok, kasté
 \caption{Mozgó kamera két állapotban \label{fig:triangulation}}
 \end{figure}
 
-Ennél lényegesen eltérő felhasználási mód, ha az optikai folyamokat nem egy mozgó kamera két képkockáján, hanem két különböző kamera egy időponthoz tartozó két képkockáján határozzuk meg, melyek megközelítőleg ugyanazon térrészt veszik, de kissé eltérő pontból és szögből. Ekkor az optikai folyam lényegében a két kamera képén egy megfeleltetést tesz lehetővé. Feltéve, hogy előzetesen a kamerák pozícióját meghatároztuk (külső paraméterek), valamint ismerjük a projekciójukat leíró mátrixokat (belső paraméterek), akkor az egyező képontokat felhasználva háromszögeléssel kaphatjuk a mindkét kamera által látott pontok világbeli koordinátájukat.
+Ennél lényegesen eltérő felhasználási mód, ha az optikai folyamokat nem egy mozgó kamera két képkockáján, hanem két különböző kamera egy időponthoz tartozó két képkockáján határozzuk meg, melyek megközelítőleg ugyanazon térrészt veszik, de kissé eltérő pontból és szögből. Ekkor az optikai folyam lényegében a két kamera képén egy megfeleltetést tesz lehetővé. Feltéve, hogy előzetesen a kamerák pozícióját meghatároztuk (külső paraméterek), valamint ismerjük a projekciójukat leíró mátrixokat (belső paraméterek), akkor az egyező képontokat felhasználva háromszögeléssel kaphatjuk a mindkét kamera által látott pontok világbeli koordinátáit.
 
 Az előbbi módszer, jól használható nagy felbontású képeknél, ahol az objektum a kép nagy részét teszi ki, és így sok hasznos képpontot gyűjthetünk. A feladatom során éppen ellenkezőleg, a képek csak egy részén megjelenő és ott mozgó objektumokat kell rekonstruálni, így az utóbbi megközelítést valósítom meg.
 
@@ -521,7 +521,7 @@ Az előbbi módszer, jól használható nagy felbontású képeknél, ahol az ob
 \subsection{Háromszögelés \label{sec:triangulation}}
 %----------------------------------------------------------------------------
 
-Legyen adott két kamera a belső és külső paramétereivel együtt, tehát ismerjük a kamerák $\mathbf{P}$ és $\mathbf{Q}$ projekciós mátrixát. Amennyiben vesszük egy $P$ pont vetületei a kamerák képein, akkor háromszögeléssel meghatározhatjuk ezen pont valóvilágbeli koordinátáit.
+Legyen adott két kamera a belső és külső paramétereivel együtt, tehát ismerjük a kamerák $\mathbf{P}$ és $\mathbf{Q}$ projekciós mátrixát. Amennyiben vesszük egy $P$ pont vetületeit a kamerák képein, akkor háromszögeléssel meghatározhatjuk ezen pont valóvilágbeli koordinátáit.
 
 Legyen a két egymásnak megfeleltetett képpont $\mathbf{u}$ és $\mathbf{u}'$. A megfeleltetés zajos jellege miatt, ezek általánosságban nem elégítik ki az epipoláris $\mathbf{u}'^T \mathbf{F} \mathbf{u} = 0$ kényszert, ahol $\mathbf{F}$ a két kamera fundamentális mátrixa. Ilyenkor ezek helyett olyan $\mathbf{\hat{u}} \leftrightarrow \mathbf{\hat{u}}'$ megfeleltetést keresünk, mely minimalizálja az alábbi
 
