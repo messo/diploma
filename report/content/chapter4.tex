@@ -448,15 +448,15 @@ Első megközelítésem, hogy a két objektum befoglaló téglalapját tekintem,
 
 A következő lépésem, hogy meghatározom azt a vektort, amivel eltolva az egyik képet, az egymásnak megfelelő képpontok elmozdulásai a lehető legkisebbek lesznek. Ehhez először szükségem van néhány egymásnak megfelelő pontpárra.
 
-Az objektumok meghatározásánál (legyen az egy vagy több), már meghatároztam néhány egymásnak megfelelő pontot, így ezeket itt fel tudom használni (\texttt{Object::matches}). Ezek után a párosítások jelentette vektorokból kell meghatároznom azt a vektort, amellyel az egyik képet eltolva az összetartozó pontok közötti távolság minimális. Azaz
+Az objektumok meghatározásánál (legyen az egy vagy több), már meghatároztam néhány egymásnak megfelelő pontot, így ezeket itt fel tudom használni (\texttt{Object::matches}). A párosítások jelentette vektorokból kell meghatároznom azt a vektort, amellyel az egyik képet eltolva az összetartozó pontok közötti távolság minimális. Azaz
 
-\[\min_{\mathbf{v}(x, y)} \sum_{i=1}^{n} |\mathbf{v} - \mathbf{d_i}|\]
+\[\argmin_{\mathbf{v}(x, y)} \sum_{i=1}^{n} |\mathbf{v} - \mathbf{d_i}|\]
 
-ahol $\mathbf{d_1}(x_1, y_1), \mathbf{d_2}(x_2, y_2), \ldots \mathbf{d_n}(x_n, y_n)$ a párosításban szereplő pontok közti távolságvektorok. Vagyis:
+ahol $\mathbf{d_1}(x_1, y_1), \mathbf{d_2}(x_2, y_2), \ldots \mathbf{d_n}(x_n, y_n)$ a párosításban szereplő pontok közti távolságvektorok. A problémát úgy is megfogalmazhatjuk, hogy a $\mathbf{d_i}$ vektorokat pontoknak tekintjük és $\mathbf{v}$-t, a pontok geometriai mediánját keressük. Bizonyították \cite{Bajaj198699}, hogy ennek megoldásához nem létezik konkrét formula, vagy algoritmus csak aritmetikai műveletek és k. gyök felhasználásával. Ellenben konvex függvényről lévén szó, iteratíve közelíthetünk a megoldáshoz. Ezt elkerülendő, a távolságok összege helyett közelítő megoldásként a távolság-négyzetösszegét minimalizáltam, tehát:
 
-\[\min_{x, y} \sum_{i=1}^{n} \sqrt{(x-x_i)^2 + (y-y_i)^2}\]
+\[\argmin_{(x, y)} \sum_{i=1}^{n} \Big((x-x_i)^2 + (y-y_i)^2\Big)\]
 
-{\color{red}Mivel a gyökvonás monoton, és a gyökvonás ezért a minimalizálásnál elhagyhatjuk. Így viszont ez megfogalmazható legkisebb négyzetek problémának, ami megoldható szinguláris érték szerinti felbontással.} \Aref{fig:shifted}. ábrán látható az eltolás előtt és után az objektum helyzete a két képen.
+Ismeretes viszont, hogy a fenti a minimumhelyét az $(x_i, y_i)$ pontok súlypontjában veszi fel. \Aref{fig:shifted}. ábrán látható az eltolás előtt és után az objektum helyzete a két képen.
 
 \begin{figure}[tbh]
 \centering
@@ -664,7 +664,27 @@ Ahogy \aref{chapter3}. fejezetben említettem, a választott nézőpont, ahonnan
 \caption{Vizualizációs osztály \label{fig:cd:visualization}}
 \end{figure}
 
-Ezt a logikát a \texttt{Visualization} osztályban implementáltam, mely konstruktorában vár egy \texttt{CameraPose} példányt (eltolási vektor és forgatási mátrix), valamint egy kamera-mátrixot. 4 további metódusa van, ebből a fenti 3 megjelenítési típust valósítja meg, az utolsó pedig visszaadja magát az elkészült képet. Az áttekintő osztálydiagramot \aref{fig:cd:visualization}. ábra mutatja be.
+Ezt a logikát a \texttt{Visualization} osztályban implementáltam, mely konstruktorában vár egy \texttt{CameraPose} példányt (eltolási vektor és forgatási mátrix), valamint egy kamera-mátrixot. 4 további metódusa van, ebből a fenti 3 megjelenítési típust valósítja meg, az utolsó pedig visszaadja magát az elkészült képet. Az áttekintő osztálydiagramot \aref{fig:cd:visualization}. ábra mutatja be. Az $r$ arányszámot a felületről egy csúszka segítségével tudjuk változtatni, \aref{fig:visu_slider}. ábra mutatja a két szélső és a középső helyzetben a vizualizáció eredményét.
+
+\begin{figure}[tbh]
+\centering
+\begin{subfigure}[b]{.49\linewidth}
+	\centering
+	\includegraphics[width=205pt]{figures/visu_pixels_left.png}
+	\caption{}
+  \end{subfigure}
+\begin{subfigure}[b]{.49\linewidth}
+	\centering
+	\includegraphics[width=205pt]{figures/visu_pixels_center.png}
+	\caption{}
+  \end{subfigure}
+\begin{subfigure}[b]{.49\linewidth}
+	\centering
+	\includegraphics[width=205pt]{figures/visu_pixels_right.png}
+	\caption{}
+  \end{subfigure}
+\caption{Választott nézőpont a\inlinelist{\protect\item bal kamera, \protect\item a két kamera között és \protect\item a jobb kamera helyzetében} \label{fig:visu_slider}}
+\end{figure}
 
 %----------------------------------------------------------------------------
 \section{Teljes folyamat együtt, implementációk kiválasztása}
@@ -770,7 +790,7 @@ Az előző szekciókban felvázolt lépéseknél 3 helyen készítettem 2 külö
 
 A teszteket egy olyan számítógépen végeztem, amiben egy Intel\textsuperscript{\textregistered} Core\texttrademark{} i5-4440 processzor és 8GB memória volt, és a kódot Linux operációs rendszerre fordítottam és azon futtattam.
 
-Elsőként egy olyan jeleneten próbáltam ki az elkészült alkalmazást, amely esetén a két kamera egymás mellett van (lásd \ref{fig:scene1_camerapose}. ábra), egy irányba néznek, és két teás dobozt mozgatok előttük. A jelenet 178 képkockából áll (\textasciitilde 5 másodperc), melyből 3 látható \aref{fig:scene1_frames}. ábrán. Az alkalmazást lefuttatva erre a jelenetre \aref{table:result_scene1_single}. táblázatban látható időket kaptam, lebontva a fontosabb lépésekre sorrendben, majd a teljes folyamatra is nézve. \Aref{fig:scene1_stats}. ábrán jól látszódik az egyes folyamatok megoszlása az egészre nézve. A legtöbb időt az optikai folyam meghatározása viszi el, utána az előtér maszkok, majd a textúrázottság meghatározása. A teljes folyamat átlaga alapján 1 képkockapár rekonstrukciója majdnem 1 másodperc volt, azaz kb. 1,1 FPS sebességgel lehet rekonstruálni ezzel a megközelítéssel.
+Elsőként egy olyan jeleneten próbáltam ki az elkészült alkalmazást, amely esetén a két kamera egymás mellett van (lásd \ref{fig:scene1_camerapose}. ábra), egy irányba néznek, és két teás dobozt mozgatok előttük. A jelenet 178 képkockából áll (\textasciitilde 5 másodperc), melyből 3 látható \aref{fig:scene1_frames}. ábrán. Az alkalmazást lefuttatva erre a jelenetre \aref{table:result_scene1_single}. táblázatban látható időket kaptam, lebontva a fontosabb lépésekre sorrendben, majd a teljes folyamatra is nézve. A legtöbb időt az optikai folyam meghatározása viszi el, utána az előtér maszkok, majd a textúrázottság meghatározása. A teljes folyamat átlaga alapján 1 képkockapár rekonstrukciója majdnem 1 másodperc volt, azaz kb. 1,1 FPS sebességgel lehet rekonstruálni ezzel a megközelítéssel.
 
 \begin{figure}[tbh]
 \centering
@@ -832,6 +852,21 @@ Teljes folyamat & 0.0695 & 1.16 & 0.908 & 0.17 \\ \hline
 \caption{Első jelenet esetén az egyes lépések futási idejükhöz kapcsolódó statisztikái (178 képkocka) \label{table:result_scene1_single}}
 \end{table}
 
+
+%----------------------------------------------------------------------------
+\section{Párhuzamosítás, újra-kalkulált eredmények}
+%----------------------------------------------------------------------------
+
+Az előző szekcióbak leírtak alapján látható, hogy szekvenciális végrehajtás esetén mekkora sebességet várhatunk az adott hardveren. A következőkben a párhuzamosításban rejlő lehetőségeket vizsgálom meg.
+
+Különböző platformokon, különböző megoldásokat találhatunk többszálú feladatvégrehajtásra. C++-ban az egyik legelterjedtebb az OpenMP API \cite{OpenMP, OpenMP-specs}. Felhasználásával platform-független, megosztott-memóriás párhuzamos programokat írhatunk. Nagy előnye, hogy ha a cél nem támogatja (legyen az a fordító, vagy a platform), akkor az API megfelelő alkalmazása esetén az alkalmazás ugyanúgy fordítható, azzal a különbséggel, hogy az elkészült bináris csak egy szálon hajtja végre az utasításokat. A következőkben röviden áttekintem az általam használt OpenMP funkciókat.
+
+A többszálúság kezelése deklaratív alapon történik, a \texttt{\#pragma omp} utasításokkal. Az első \texttt{\#pragma omp parallel} direktívánál egy fix számú szál-csapat jön létre (ami általában a CPU magjainak számától függ, de \texttt{num\_threads(N)} attribútummal ez kézzel is állítható), amely a program futása alatt konstans méretű. Ennek az az indoka, hogy a szálak létrehozása költséges folyamat, míg munkába állításuk nem.
+
+A legegyszerűbb párhuzamosítási lehetőség, hogy az egymástól független lépéseket, amelyek ugyanazt csinálják (pl. két kamera két képéből külön-külön egy előtér meghatározása) \textit{for}-ciklusokba szervezzük, és ezek iterációit külön szálakon hajtjuk végre a \texttt{\#pragma omp for} utasítással. Hasonlóan a képek olyan feldolgozásakor (pl. textúrázottság vizsgálata), amikor egy iterációs lépés független a többitől, szintén használhatjuk ezt a módszert.
+
+Az OpenCV (vagy az alatta lévő hardver-illesztő) a kamerák képeit buffereli, így ha az adott képkockákat nem tudjuk elég gyorsan lekérni, akkor beragadnak az egymás utániak, a későbbiek (amik nem férnek be a várakozási sorba) pedig elvesznek. Ha \textasciitilde{}30 FPS sebességgel rögzíti a képeket a kamera, akkor nagyjából 33ms időnk van egy képkocka feldolgozására. Mivel ezt nem sikerült elérni, így a következő ötletet alkalmaztam. Annak érdekében, hogy mindig azt a képkockát dolgozzam fel, amit éppen aktuálisan a kamera rögzít, a képek lekérését egy szálon folyamatosan végzem, és amikor éppen nem fut egy feldolgozás, akkor indítok egyet az aktuális képkockával. Ennek köszönhetően ugyan a feldolgozás nem folytonos, kimaradnak képkockák, viszont az adott rekontrukció a jelenlegi időponthoz nagyon közeli. A \texttt{\#pragma omp task} direktíva segítségével szerveztem a rekonstrukciót OpenMP feladat, amely tulajdonképpen egy aszinkron végrehajtást jelent.
+
 \definecolor{color1}{HTML}{4D4D4D}
 \definecolor{color2}{HTML}{5DA5DA}
 \definecolor{color3}{HTML}{FAA43A}
@@ -842,7 +877,7 @@ Teljes folyamat & 0.0695 & 1.16 & 0.908 & 0.17 \\ \hline
 \definecolor{color8}{HTML}{DECF3F}
 \definecolor{color9}{HTML}{F15854}
 
-\begin{figure}[tbh]
+\begin{figure}[b]
 \centering
 \begin{tikzpicture}
 \begin{axis}[
@@ -863,7 +898,7 @@ Teljes folyamat & 0.0695 & 1.16 & 0.908 & 0.17 \\ \hline
     width=.9\textwidth,
     bar width=6mm,
     xlabel={Idő másodpercben},
-    yticklabels={átlag idők},
+    yticklabels={1 szálon, több szálon},
     xmin=0,
     xmax=1,
     area legend,
@@ -871,14 +906,14 @@ Teljes folyamat & 0.0695 & 1.16 & 0.908 & 0.17 \\ \hline
     enlarge y limits={abs=0.625},
     legend cell align=left
 ]
-\addplot[color1,fill=color1!40] coordinates {(0.178,0)};
-\addplot[color2,fill=color2!40] coordinates {(0.0235,0)};
-\addplot[color3,fill=color3!40] coordinates {(0.0583,0)};
-\addplot[color4,fill=color4!40] coordinates {(0.163,0)};
-\addplot[color5,fill=color5!40] coordinates {(0.427,0)};
-\addplot[color6,fill=color6!40] coordinates {(0.0119,0)};
-\addplot[color7,fill=color7!40] coordinates {(0.0587,0)};
-\addplot[color8,fill=color8!40] coordinates {(0.00845,0)};
+\addplot[color1,fill=color1!40] coordinates {(0.178,1) (0.0907,0)};
+\addplot[color2,fill=color2!40] coordinates {(0.0235,1) (0.0122,0)};
+\addplot[color3,fill=color3!40] coordinates {(0.0583,1) (0.0175,0)};
+\addplot[color4,fill=color4!40] coordinates {(0.163,1) (0.0782,0)};
+\addplot[color5,fill=color5!40] coordinates {(0.427,1) (0.217,0)};
+\addplot[color6,fill=color6!40] coordinates {(0.0119,1) (0.00678,0)};
+\addplot[color7,fill=color7!40] coordinates {(0.0587,1) (0.0549,0)};
+\addplot[color8,fill=color8!40] coordinates {(0.00845,1) (0.00759,0)};
 
 \legend{Előtér maszk, Pontpárosítások ORB-bal, Objektumok párosítása, Textúrázottság meghatározása, Optikai folyam oda-vissza, Sűrű pontmegfeleltetések, Háromszögelés, Vizualizáció}
 \end{axis}  
@@ -887,18 +922,32 @@ Teljes folyamat & 0.0695 & 1.16 & 0.908 & 0.17 \\ \hline
 \caption{Első jelenet esetén az egyes lépések képkockánti átlagos időigénye másodpercben \label{fig:scene1_stats}}
 \end{figure}
 
-%----------------------------------------------------------------------------
-\section{Párhuzamosítás, többszálúsítás, újra-kalkulált eredmények}
-%----------------------------------------------------------------------------
+Ezekkel az apró trükökkel ellátva az alkalmazás logikát, \aref{table:result_scene1_multi}. táblázatban látható futási időket mértem az első jelenetre (itt még offline történt a feldolgozás, nem maradt ki egy képkocka sem). Valamint az átlagos idők láthatóak \aref{fig:scene1_stats}. ábrán, összehasonlítva az egyszálú végrehajtással. Jól látható, hogy azon műveletek, amiket lehetett párhuzamosítani (pl. 2 képen ugyanazon művelet, 2 optikai folyam), nagyjából kétszer gyorsabban fejeződtek be, a teljes folyamat pedig több, mint kétszeresére gyorsult. Ez annak köszönhető, hogy az objektumok rekonstrukcióit is párhuzamosítottam, így lehet az is, hogy a teljes folyamat átlaga kisebb, mint a részfeladatok átlagainak szummája. Természetesen nem lehet akármeddig párhuzamosítani, a rendelkezésre álló feldolgozóegységek korlátot szabnak az ésszerűen egymás mellett futtatható szálak számára, amely az én esetemben 4 (ez pont ideális átlagosan 2 objektum/jelenet esetén).
 
-Az előző szekcióbak leírtak alapján látható, hogy szekvenciális végrehajtás mekkora sebességet várhatunk az adott hardveren. A következőkben a párhuzamosításban rejlő lehetőségeket vizsgálom meg.
+\begin{table}[tbh]
+\centering
 
-Különböző platformokon, különböző megoldásokat találhatunk többszálú feladatvégrehajtásra. C++-ban az egyik legelterjedtebb az OpenMP API \cite{OpenMP}. Felhasználásával platform-független, megosztott-memóriás párhuzamos programokat írhatunk. Nagy előnye, hogy ha a cél nem támogatja (legyen az a fordító, vagy a platform), akkor az API megfelelő alkalmazása esetén az alkalmazás ugyanúgy fordítható, azzal a különbséggel, hogy az elkészült bináris csak egy szálon hajtra végje az utasításokat. A következőkben röviden áttekintem az általam használt funkciókat.
+\begin{tabular}{|l|l|l|l|l|}
+\hline
+\multirow{2}{*}{Tevékenység képkockánként} & \multicolumn{4}{ |c| }{Eltöltött idő (s)} \\\cline{2-5}
+ & min & max & átlag & szórás \\ \hline\hline
 
-A leggyakoribb funkciók deklaratív alapon történnek. 
-A legfontosabb koncepció a szál-csoportok. OpenMP esetén az alkalmazás indítása esetén, po
+Előtér maszk (2 kamerára) & 0.0226 & 0.0971 & 0.0907 & 0.00539 \\ \hline
+Pontpárosítások ORB-bal & 0.00609 & 0.0186 & 0.0122 & 0.000904 \\ \hline
+Objektumok párosítása & 0.0143 & 0.0272 & 0.0175 & 0.00118 \\ \hline
 
+Textúrázottság meghatározása & 0.0208 & 0.121 & 0.0782 & 0.0216 \\ \hline
+Optikai folyam oda-vissza & 0.0735 & 0.311 & 0.217 & 0.0509 \\ \hline
+Sűrű pontmegfeleltetések & 0.000827 & 0.0237 & 0.00678 & 0.00218 \\ \hline
 
+Háromszögelés & 0.000738 & 0.0842 & 0.0549 & 0.016 \\ \hline
+Vizualizáció & 0.00225 & 0.0118 & 0.00759 & 0.00151 \\
+\hline \hline
+Teljes folyamat & 0.033 & 0.576 & \textbf{0.391} & 0.101 \\ \hline
+\end{tabular} 
+
+\caption{Többszálú végrehajtás esetén az első jelenet feldolgozása során az egyes lépések futási idejükhöz kapcsolódó statisztikái (178 képkocka) \label{table:result_scene1_multi}}
+\end{table}
 
 
 %----------------------------------------------------------------------------
