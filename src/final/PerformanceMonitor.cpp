@@ -1,4 +1,5 @@
 #include <opencv2/core/utility.hpp>
+#include <omp.h>
 #include "PerformanceMonitor.h"
 
 PerformanceMonitor *PerformanceMonitor::instance = NULL;
@@ -52,42 +53,46 @@ void PerformanceMonitor::objFound(unsigned long i) {
 }
 
 void PerformanceMonitor::ofInitStarted() {
-    _ofInitStarted = cv::getTickCount();
+    _ofInitStarted[omp_get_thread_num()] = cv::getTickCount();
 }
 
 void PerformanceMonitor::ofInitFinished() {
-    double duration = getTimeSince(_ofInitStarted);
-    ofInit.addNew(duration);
+    double duration = getTimeSince(_ofInitStarted[omp_get_thread_num()]);
+    ofInit[omp_get_thread_num()].addNew(duration);
+#pragma omp atomic
     ofInitPerFrameDuration += duration;
 }
 
 void PerformanceMonitor::ofCalcStarted() {
-    _ofCalcStarted = cv::getTickCount();
+    _ofCalcStarted[omp_get_thread_num()] = cv::getTickCount();
 }
 
 void PerformanceMonitor::ofCalcFinished() {
-    double duration = getTimeSince(_ofCalcStarted);
-    ofCalc.addNew(duration);
+    double duration = getTimeSince(_ofCalcStarted[omp_get_thread_num()]);
+    ofCalc[omp_get_thread_num()].addNew(duration);
+#pragma omp atomic
     ofCalcPerFrameDuration += duration;
 }
 
 void PerformanceMonitor::ofMatchingStarted() {
-    _ofMatchingStarted = cv::getTickCount();
+    _ofMatchingStarted[omp_get_thread_num()] = cv::getTickCount();
 }
 
 void PerformanceMonitor::ofMatchingFinished() {
-    double duration = getTimeSince(_ofMatchingStarted);
-    ofMatching.addNew(duration);
+    double duration = getTimeSince(_ofMatchingStarted[omp_get_thread_num()]);
+    ofMatching[omp_get_thread_num()].addNew(duration);
+#pragma omp atomic
     ofMatchingPerFrameDuration += duration;
 }
 
 void PerformanceMonitor::triangulationStarted() {
-    _triangulationStarted = cv::getTickCount();
+    _triangulationStarted[omp_get_thread_num()] = cv::getTickCount();
 }
 
 void PerformanceMonitor::triangulationFinished() {
-    double duration = getTimeSince(_triangulationStarted);
-    triangulation.addNew(duration);
+    double duration = getTimeSince(_triangulationStarted[omp_get_thread_num()]);
+    triangulation[omp_get_thread_num()].addNew(duration);
+#pragma omp atomic
     triangulationPerFrameDuration += duration;
 }
 

@@ -52,29 +52,29 @@ public:
 
     void ofInitFinished();
 
-    int64 _ofInitStarted;
-    PerformanceIndicator ofInit;
+    std::map<int, int64> _ofInitStarted;
+    std::map<int, PerformanceIndicator> ofInit;
 
     void ofCalcStarted();
 
     void ofCalcFinished();
 
-    int64 _ofCalcStarted;
-    PerformanceIndicator ofCalc;
+    std::map<int, int64> _ofCalcStarted;
+    std::map<int, PerformanceIndicator> ofCalc;
 
     void ofMatchingStarted();
 
     void ofMatchingFinished();
 
-    int64 _ofMatchingStarted;
-    PerformanceIndicator ofMatching;
+    std::map<int, int64> _ofMatchingStarted;
+    std::map<int, PerformanceIndicator> ofMatching;
 
     void triangulationStarted();
 
     void triangulationFinished();
 
-    int64 _triangulationStarted;
-    PerformanceIndicator triangulation;
+    std::map<int, int64> _triangulationStarted;
+    std::map<int, PerformanceIndicator> triangulation;
 
     void visualizationStarted();
 

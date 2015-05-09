@@ -103,7 +103,7 @@ Mat OpticalFlowCalculator::calcTexturedRegion(const Mat frame, const Mat mask) c
 
     Rect roi(boundingRect(mask));
 
-#pragma omp parallel for collapse(2)
+//#pragma omp parallel for collapse(2)
     for (int y = roi.tl().y; y <= roi.br().y; y++) {
         for (int x = roi.tl().x; x <= roi.br().x; x++) {
             if (!mask.at<char>(y, x)) {
@@ -112,7 +112,7 @@ Mat OpticalFlowCalculator::calcTexturedRegion(const Mat frame, const Mat mask) c
 
             uchar Ixy = frame.at<uchar>(y, x);
 
-            vector<int> values;
+            vector<int> values(9);
             for (int j = y - ksize; j <= y + ksize; j++) {
                 for (int i = x - ksize; i <= x + ksize; i++) {
                     if ((i == x && j == y) || i < 0 || j < 0 || i >= frame.cols || j >= frame.rows)

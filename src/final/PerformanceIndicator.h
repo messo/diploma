@@ -21,8 +21,8 @@ public:
         double minVal, maxVal;
         cv::minMaxLoc(items, &minVal, &maxVal);
 
-        std::cout << "%" << std::setw(30) << label << ": avg: " << mean[0] << ", min: " << minVal << ", max: " << maxVal << ", stddev: " << stdDev[0] << std::endl;
-        //std::cout << label << " & " << std::setprecision(3) << minVal << " & " << maxVal << " & " << mean[0] << " & " << stdDev[0] << " \\\\" << std::endl;
+        //std::cout << "%" << std::setw(30) << label << ": avg: " << mean[0] << ", min: " << minVal << ", max: " << maxVal << ", stddev: " << stdDev[0] << std::endl;
+        std::cout << label << " & " << std::setprecision(3) << minVal << " & " << maxVal << " & " << mean[0] << " & " << stdDev[0] << " \\\\" << std::endl;
     }
 
 };
