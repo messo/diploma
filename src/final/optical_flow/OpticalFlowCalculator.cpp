@@ -275,9 +275,9 @@ void OpticalFlowCalculator::visualizeOpticalFlow(const cv::Mat &img1, const cv::
                 int icolor = (unsigned) rng;
                 Scalar color(icolor & 255, (icolor >> 8) & 255, (icolor >> 16) & 255);
 
-                line(vis, from, to + Point(640, 0), color);
+                line(vis, from, to + Point(img1.cols, 0), color);
                 circle(vis, from, 2, color, -1);
-                circle(vis, to + Point(640, 0), 2, color, -1);
+                circle(vis, to + Point(img1.cols, 0), 2, color, -1);
             }
         }
     }
@@ -320,9 +320,9 @@ void OpticalFlowCalculator::visualizeMatches(const Mat &img1, const vector<Point
             int icolor = (unsigned) rng;
             Scalar color(icolor & 255, (icolor >> 8) & 255, (icolor >> 16) & 255);
 
-            line(vis, p1, p2 + Point(640, 0), color);
+            line(vis, p1, p2 + Point(img1.cols, 0), color);
             circle(vis, p1, 2, color, -1);
-            circle(vis, p2 + Point(640, 0), 2, color, -1);
+            circle(vis, p2 + Point(img1.cols, 0), 2, color, -1);
         }
     }
 

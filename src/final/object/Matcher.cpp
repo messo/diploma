@@ -44,8 +44,8 @@ void Matcher::debug2(const std::vector<cv::Mat> &images, const std::vector<cv::M
 //    cv::Rect left(120, 20, 400, 300);
 //    cv::Rect right(220, 20, 400, 300);
 
-    cv::Rect left(0, 0, 640, 480);
-    cv::Rect right(0, 0, 640, 480);
+    cv::Rect left(cv::Point(0, 0), images[0].size());
+    cv::Rect right(cv::Point(0, 0), images[1].size());
 
 
     std::vector<cv::Point2f> points1, points2;

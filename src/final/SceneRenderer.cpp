@@ -115,7 +115,7 @@ int main(int argc, char **argv) {
 //        imshow("result", matVis.getResult());
 //        waitKey(10);
 
-        //imwrite("/media/balint/Data/Linux/diploma/scene_1_vis/vis_" + to_string(cam1->frame - 1) + ".png", matVis.getResult());
+        imwrite("/media/balint/Data/Linux/diploma/scene_1_vis/vis_" + to_string(cam1->frame - 1) + ".png", matVis.getResult());
 
         std::cout << "FRAME FINISHED IN: " << (getTickCount() - t0) / getTickFrequency() << " s" << endl;
         PerformanceMonitor::get()->frameFinished();

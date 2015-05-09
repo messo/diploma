@@ -21,11 +21,11 @@ vector<Object> MultiObjectSelector::selectObjects(const std::vector<cv::Mat> &fr
 #pragma omp parallel for
     for (int i = 0; i < 2; i++) {
         contours[i] = this->getContours(masks[i]);
-        newMasks[i] = getTotalMask(contours[i]);
+        newMasks[i] = getTotalMask(masks[i].size(), contours[i]);
 
         blobs[i].clear();
         for (int j = 0; j < contours[i].size(); j++) {
-            blobs[i].push_back(Blob(contours[i][j]));
+            blobs[i].push_back(Blob(masks[i].size(), contours[i][j]));
         }
     }
 
@@ -194,7 +194,7 @@ vector<Object> MultiObjectSelector::selectObjects(const std::vector<cv::Mat> &fr
         vector<pair<Point2f, Point2f>> pointMatches;
 
         // merging the masks
-        Mat fromMask(480, 640, CV_8U, Scalar(0));
+        Mat fromMask(toBlob.mask.size(), CV_8U, Scalar(0));
         for (int i = 0; i < fromIds.size(); i++) {
             vector<pair<Point2f, Point2f>> &vec = pointMatchesForBlobMatches[make_pair(fromIds[i], toBlobIdx)];
             pointMatches.insert(pointMatches.end(), vec.begin(), vec.end());
@@ -240,8 +240,8 @@ std::vector<std::vector<Point>> MultiObjectSelector::getContours(const cv::Mat &
     return selectedContours;
 }
 
-Mat MultiObjectSelector::getTotalMask(std::vector<std::vector<cv::Point>> &contours) {
-    Mat result(480, 640, CV_8U, Scalar(0));
+Mat MultiObjectSelector::getTotalMask(cv::Size size, std::vector<std::vector<cv::Point>> &contours) {
+    Mat result(size, CV_8U, Scalar(0));
     cv::drawContours(result, contours, -1, Scalar(255), -1, LINE_AA);
     return result;
 }

@@ -6,7 +6,7 @@ struct Blob {
 
     cv::Mat mask;
 
-    Blob(std::vector<cv::Point> &contour);
+    Blob(cv::Size imgSize, std::vector<cv::Point> &contour);
 
     bool contains(const cv::Point2f& point) const;
 
