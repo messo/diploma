@@ -3,6 +3,7 @@
 #include <opencv2/video/tracking.hpp>
 #include <iostream>
 #include <iomanip>
+#include <opencv2/cudaoptflow.hpp>
 
 cv::Mat OFForegroundMaskCalculator::calculate(cv::Mat nextFrame_) {
     double t0 = cv::getTickCount();
@@ -19,8 +20,15 @@ cv::Mat OFForegroundMaskCalculator::calculate(cv::Mat nextFrame_) {
         return cv::Mat::zeros(nextFrame.rows, nextFrame.cols, CV_8U);
     }
 
+    cv::cuda::GpuMat d_frameL(previousFrame), d_frameR(nextFrame);
+    cv::cuda::GpuMat d_flow;
+    cv::Ptr<cv::cuda::FarnebackOpticalFlow> of = cv::cuda::FarnebackOpticalFlow::create(1, 0.99, false, 3, 1, 5, 1.1, 0);
+    //cv::calcOpticalFlowFarneback(previousFrame, nextFrame, flow, 0.99, 1, 3, 1, 3, 1.1, 0);
+
+    of->calc(d_frameL, d_frameR, d_flow, cv::cuda::Stream::Null());
+
     cv::Mat flow;
-    cv::calcOpticalFlowFarneback(previousFrame, nextFrame, flow, 0.99, 1, 3, 1, 3, 1.1, 0);
+    d_flow.download(flow);
 
     cv::Mat mask(this->getMaskFromFlow(flow));
 

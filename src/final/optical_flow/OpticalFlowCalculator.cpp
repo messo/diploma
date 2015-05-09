@@ -2,12 +2,13 @@
 
 #include <opencv2/video/tracking.hpp>
 #include <opencv2/highgui.hpp>
-#include <omp.h>
 #include <iomanip>
+#include <opencv2/cudaoptflow.hpp>
 #include "../Common.h"
 #include "../PerformanceMonitor.h"
 
 using namespace cv;
+using namespace cv::cuda;
 using namespace std;
 
 pair<vector<Point2f>, vector<Point2f>> OpticalFlowCalculator::calcDenseMatches(std::vector<cv::Mat> &frames, const Object &object) {
@@ -164,13 +165,22 @@ std::vector<Mat> OpticalFlowCalculator::calcOpticalFlows() const {
 
 #pragma omp parallel for
     for (int i = 0; i < 2; i++) {
-        calcOpticalFlowFarneback(frames[i](unified), frames[(i + 1) % 2](unified), _flows[i], 0.75, 6, 21, 10, 7, 1.5,
-                                 OPTFLOW_FARNEBACK_GAUSSIAN);
+
+        Ptr<FarnebackOpticalFlow> of = FarnebackOpticalFlow::create(6, 0.75, false, 21, 10, 7, 1.5, OPTFLOW_FARNEBACK_GAUSSIAN);
+
+        GpuMat d_frameL(frames[i](unified)), d_frameR(frames[(i + 1) % 2](unified));
+        GpuMat d_flow;
+
+        of->calc(d_frameL, d_frameR, d_flow, Stream::Null());
+
+        Mat flow;
+        d_flow.download(flow);
+
 //        this->visualizeOpticalFlow(frame1, mask1, frame2, mask2, flow12, "flow12");
 
         // put the flows back into the full matrix
         flows[i] = Mat::zeros(frames[0].rows, frames[0].cols, CV_32FC2);
-        _flows[i].copyTo(flows[i](unified));
+        flow.copyTo(flows[i](unified));
     }
 
 //    this->visualizeOpticalFlow(frames[0], masks[0], frames[1], masks[1], flows[0], "flow12");
