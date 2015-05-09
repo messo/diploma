@@ -36,7 +36,7 @@ pair<vector<Point2f>, vector<Point2f>> OpticalFlowCalculator::calcDenseMatches(s
         for (int i = 0; i < object.matches.size(); i++) {
             sum += (object.matches[i].second - object.matches[i].first);
         }
-        optimalShift = Point2i(sum / ((int)object.matches.size()));
+        optimalShift = Point2i(sum / ((int) object.matches.size()));
 
         std::cout << "[" << std::setw(20) << "OFCalculator" << "] " << "SHIFT: " << optimalShift << endl;
         shiftFrame(1, -optimalShift);

@@ -92,13 +92,13 @@ void Matcher::detectKeypointsAndExtractDescriptors(const std::vector<cv::Mat> &i
 
     PerformanceMonitor::get()->extractingStarted();
 
-    cv::OrbFeatureDetector detector;
+    cv::Ptr<cv::ORB> detector = cv::ORB::create();
 //    cv::FastFeatureDetector detector(100);
 //    cv::xfeatures2d::SURF detector(600);
 //    cv::BRISK detector;
 
 //    cv::xfeatures2d::FREAK extractor;
-    cv::OrbDescriptorExtractor extractor;
+    cv::Ptr<cv::ORB> extractor = detector;
 
 //    cv::xfeatures2d::SURF extractor;
 
@@ -107,8 +107,8 @@ void Matcher::detectKeypointsAndExtractDescriptors(const std::vector<cv::Mat> &i
 
 #pragma omp parallel for
     for (int i = 0; i < images.size(); i++) {
-        detector.detect(images[i], keypoints[i], masks[i]);
-        extractor.compute(images[i], keypoints[i], descriptors[i]);
+        detector->detect(images[i], keypoints[i], masks[i]);
+        extractor->compute(images[i], keypoints[i], descriptors[i]);
     }
 
     t0 = ((double) cv::getTickCount() - t0) / cv::getTickFrequency();
