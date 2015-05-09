@@ -48,7 +48,16 @@ int main(int argc, char **argv) {
     Matcher matcher = Matcher(camera[Camera::LEFT], camera[Camera::RIGHT], F);
     MultiObjectSelector objSelector(matcher);
 
+    int count = 0;
+
     while (cam1->frame != cam1->lastFrame) {
+
+        count++;
+
+        if (count == 3) {
+            // RESET PerformanceIndicator
+            PerformanceMonitor::get()->reset();
+        }
 
         PerformanceMonitor::get()->frameStarted();
 

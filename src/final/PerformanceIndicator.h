@@ -25,7 +25,7 @@ public:
         std::cout << label << " & " << std::setprecision(3) << minVal << " & " << maxVal << " & " << mean[0] << " & " << stdDev[0] << " \\\\" << std::endl;
     }
 
+    void reset() {
+        items.clear();
+    }
 };
-
-
-

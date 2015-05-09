@@ -115,3 +115,19 @@ void PerformanceMonitor::visualizationStarted() {
 void PerformanceMonitor::visualizationFinished() {
     visualization.addNew(getTimeSince(_visualizationStarted));
 }
+
+void PerformanceMonitor::reset() {
+    frameTotal.reset();
+    maskCalculation.reset();
+    extracting.reset();
+    objSelection.reset();
+    ofInit = std::map<int, PerformanceIndicator>();
+    ofCalc = std::map<int, PerformanceIndicator>();
+    ofMatching = std::map<int, PerformanceIndicator>();
+    triangulation = std::map<int, PerformanceIndicator>();
+    visualization.reset();
+    ofInitPerFrame.reset();
+    ofCalcPerFrame.reset();
+    ofMatchingPerFrame.reset();
+    triangulationPerFrame.reset();
+}

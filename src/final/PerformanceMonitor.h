@@ -94,5 +94,7 @@ public:
     double ofCalcPerFrameDuration = 0.0;
     double ofMatchingPerFrameDuration = 0.0;
     double triangulationPerFrameDuration = 0.0;
+
+    void reset();
 };
 
