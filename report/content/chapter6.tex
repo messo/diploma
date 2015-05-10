@@ -2,3 +2,44 @@
 \chapter{Eredmények}
 %----------------------------------------------------------------------------
 
+Ebben a fejezetben az elért eredményeket összesítem és értékelem a megoldásom.
+
+Az előző fejezet elején bemutattam az első jelenetet, amit teszteléshez használtam. Ez 178db $640\times 480$-as felbontású képből állt, melyeken két teásdobozt mozgattam, melyek mérete összesen kb. a képek területének 15\%-át tették ki. A bemutatott képeken jól látszódott, hogy a helyreállítás minősége a mélységet bemutató színábrázolással szemléltetve is nagyon jó lett, melyet az átlagos visszavetítési hibák (melyek átlaga 0,806 pixel lett) is jól alátámasztottak.
+
+Ahogy a korábbi fejezetekben említésre került, a választott megoldáshoz szükséges, hogy az objektumok jól textúráltak legyenek, valamint azért, hogy a különböző objektumokat elkülöníthessem, egymáshoz képest is eltérő leírókkal (alak, szín, textúra jellege) kell rendelkezniük. Ezek az én esetemben nagyjából teljesültek, egyedül az egyik teásdoboz volt néhol túl homogén, de ez jól bemutatta a megoldás ezen korlátját.
+
+A kezdeti 1 FPS-es sebességből párhuzamosítás és GPU-n történő gyorsítás után egészen 
+3,86 FPS-re sikerült gyorsítani ugyanazon jeleneten a feldolgozás sebességét, amely jelentős növekedést jelent. Megvizsgáltam azt is, hogy kisebb képek esetén, mennyire közelíthető meg a kívánt valós idejű feldolgozás. A tesztek alapján úgy találtam, hogy az általam rendelkezésre álló hardveren a készített megoldás még az értékelhető $160\times 140$-es felbontás körüli képrészletekből jó minőségűnek vélt helyreállítást készített (ámbátor már jelentősebb, 5 pixeles átlagos visszavetítési hibával), és elérte a 12 FPS-es sebességet. De az elérni kívánt másodpercenkénti \textasciitilde 24 képkocka feldolgozását nem sikerült megközelíteni, ennél kisebb képeken pedig már nem volt gyakorlati haszna kísérletezni. Ezeken eredményeket összefoglalóan \aref{table:results}. táblázat mutatja be. {\color{red} Miért is lett lassabb a nem kicsinyített verzió??}
+
+\begin{table}[tbh]
+\centering
+
+\begin{tabular}{|l|l|l|}
+\hline
+Módszer & felbontás & átlagos sebesség \\ \hline\hline
+
+Egyszálon, CPU-n & $640\times 480$ & 1,1 FPS \\ \hline
+Többszálon, CPU-n & $640\times 480$ & 2,56 FPS \\ \hline
+Többszálon, GPU-n is & $640\times 480$ & \textbf{3,86 FPS} \\ \hline\hline
+
+Eredeti kép kicsinyítve & $320\times 240$ & 12,2 FPS \\ \hline
+Eredeti kép kicsinyítve & $160\times 120$ & 18,2 FPS \\ \hline\hline
+
+Eredeti kép egy részlete & $320\times 240$ & 7,35 FPS \\ \hline
+Eredeti kép egy részlete & $160\times 140$ & 12 FPS \\ \hline
+
+\end{tabular} 
+
+\caption{Egyes módszerek és különböző felbontás esetén az átlagosan elért sebesség \label{table:results}}
+\end{table}
+
+
+%----------------------------------------------------------------------------
+\section{Továbbfejlesztési lehetőségek}
+%----------------------------------------------------------------------------
+
+\Aref{table:result_scene1_multi_gpu}. táblázatban jól látszódik, hogy a textúrázottság meghatározása sok időt emészt fel. Ezt GPU-ra megírva (CUDA vagy OpenCL kernel) jelentős sebességnövekedést várnék, amit érdemes lenne kivizsgálni. Ehhez viszont jobban meg kéne ismerni a heterogén párhuzamos programozás adta lehetőségeket.
+
+Az OpenCV új verziójában átstruktúrált OpenCL-es implementációkat is jó lenne használatba venni, ugyan a dolgozatom során megpróbálkoztam vele, de sajnos sikertelenül. Elképzelhető, hogy ez a kész 3.0-s verzióban ez már gond nélkül fog működni.
+
+

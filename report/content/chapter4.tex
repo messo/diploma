@@ -82,7 +82,7 @@ Elsőként a kamerák belső paramétereit határoztam meg. A módszert \aref{se
 \caption{\texttt{Calibration} osztály \label{fig:cd:calibration}}
 \end{figure}
 
-Konstruktorban át kell neki adni a kamerára vonatkozó pointert, amitől a képeket kell majd lekérnie. Az \texttt{acquireFrame()} metódus szerepe, hogy a kamera aktuális képkockáját megszerezze, megkeresse a képen a sakktáblát, és a sakktábla sarokpontjaihoz tartozó koordinátákat a \texttt{corners} listához fűzze. Visszatérési értékben jelzi, hogy az adott képen sikeres volt-e a detekció. Belsőleg a \texttt{cv::findChessboardCorners()} OpenCV-s függvényt hívja, amelynek átadva egy fekete-fehér képet, megkapható a képen látható sakktábla sarokpontjainak képpontjai. Kellő képkocka után a \texttt{calibrate()} metódus segítségével a kérdéses két mátrix (\texttt{cameraMatrix}, \texttt{distCoeffs}) kiszámolható. Itt a \texttt{cv::calibrateCamera()} függvényt hívtam segítségül, melynek két fontos bemeneti paraméterét emelem ki: az sarokpontok valóvilágbeli koordinátái, és a képeken detektált képpontjai sorfolytonosan (\texttt{corners}). A valóvilágbeli $(x, y, z)$ koordinátákat az egyszerűség kedvéért úgy választottam, hogy $z \equiv 0$, és $x$ valamint $y$ egész számok úgy, hogy a sakktábla bal felső sarka $(0, 0, 0)$, jobb alsó sarka pedig -- $9\times 6$-os sakktáblát használva -- $(9, 6, 0)$. A \texttt{save()} metódus a kiszámolt paramétereket menti el a megadott fájlnévvel olyan formátumban, amit a \texttt{Camera::readCalibration()} vissza tud olvasni.
+Konstruktorban át kell neki adni a kamerára vonatkozó pointert, amitől a képeket kell majd lekérnie. Az \texttt{acquireFrame()} metódus szerepe, hogy a kamera aktuális képkockáját megszerezze, megkeresse a képen a sakktáblát, és a sakktábla sarokpontjaihoz tartozó koordinátákat a \texttt{corners} listához fűzze. Visszatérési értékben jelzi, hogy az adott képen sikeres volt-e a detekció. Belsőleg a \texttt{cv::findChessboardCorners()} OpenCV-s függvényt hívja, amelynek átadva egy fekete-fehér képet, megkapható a képen látható sakktábla sarokpontjainak képpontjai. Kellő számú (10-15) képkocka után a \texttt{calibrate()} metódus segítségével a kérdéses két mátrix (\texttt{cameraMatrix}, \texttt{distCoeffs}) kiszámolható. Itt a \texttt{cv::calibrateCamera()} függvényt hívtam segítségül, melynek két fontos bemeneti paraméterét emelem ki: a sarokpontok valóvilágbeli koordinátái, és a képeken detektált képpontjai sorfolytonosan (\texttt{corners}). A valóvilágbeli $(x, y, z)$ koordinátákat az egyszerűség kedvéért úgy választottam, hogy $z \equiv 0$, és $x$ valamint $y$ egész számok úgy, hogy a sakktábla bal felső sarka $(0, 0, 0)$, jobb alsó sarka pedig -- $9\times 6$-os sakktáblát használva -- $(9, 6, 0)$. A \texttt{save()} metódus a kiszámolt paramétereket menti el a megadott fájlnévvel olyan formátumban, amit a \texttt{Camera::readCalibration()} vissza tud olvasni.
 
 
 \subsection{Kamerák pozíciójának meghatározása világkoordinátákban}
@@ -122,7 +122,7 @@ Az OpenCV-ben erre a célra van a \texttt{solvePnP} függvény, mely 3D-2D pont-
 
 A \texttt{CameraPoseCalculator} osztály megkapja konstruktor argumentumaként annak a kamerára mutató pointerét, amelynek a külső paramétereit (forgatási és eltolási vektor, lásd \ref{sec:pinhole}. szekció vége) ki kell számolnia. A konkrét művelet végrehajtásáért a \texttt{calculator()} metódus felelős, amely a kamerától lekér egy képkockát, megkeresi rajta a sakktáblát, majd meghívja a \texttt{cv::solvePnP()} függvényt. Visszatérési értékben jelzi, hogy sikeres volt-e a detekció, ha igen, akkor lekérhető tőle a \texttt{CameraPose} példány. Ez utóbbi a \texttt{save()} és \texttt{load()} metódusokkal elmenthető és visszatölthető, így ameddig a kamerát nem mozgatjuk el, ez újra felhasználható. A \texttt{getRT()} metódus a forgatási vektort forgatási mátrix-szá alakítja (Rodrigues-féle forgatási formulával \cite{camera-calib-3d}) és összefűzi azt az eltolási vektorral egy $3\times 4$-es $\Big(\,\mathbf{R}\,|\,\mathbf{t}\,\Big)$ forgatás-eltolás mátrixba.
 
-A kamera külső paramétereinek meghatározása után már minden információ adott, hogy 3D-s pontok 2D-s vetületeit meg tudjam határozni a \texttt{cv::projectPoints()} függvény felhasználásával. \Aref{fig:pose}. ábrán látható, hogy egy a sakktábla síkjába rajzolt négyzetrács, melynek egyik jelölt pontja a világ-koordinátarendszer origója.
+A kamera külső paramétereinek meghatározása után már minden információ adott, hogy 3D-s pontok 2D-s vetületeit meg tudjam határozni a \texttt{cv::projectPoints()} függvény felhasználásával. \Aref{fig:pose}. ábrán látható egy, a sakktábla síkjába rajzolt négyzetrács, melynek egyik jelölt pontja a világ-koordinátarendszer origója.
 
 \begin{figure}[tbh]
 \centering
@@ -174,7 +174,7 @@ A következőkben az objektumok detektálásáról lesz szó. Először bemutato
 \caption{Példa az előtér maszkra \label{fig:my_mog2}}
 \end{figure}
 
-Megfigyelhető, hogy a maszk nem pusztán bináris, hanem azt is jelzi, amit az algoritmus árnyéknak gondol. A zajt a maszkon az erózió-dilatáció morfológiai módszerek segítségével tudjuk csökkenteni. Előbbi a kisméretű zajokat tünteti el, utóbbi pedig a lyukakat szünteti meg. OpenCV-ben ezek implementációi a \texttt{dilate} és \texttt{erode} függvények. Előbbi az adott pixelt a környezetében (amit egy kernel ír le) lévő maximális, míg utóbbi a minimális értékkel helyettesít. Én egy erózió-dilatáció-erózió lépéssorozatot használtam, amely egy morfológiai nyitás és zárás egymásutánja \cite{kepfeldolg-modszerek}. Ennek az eredményét \aref{fig:erosion_dilation}. ábra mutatja be.
+Megfigyelhető, hogy a maszk nem bináris, hanem háromértékű: azt is jelzi, amit az algoritmus árnyéknak gondol. A zajt a maszkon az erózió-dilatáció morfológiai módszerek segítségével tudjuk csökkenteni. Előbbi a kisméretű zajokat tünteti el, utóbbi pedig a lyukakat szünteti meg. OpenCV-ben ezek implementációi a \texttt{dilate} és \texttt{erode} függvények. Előbbi az adott pixelt a környezetében (amit egy kernel ír le) lévő maximális, míg utóbbi a minimális értékkel helyettesít. Én egy erózió-dilatáció-erózió lépéssorozatot használtam, amely egy morfológiai nyitás és zárás egymásutánja \cite{kepfeldolg-modszerek}. Ennek az eredményét \aref{fig:erosion_dilation}. ábra mutatja be.
 
 \begin{figure}[tbh]
 \centering
@@ -212,7 +212,7 @@ Megfigyelhető, hogy a bal oldali dobozhoz tartozó maszk annyira zajos volt, ho
     \subsubsection{Előtér meghatározása optikai folyamokkal \label{sec:of-mask}}
     %----------------------------------------------------------------------------
     
-Másik megközelítésem során, már az előtér meghatározásához is az optikai folyamokat hívtam segítségül. 
+Másik megközelítésem során már az előtér meghatározásához is az optikai folyamokat hívtam segítségül. 
 
 \Aref{chapter2}. fejezetben bemutattam a sűrű optikai folyamok meghatározására Gunner Farnebäck módszerét. OpenCV-ben ezt a \texttt{cv::calcOpticalFlowFarneback()} \cite{opencv-mog} függvény valósítja meg. Az algoritmus szempontjából fontos paraméterei közül kiemelném a következőket:
 
@@ -225,7 +225,7 @@ Másik megközelítésem során, már az előtér meghatározásához is az opti
 
 Tekintve, hogy nekünk csak az a fontos, hogy a lehető leggyorsabban számoljunk elmozdulásvektorokat, a paramétereket a következőknek megfelelően állítottam be: ne építsünk piramist (\texttt{levels = 1}, így \texttt{pyr\_scale} beállítása lényegtelen), kicsi ablakmérettel dolgozzunk ($3\times 3$, tehát \texttt{winsize = 3}), valamint rétegenként csak egy iteráció legyen (\texttt{iterations = 1}).
 
-A kiszámolt vektormezőből a maszkokat úgy kaptam, hogy minden, egységnél hosszabb (tehát legalább 1 pixelnyi a becsült mozgása) vektor végpontját megjelöltem. Ezáltal lényegében azon részeket határoztam meg, ahova éppen a pontok mozdultak, ez pedig pontosan azon részei a képnek, ahol az adott képkockán az előtérben mozgó objektumokat várjuk. Az előzőekhez hasonlóan a maszkon itt is végzek apró utófeldolgozást a dilatáció és erózió morfológiai műveletek segítségével. Az eredményt \aref{fig:of_mask}. ábra mutatja be. Megfigyelhető, hogy a jól textúrázott részeken a maszk nagyon pontos, a textúrázatlanokon viszont a pontok statikus pontoknak tűnnek.
+A kiszámolt vektormezőből a maszkokat úgy kaptam, hogy minden, egységnél hosszabb (tehát legalább 1 pixelnyi a becsült mozgása) vektor végpontját megjelöltem. Ezáltal lényegében azon részeket határoztam meg, ahova éppen a pontok mozdultak, ez pedig pontosan azon részei a képnek, ahol az adott képkockán az előtérben mozgó objektumokat várjuk. Az előzőekhez hasonlóan a maszkon itt is végeztem apró utófeldolgozást a dilatáció és erózió morfológiai műveletek segítségével. Az eredményt \aref{fig:of_mask}. ábra mutatja be. Megfigyelhető, hogy a jól textúrázott részeken a maszk nagyon pontos, a textúrázatlanokon viszont a pontok statikus pontoknak tűnnek.
 
 \begin{figure}[tbh]
 \centering
@@ -355,7 +355,7 @@ Végül a kapott párosításokat a fundamentális mátrix segítségével valid
 
 Ezt követően a blobokat a következőképpen párosítom. Veszem azt a képet, amelyiken több blob van, mint a másikon (ha ugyanannyi, akkor a választás tetszőleges), majd egyesével az itt lévő blobokhoz megkeresem, hogy a benne lévő párosításbeli pontok párjainak többségét melyik másik képen lévő blob tartalmazza. Így kapok egy projekciót a több elemű halmazból a kisebbe. Nem feltétlen lesz minden blobnak párja (nem tartalmaz \textit{feature} pontot), valamint lehet, hogy több különböző blob is ugyanahhoz a blobhoz fog tartozni, ekkor ezeket egyesítem. Így a végén a blobok egy részhalmazához egy kölcsönösen egyértelmű relációt, párosítást kapok, ezek jelölik ugyanazon objektum két maszkját a két képen. %\Aref{fig:multi-obj-matches} képrészleten látható objektumok esetén például a 367 talált párosításból a 1 objektumhoz tartozó maszkból atból összesen 30 volt két nem egymáshoz tartozó blobok között
 
-A következő lépések könnyebb tesztelése végett, aktívan használtam a csak egy objektum detektálására képes algoritmust is, ezért a két megoldást egymással konform módon valósítottam meg. Mindkettőt egy közös \texttt{ObjectSelector} absztrakt osztályból származtattam, lásd \ref{fig:cd:objectselector}. ábra. A továbbiakban fogjuk látni, hogy ennél a módszernél is jó, ha meghatározzuk az egymásnak megfelelő pontokat, így mindkettő megkapta konstruktorában a \texttt{Matcher} osztály egy példányát, melyet a \texttt{ObjectSelector} őriz. A \texttt{Matcher} két képkockából és az előtér maszkokból meghatározza az egymásnak megfelelő pontokat ORB-bal, melyeket pontpárok listájaként ad vissza. Konstruktorában azért, hogy a találatokat szűrni tudja, megkapja a kamera objektumokat és a fundamentális mátrixot. Mindkét konkrét \texttt{ObjectSelector} megvalósítás \texttt{Object} listával tér vissza, mely tartalmazza a két maszkot a két képen, valamint az összetartozó pontokat.
+A következő lépések könnyebb tesztelése végett aktívan használtam a csak egy objektum detektálására képes algoritmust is, ezért a két megoldást egymással konform módon valósítottam meg. Mindkettőt egy közös \texttt{ObjectSelector} absztrakt osztályból származtattam, lásd \ref{fig:cd:objectselector}. ábra. A továbbiakban fogjuk látni, hogy ennél a módszernél is jó, ha meghatározzuk az egymásnak megfelelő pontokat, így mindkettő megkapta konstruktorában a \texttt{Matcher} osztály egy példányát, melyet a \texttt{ObjectSelector} őriz. A \texttt{Matcher} két képkockából és az előtér maszkokból meghatározza az egymásnak megfelelő pontokat ORB-bal, melyeket pontpárok listájaként ad vissza. Konstruktorában azért, hogy a találatokat szűrni tudja, megkapja a kamera objektumokat és a fundamentális mátrixot. Mindkét konkrét \texttt{ObjectSelector} megvalósítás \texttt{Object} listával tér vissza, mely tartalmazza a két maszkot a két képen, valamint az összetartozó pontokat.
 
 
 \begin{figure}[tbh]
@@ -533,7 +533,7 @@ Ahogy \aref{sec:triangulation}. alfejezetben bemutattam az elméleti hátteret, 
 
 \subsection{OpenCV-s függvényekkel}
 
-OpenCV \texttt{cv::triangulatePoints} függvényben a \textit{Linear-LS} (lineáris legkisebb négyzetek) módszer van implementálva. A dokumentáció \cite{camera-calib-3d} alapján sztereó-kalibráció során nyert projekciós mátrixokat várja a pontpárok mellett paraméterül. Az én esetemben, a kamerák nincsenek sztereó-kalibrálva, de a két projekciós mátrix megvan. Ennek ellenére a kimeneti 3D-s koordináták használhatatlanok voltak. Kis kutatás után az \texttt{cv::undistortPoints()} függvény meghívása jelentette a megoldást. Ez először normalizálta őket, vagyis:
+OpenCV \texttt{cv::triangulatePoints} függvényben a \textit{Linear-LS} (lineáris legkisebb négyzetek) módszer van implementálva. A dokumentáció \cite{camera-calib-3d} alapján sztereó-kalibráció során nyert projekciós mátrixokat vár a pontpárok mellett paraméterül. Az én esetemben a kamerák nincsenek sztereó-kalibrálva, de a két projekciós mátrix megvan. Ennek ellenére a kimeneti 3D-s koordináták használhatatlanok voltak. Kis kutatás után az \texttt{cv::undistortPoints()} függvény meghívása jelentette a megoldást. Ez először normalizálta őket, vagyis:
 
 \[\left(\begin{array}{c} u' \\ v' \\ 1 \end{array}\right) = {\underbrace{\left(\begin{array}{ccc}
 f_x & 0 & o_x \\ 
@@ -569,7 +569,7 @@ Az OpenCV keretrendszerben megtalálhatjuk a \cite{hartley-triangulation}-ben le
 
 Ehhez én Roy Shilkrot online elérhető alkalmazás-könyvtárából \cite{sfm-toy-library} merítettem a kiindulási alapot, és azt alakítottam az általam használt adatszerkezetekhez. Ehhez is előtte minden pontot normalizálni, valamint a torzítási együtthatóknak megfelelően javítani kellett. Ezzel a megközelítéssel 8,21 pixelnyi átlagos visszavetítési hibát kaptam, de a sebesség harmadára csökkent (0,06 másodperc helyett 0,18 másodperc lett a futási idő). % melyet szintén nem tekinthetünk kifizetődő kompromisszumnak.
 
-A fentieket összegyűjtve a \texttt{Triangulator} osztályban (lásd \ref{fig:cd:triangulator}. ábra) implementáltam, melynek két metódusa a fent említett két módszert (OpenCV-s \texttt{triangulatePoints}, valamint az Iterative-LS) valósítja meg. Mindkettő az egymásnak megfelelő pontpárokat várja bemenetként, és harmadik paraméterében visszaadja a pontfelhőt, mely \texttt{CloudPoint}-ok listájaként áll elő. Egy \texttt{CloudPoint} az aktuális koordinátákon kívül azt is tudja magáról, hogy mekkora a hozzá tartozó visszavetítési hiba, így a megjelenítésnél ezt is figyelmebe tudtam venni.
+A fentieket összegyűjtve a \texttt{Triangulator} osztályban (lásd \ref{fig:cd:triangulator}. ábra) implementáltam, melynek két metódusa a fent említett két módszert (OpenCV-s \texttt{triangulatePoints}, valamint az Iterative-LS) valósítja meg. Mindkettő az egymásnak megfelelő pontpárokat várja bemenetként, és harmadik paraméterében visszaadja a pontfelhőt, mely \texttt{CloudPoint}-ok listájaként áll elő. Egy \texttt{CloudPoint} az aktuális koordinátákon kívül azt is tudja magáról, hogy mekkora a hozzá tartozó visszavetítési hiba, így a megjelenítésnél ezt is figyelembe tudtam venni.
 
 \begin{figure}[tbh]
 \centering
@@ -615,7 +615,7 @@ A másodikhoz a pontfelhő mellé még két információra volt szükség: a pon
 
 A harmadik megoldást 3 lépésben valósítottam meg. Először fehér pontokként levetítettem a pontokat a képsíkra. Ezt követően dilatáció-erózió kombinációval morfológiai zárást hajtottam végre a bináris képen, minek köszönhetően a kisebb lyukak és szakadások megszűntek. Végül az eredményen kontúrokat kerestem a \texttt{cv::findContours()} függvény segítségével, és ezeket kirajzoltam. Egy határérték (amit 100 pixel$^2$-nek választottam kézi hangolás után) alatti területtel rendelkező kontúrokat elvetettem, mert ezek olyan kisebb foltokat jelentenek, melyeket nem tudunk egyértelműen egy nagyobb objektumhoz rendelni.
 
-Ezen három vizualizációjának eredménye a bal oldali kamera nézpontjából látható \aref{fig:different-vis}. ábrán.
+Ezen három vizualizáció eredménye a bal oldali kamera nézpontjából látható \aref{fig:different-vis}. ábrán.
 
 \begin{figure}[tbh]
 \centering
