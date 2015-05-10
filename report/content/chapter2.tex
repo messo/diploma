@@ -2,7 +2,7 @@
 \chapter{Több kamerából álló kamera-rendszerek \label{chapter2}}
 %----------------------------------------------------------------------------
 
-A kitűzött feladat szempontjából két fontos részproblémát kell több kamerából álló rendszerek esetén megoldani. Az első a kamerák szinkronizációjának problémája, ami akkor merül fel, ha a kamerák nem egy közös feldolgozó egységhez kapcsolódnak, hanem például a kamerák képeit egy videófolyamként kapjuk. A második pedig, hogy a kamerák képei alapján a háromdimenziós teret, vagy annak egy részét a lehető legjobban rekonstruáljuk. Ez a fejezet ezen két problémát járja körbe, valamint végül bemutat egy megoldást a mozgó objektumok detektálására.
+A kitűzött feladat szempontjából két fontos részproblémát kell több kamerából álló rendszerek esetén megoldanom. Az első a kamerák szinkronizációjának problémája, ami akkor merül fel, ha a kamerák nem egy közös feldolgozó egységhez kapcsolódnak, hanem például a kamerák képeit egy videófolyamként kapjuk. A második pedig, hogy a kamerák képei alapján a háromdimenziós teret, vagy annak egy részét a lehető legjobban rekonstruáljam. Ez a fejezet ezen két problémát járja körbe, valamint végül bemutat egy megoldást a mozgó objektumok detektálására.
 
 
 %----------------------------------------------------------------------------
@@ -338,9 +338,9 @@ Fontos megemlíteni, hogy gyakorlatban a kameráknak már eleve nagyon közel ke
 
 \subsection{Optikai folyam \label{methods:optic}}
 
-Az előzőekben megismert eljárás azt feltételezi, hogy a kamerák párosával sztereó-kalib\-ráltak, és ezt kihasználva számol mélységképet a kalibráció során felhasznált segéd-objek\-tum alapján.
+Az előzőekben megismert eljárás azt feltételezi, hogy a kamerák párosával sztereó-kalib\-ráltak, és ezt kihasználva határozzuk meg a mélységképet a kalibráció során alkalmazott segéd-objek\-tum alapján.
 
-A most ismertetésre kerülő eljárás, az \textit{optikai folyam}okat \cite{optic-flow} hívja segítségül. Vegyünk egymás utáni képsorokat egy mozgó objektumról. Az objektum mindegyik pontja egy háromdimenziós $\mathbf{P}(t)$ útvonalon mozog, mely a kamerák képén egy $\mathbf{p}(t) = \big(x(t), y(t)\big)$ kétdimenziós útvonalnak feleltethető meg. Minden pontra nézve az elmozdulás $d\mathbf{p}(t) / dt$ irányát egy vektormezőt kapunk, ezt hívjuk optikai folyamnak.
+A most ismertetésre kerülő eljárás, az \textit{optikai folyam}okat \cite{optic-flow} hívja segítségül. Vegyünk egymás utáni képeket egy mozgó objektumról. Az objektum mindegyik pontja egy háromdimenziós $\mathbf{P}(t)$ útvonalon mozog, mely a kamerák képén egy $\mathbf{p}(t) = \big(x(t), y(t)\big)$ kétdimenziós útvonalnak feleltethető meg. Minden pontra nézve az elmozdulás $d\mathbf{p}(t) / dt$ irányát egy vektormezőt kapunk, ezt hívjuk optikai folyamnak.
 
 Jelöljük $I(x, y, t)$-vel a kép $(x, y)$ pontjának intenzitását a $t$ időpillanatban. Feltehető, hogy két egymás utáni képkockán ugyanazon pont képpontjainak intenzitása konstans (\textit{világosság állandóság}, az angol \textit{brightness constancy} kifejezésből), vagyis:
 \[I(x,\; y,\; t) = I(x+dx,\; y+dy,\; t+dt)\]
@@ -387,7 +387,7 @@ A módszer lényege, hogy a kép pixeleinek intenzitását egy polinommal közel
 
 ahol $\mathbf{A}$ egy szimmetrikus mátrix, $\mathbf{b}$ vektor és $c$ skalár.
 
-Ezeket az együtthatókat a legkisebb-négyzetek módszerével közelítően meghatározhatjuk. Feltéve, hogy a teljes kép egyetlen polinommal felírható, és a két képkockán az egész polinom ideálisan $\mathbf{d}$-vel mozdul el:
+Ezeket az együtthatókat a legkisebb-négyzetek módszerével közelítően meghatározhatjuk. Tegyük fel, hogy mindkét kép összes pixelének intenzitása egyetlen polinommal felírható, és a két képkockán az egész polinom ideálisan $\mathbf{d}$-vel mozdul el, vagyis:
 
 \[f_1(\mathbf{x} - \mathbf{d}) = f_2(\mathbf{x})\]
 
@@ -407,7 +407,7 @@ Kapjuk az előbbi egyenletekkel összevetve a következőt:
 
 Ekkor $\mathbf{d}(\mathbf{x})$ szerepében megkaptuk a vektor-mezőt. Ez az egyenlet pontonként felírva megoldható, de a gyakorlatban zajos eredményt szolgáltat. Ezt elkerülendő azzal a feltevéssel élünk, hogy a pontok egy környezetében az elmozdulás vektorok csak kicsit változnak, és így a fenti megoldása egy költség-minimalizálási problémává változik \cite{farneback}.
 
-Ez utóbbi algoritmust \cite{opencv-lk} fogom a dolgozat során alkalmazni, mert sűrű optikai folyamokat szolgáltat, és nem kell sarokpontokat keresni a kiinduló képen. \Aref{fig:dense-of}. ábrán látható egy példa, ami egy kanyon felett elrepülő helikopter videójának két egymás utáni képkockájából meghatározott sűrű optikai folyamot mutatja. Fontos megemlíteni, hogy mindkét eljárás önmagában csak kis mozgásokat tud követni, ezért nagy elmozdulások esetén a piramis-módszert használjuk: a képeket több lépcsőben kicsinyítjük, és ezeken is lefuttatjuk az algoritmusokat, így a kis mozgások eltűnnek, a nagyok pedig kisebbekké, ezáltal detektálhatóvá válnak.
+Ez utóbbi algoritmust \cite{opencv-lk} választottam a feladat megoldása során, mert sűrű optikai folyamokat szolgáltat, és nem kell sarokpontokat keresni a kiinduló képen. \Aref{fig:dense-of}. ábrán látható egy példa, ami egy kanyon felett elrepülő helikopter videójának két egymás utáni képkockájából meghatározott sűrű optikai folyamot mutatja. Fontos megemlíteni, hogy mindkét eljárás önmagában csak kis mozgásokat tud követni, ezért nagy elmozdulások esetén a piramis-módszert használjuk: a képeket több lépcsőben kicsinyítjük, és ezeken is lefuttatjuk az algoritmusokat, így a kis mozgások eltűnnek, a nagyok pedig kisebbekké, ezáltal detektálhatóvá válnak.
 
 \begin{figure}[tbh]
 \centering
@@ -512,7 +512,7 @@ Az optikai folyamokat felhasználhatjuk statikus objektumok (pl. szobrok, kasté
 
 Ennél lényegesen eltérő felhasználási mód, ha az optikai folyamokat nem egy mozgó kamera két képkockáján, hanem két különböző kamera egy időponthoz tartozó két képkockáján határozzuk meg, melyek megközelítőleg ugyanazon térrészt veszik, de kissé eltérő pontból és szögből. Ekkor az optikai folyam lényegében a két kamera képén egy megfeleltetést tesz lehetővé. Feltéve, hogy előzetesen a kamerák pozícióját meghatároztuk (külső paraméterek), valamint ismerjük a projekciójukat leíró mátrixokat (belső paraméterek), akkor az egyező képontokat felhasználva háromszögeléssel kaphatjuk a mindkét kamera által látott pontok világbeli koordinátáit.
 
-Az előbbi módszer, jól használható nagy felbontású képeknél, ahol az objektum a kép nagy részét teszi ki, és így sok hasznos képpontot gyűjthetünk. A feladatom során éppen ellenkezőleg, a képek csak egy részén megjelenő és ott mozgó objektumokat kell rekonstruálni, így az utóbbi megközelítést valósítom meg.
+Az előbbi módszer jól használható nagy felbontású képeknél, ahol az objektum a kép nagy részét teszi ki, és így sok hasznos képpontot gyűjthetünk. A feladatom során éppen ellenkezőleg, a képek csak egy részén megjelenő és ott mozgó objektumokat kellett rekonstruálni, így az utóbbi megközelítést valósítottam meg.
 
 
 %----------------------------------------------------------------------------

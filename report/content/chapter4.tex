@@ -3,7 +3,7 @@
 %----------------------------------------------------------------------------
 
 
-Ebben a fejezetben az előzőekben bemutatott rendszer megvalósítását mutatom be lépésről lépésre, melyek \aref{fig:of-method}. ábrában közölt sorrendet követik. A beszámoló során kitérek az alkalmazott jelentősebb OpenCV eljárásokra, és ahol szükségesnek érzem, kitérek azok választott paraméterezéseire is. A fejezetet a teljes rendszer tesztelésével, értékelésével, valamint a valós idejű helyreállíthatóság korlátaival zárom.
+Ebben a fejezetben az előzőekben bemutatott rendszer megvalósítását mutatom be lépésről lépésre, melyek \aref{fig:of-method}. ábrában közölt sorrendet követik. A beszámoló során kitérek az alkalmazott jelentősebb OpenCV eljárásokra és a választott paraméterekre, amennyiben azok további magyarázatot igényelnek. 
 
 
 %----------------------------------------------------------------------------
@@ -529,7 +529,7 @@ Az algoritmust lefuttatva egész pontos párosításokat kaptam, \aref{fig:vis_f
 \section{Háromszögelés}
 %----------------------------------------------------------------------------
 
-Ahogy \aref{sec:triangulation}. alfejezetben bemutattam az elméleti hátteret, a következőkben ennek implementálását mutatom be.
+Ahogy \aref{sec:triangulation}. alfejezetben bemutattam az elméleti hátteret, a következőkben ennek implementálását tárgyalom.
 
 \subsection{OpenCV-s függvényekkel}
 
@@ -691,6 +691,8 @@ Ezt a logikát a \texttt{Visualization} osztályban implementáltam, mely konstr
 \section{Teljes folyamat együtt, implementációk kiválasztása}
 %----------------------------------------------------------------------------
 
+Az előző szekciókban felvázolt lépéseknél három helyen készítettem két különböző implementációt, ezek között az alábbiak szerint döntöttem. Az előtér maszk meghatározásához végül az \texttt{OFForegroundMaskCalculator}t választottam. Ugyan tovább tart, mint a párja, viszont sokkal pontosabb maszkot eredményez, ami jobb rekonstrukciót tesz lehetővé. A \texttt{MOG2ForegroundMaskCalculator} által kiszámolt előterek nagyon hiányosak voltak, és nem sikerült a paraméterezését úgy módosítanom, hogy ez javuljon. Az objektum-detektáláshoz természetesen a \texttt{MultiObjectSelector}-t választottam, hiszen a másik csak tesztelés miatt került implementálásra, hogy két képkockáról gyorsan kapjak egy objektumot, amire a további lépéseket végrehajthatom. A \texttt{Triangulator} osztály esetén pedig az OpenCV-s metódus mellett döntöttem (\texttt{triangulateCv}), mert csak kicsit pontatlanabb, ellenben természetéből adódóan jóval gyorsabb (átlagosan 5-ször), mint az iteratív megoldás.
+
 Egy képkockapár feldolgozásának a folyamata szekvencia-diagramként látható \aref{fig:sd:objects}. és \aref{fig:sd:tria}. ábrákon. Az első mutatja be a képkockák lekérésétől az objektumok meghatározásáig a folyamatot, a második pedig az objektumok rekonstruálását és vizualizációját.
 
 \begin{figure}[tbh]
@@ -777,8 +779,10 @@ Egy képkockapár feldolgozásának a folyamata szekvencia-diagramként láthat�
 
 \end{figure}
 
-Az előző szekciókban felvázolt lépéseknél három helyen készítettem két különböző implementációt, ezek között az alábbiak szerint döntöttem. Az előtér maszk meghatározásához végül az \texttt{OFForegroundMaskCalculator}t választottam. Ugyan tovább tart, mint a párja, viszont sokkal pontosabb maszkot eredményez, ami jobb rekonstrukciót tesz lehetővé. A \texttt{MOG2ForegroundMaskCalculator} által kiszámolt előterek nagyon hiányosak voltak, és nem sikerült a paraméterezését úgy módosítanom, hogy ez javuljon. Az objektum-detektáláshoz természetesen a \texttt{MultiObjectSelector}-t választottam, hiszen a másik csak tesztelés miatt került implementálásra, hogy két képkockáról gyorsan kapjak egy objektumot, amire a további lépéseket végrehajthatom. A \texttt{Triangulator} osztály esetén pedig az OpenCV-s metódus mellett döntöttem (\texttt{triangulateCv}), mert csak kicsit pontatlanabb, ellenben természetéből adódóan jóval gyorsabb (átlagosan 5-ször), mint az iteratív megoldás.
 
 
+%----------------------------------------------------------------------------
+\section{Összefoglaló}
+%----------------------------------------------------------------------------
 
-
+Ebben a fejezetben az elkészült alkalmazás implementációjának fejlesztését mutattam be. Az egyes fázisokat, részproblémák megoldásait példákon keresztül szemléltettem. Amennyiben egy problémára több megoldást is elkészítettem, indokoltam a választásom valamelyik megközelítés mellett. Végezetül a konkrét alkalmazás futását szekvencia diagramon ábrázoltam.

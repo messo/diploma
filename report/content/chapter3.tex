@@ -2,7 +2,7 @@
 \chapter{Tervezés \label{chapter3}}
 %----------------------------------------------------------------------------
 
-Az elméleti megfontolások, alapelvek bemutatását követően rátérek a feladat megoldását adó rendszer struktúrájának, főbb komponenseinek tárgyalására.
+Az elméleti megfontolások, alapelvek bemutatását követően ebben a fejezetben rátérek a feladat megoldását adó rendszer struktúrájának, főbb komponenseinek tárgyalására.
 
 \section{A célkitűzés}
 
@@ -10,11 +10,11 @@ A diplomamunka során elkészített rendszernek képesnek kellett lennie egy zá
 
 A rendszer tervezése során figyelembe vettem, hogy lényegében tetszőleges számú kamerát is felhasználhattam a probléma megoldásához, ennek megfelelően a megvalósított rendszer architektúráját így készítettem el, de az elérhető eszközök korlátozott száma miatt csak két kamerával teszteltem.
 
-Egyre több kamera bevonásával a rekonstrukció minősége, valamint a helyesen rekonstruálható nézőpontok száma növekszik, de ezzel együtt a rendszer teljesítménye a megnövekedő számítási szükséglet miatt csökken. Fontos megemlíteni, hogy a feladat és a megoldás jellegéből adódóan a független kamerákból meghatározott rekonstrukciók párhuzamosíthatóak, így ezek megfelelő feldolgozó egységet feltételezve egy időben elvégezhetőek. Ez azt jelenti, hogy a kamerák számának növelése valóban megoldás lehet a robusztus eredmény eléréséhez.
+Egyre több kamera bevonásával a rekonstrukció minősége, valamint a helyesen rekonstruálható nézőpontok száma növekszik, de ezzel együtt a rendszer teljesítménye a megnövekedő számítási szükséglet miatt csökken. Fontos megemlíteni, hogy a feladat és a megoldás jellegéből adódóan a független kamerákból meghatározott rekonstrukciók párhuzamosíthatóak, így ezek megfelelő feldolgozó egységet feltételezve egy időben elvégezhetőek. Ez azt jelenti, hogy a kamerák számának növelése valóban megoldás lehet a robusztusabb eredmény eléréséhez.
 
 \section{Keretrendszer}
 
-A diplomamunka során az OpenCV \cite{opencv} keretrendszert használtam melynek célja, hogy a fejlesztőknek, egy szabadon és ingyenes elérhető alkalmazás-könyvtárat biztosítson a gépi látás területén elterjedt és gyakran használt algoritmusokhoz. Több nyelvhez is biztosít API-t, én ezek közül a C++-os interfészét alkalmaztam, a lehető legnagyobb teljesítmény elérése érdekében. Az OpenCV-t már az előző félévekben megismertem, így a diplomamunka során már eredményesen tudtam építkezni az általa nyújtott funkciókra.
+A diplomamunka során az OpenCV \cite{opencv} keretrendszert használtam, melynek célja, hogy a fejlesztőknek egy szabadon és ingyenes elérhető alkalmazás-könyvtárat biztosítson a gépi látás területén elterjedt és gyakran használt algoritmusokhoz. Több nyelvhez is biztosít API-t, én ezek közül a C++-os interfészét alkalmaztam, a lehető legnagyobb teljesítmény elérése érdekében. Az OpenCV-t már az előző félévekben megismertem, így a diplomamunka során már eredményesen tudtam építkezni az általa nyújtott funkciókra.
 
 \section{A tervezett rendszer működése}
 
@@ -24,9 +24,9 @@ A kamerákat két lépésben kalibráltam; először, hogy a torzításukat mini
 
 Ezt követően a kamerák képeiből meghatároztam az előtér maszkot. Erre kétféle megközelítést is implementáltam; az egyik az optikai folyamokat használja a mozgás érzékeléséhez, ami kijelöli az előteret, a másik pedig egy előtér-háttér szegmentációs eljárás. Ezek közül összehasonlítás után választottam, lásd a következő fejezet.
 
-Miután a vélt előtér objektumok maszkjait meghatároztam, ezeket a képeken egymással párosítottam. Itt is kétféle megközelítést próbáltam ki és implementáltam. Az első egy egyszerű ,,legnagyobb-területű'' kiválasztás, amely mindkét képen a legnagyobb területű blobot keresi, és ezeket feleltetni meg egymásnak. Természetesen ilyenkor csak 1 objektumot tudunk rekonstruálni, de a további lépéseket jól lehet rajta tesztelni. A másik eljárás pedig, hogy ezen a blobokon jellegzetes pontokat kerestem, és megpróbáltam egymásnak megfeleltetni őket. Ezekből a megfeleltetések alapján többségi döntést alkalmazva határoztam meg, hogy az egyik kép blobja, melyik másik blobnak felel meg.
+Miután a vélt előtér objektumok maszkjait meghatároztam, ezeket a képeken egymással párosítottam. Itt is kétféle megközelítést próbáltam ki és implementáltam. Az első egy egyszerű ,,legnagyobb-területű'' kiválasztás, amely mindkét képen a legnagyobb területű \textit{blob}ot (egy objektumhoz tartozó egybefüggő képterület) keresi, és ezeket felelteti meg egymásnak. Természetesen ilyenkor csak egy objektumot tudunk rekonstruálni, de a további lépéseket jól lehet rajta tesztelni. A másik eljárás pedig, hogy ezen a blobokon jellegzetes pontokat kerestem, és megpróbáltam egymásnak megfeleltetni őket. Ezekből a megfeleltetések alapján többségi döntést alkalmazva határoztam meg, hogy az egyik kép blobja melyik másik blobnak felel meg.
 
-A blob-párosítások alapján, külön-külön optikai folyam alapján sűrű pont-pont megfeleltetést számoltam a két képen. Felhasználva, hogy a kamerák helyzetét ismertem, háromszögeléssel megkaptam a pontok világbeli koordinátájukat. 
+A blob-párosítások alapján, külön-külön optikai folyamokkal sűrű pont-pont megfeleltetést számoltam a két képen. Felhasználva, hogy a kamerák helyzetét ismertem, háromszögeléssel megkaptam a pontok világbeli koordinátáit.
 
 Végül a választott nézőpontból projekció segítségével meghatároztam az onnan látható becsült képet (felhasználva az eredeti képből kinyerhető színinformációkat), valamint az objektumokhoz tartozó kontúrokat.
 
@@ -177,7 +177,8 @@ graybox/.style = {box, gray}
 
 Gondoljuk meg, hogy a fenti eljárás tetszőleges számú kamera-párra (amelyek nem feltétlen diszjunktak) általánosítható, és az így kapott pontfelhőket, felhasználva, hogy az adatokat az előzetes kalibrációnak köszönhetően egy közös világ-koordinátarendszerben kapjuk meg, ezeket könnyen egyesíthetjük. Ezt a folyamatot mutatja be \aref{fig:of-method}. ábra. A diplomaterv keretében a színezett hátterű lépések készültek el, a több kamerára vonatkozó együttes kezelés nem.
 
-
+% --------------------------------
 \section{Összefoglaló}
+% --------------------------------
 
-Ebben a fejezetben bemutattam az alkalmazott keretrendszert, melyre a megoldásomat építettem. Megfogalmaztam a célkitűzésem, rögzítettem a sikerkritériumot, valamint a választott nézőpontra vonatkozó korlátot. Végül leírtam az implementálásra kerülő rendszer lépésekre bontott logikáját.
+Ebben a fejezetben bemutattam az alkalmazott keretrendszert, melyre a megoldásomat építettem. Megfogalmaztam a célkitűzésem, miszerint két rögzített kamera által megfigyelt térrészben rekonstruálok egy illetve két mozgó objektumot egy a két kamera közötti szakaszon választott nézőpontból. Rögzítettem a sikerkritériumot, hogy a rekonstruálást akkor tekintem sikeresnek, ha a mozgó objektumok megközelítő kontúrjait sikeresen meghatározom. Végül leírtam az implementálásra kerülő rendszer lépésekre bontott logikáját.
