@@ -18,11 +18,11 @@ A diplomamunka során az OpenCV \cite{opencv} keretrendszert használtam melynek
 
 \section{A tervezett rendszer működése}
 
-A feladat megoldásához \aref{methods:optic}. alszekcióban leírt optikai folyam alapú eljárást használtam fel. A rendszer tervét, átfogó képét a következőkben mutatom be.
+A feladat megoldásához \aref{methods:optic}. részben leírt optikai folyam alapú eljárást használtam fel. A rendszer tervét, átfogó képét a következőkben mutatom be.
 
 A kamerákat két lépésben kalibráltam; először, hogy a torzításukat minimalizáljam, majd azért, hogy meghatározhassam az elhelyezkedésüket egy rögzített koordinátarendszerben.
 
-Ezt követően a kamerák képeiből meghatároztam az előtér maszkot. Erre két féle megközelítést is implementáltam; az egyik az optikai folyamokat használja a mozgás érzékeléséhez, ami kijelöli az előteret, a másik pedig egy előtér-háttér szegmentációs eljárás. Ezek közül összehasonlítás után választottam, lásd a következő fejezet.
+Ezt követően a kamerák képeiből meghatároztam az előtér maszkot. Erre kétféle megközelítést is implementáltam; az egyik az optikai folyamokat használja a mozgás érzékeléséhez, ami kijelöli az előteret, a másik pedig egy előtér-háttér szegmentációs eljárás. Ezek közül összehasonlítás után választottam, lásd a következő fejezet.
 
 Miután a vélt előtér objektumok maszkjait meghatároztam, ezeket a képeken egymással párosítottam. Itt is kétféle megközelítést próbáltam ki és implementáltam. Az első egy egyszerű ,,legnagyobb-területű'' kiválasztás, amely mindkét képen a legnagyobb területű blobot keresi, és ezeket feleltetni meg egymásnak. Természetesen ilyenkor csak 1 objektumot tudunk rekonstruálni, de a további lépéseket jól lehet rajta tesztelni. A másik eljárás pedig, hogy ezen a blobokon jellegzetes pontokat kerestem, és megpróbáltam egymásnak megfeleltetni őket. Ezekből a megfeleltetések alapján többségi döntést alkalmazva határoztam meg, hogy az egyik kép blobja, melyik másik blobnak felel meg.
 
