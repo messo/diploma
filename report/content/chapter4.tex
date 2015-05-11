@@ -174,7 +174,7 @@ A következőkben az objektumok detektálásáról lesz szó. Először bemutato
 \caption{Példa az előtér maszkra \label{fig:my_mog2}}
 \end{figure}
 
-Megfigyelhető, hogy a maszk nem bináris, hanem háromértékű: azt is jelzi, amit az algoritmus árnyéknak gondol. A zajt a maszkon az erózió-dilatáció morfológiai módszerek segítségével tudjuk csökkenteni. Előbbi a kisméretű zajokat tünteti el, utóbbi pedig a lyukakat szünteti meg. OpenCV-ben ezek implementációi a \texttt{dilate} és \texttt{erode} függvények. Előbbi az adott pixelt a környezetében (amit egy kernel ír le) lévő maximális, míg utóbbi a minimális értékkel helyettesít. Én egy erózió-dilatáció-erózió lépéssorozatot használtam, amely egy morfológiai nyitás és zárás egymásutánja \cite{kepfeldolg-modszerek}. Ennek az eredményét \aref{fig:erosion_dilation}. ábra mutatja be.
+Megfigyelhető, hogy a maszk nem bináris, hanem háromértékű: azt is tartalmazza, amit az algoritmus árnyékként detektál. A zajt a maszkon az erózió-dilatáció morfológiai módszerek segítségével tudjuk csökkenteni. Előbbi a kisméretű zajokat tünteti el, utóbbi pedig a lyukakat szünteti meg. OpenCV-ben ezek implementációi a \texttt{dilate} és \texttt{erode} függvények. Előbbi az adott pixelt a környezetében (amit egy kernel ír le) lévő maximális, míg utóbbi a minimális értékkel helyettesít. Én egy erózió-dilatáció-erózió lépéssorozatot használtam, amely egy morfológiai nyitás és zárás egymásutánja \cite{kepfeldolg-modszerek}. Ennek az eredményét \aref{fig:erosion_dilation}. ábra mutatja be.
 
 \begin{figure}[tbh]
 \centering
@@ -427,13 +427,41 @@ A következőkben \aref{fig:of_original}. ábrán látható két képkocka lesz 
 \centering
 \begin{subfigure}[b]{.49\linewidth}
 	\centering
-	\includegraphics[width=205pt]{figures/of_img_left_framed.png}
+	
+	\begin{tikzpicture}
+
+%left: 0.315625 0.225 0.667188 0.9
+%right: 0.034375 0.208333 0.471875 0.889583
+%uni: 0.034375 0.208333 0.667188 0.9
+
+\node[anchor=north west,inner sep=0] (image) at (0,0) {\includegraphics[width=205pt]{figures/of_img_left.png}};
+
+\begin{scope}[x={(image.north east)},y={(image.south west)}]
+    \draw[very thick,yellow] (0.315625, 0.225) rectangle (0.667188, 0.9);
+    \draw[very thick,dashed,red] (0.034375, 0.208333) rectangle (0.667188, 0.9);
+\end{scope}
+
+\end{tikzpicture}
+
   \end{subfigure}
 \begin{subfigure}[b]{.49\linewidth}
 	\centering
-	\includegraphics[width=205pt]{figures/of_img_right_framed.png}
+	\begin{tikzpicture}
+
+%left: 0.315625 0.225 0.667188 0.9
+%right: 0.034375 0.208333 0.471875 0.889583
+%uni: 0.034375 0.208333 0.667188 0.9
+
+\node[anchor=north west,inner sep=0] (image) at (0,0) {\includegraphics[width=205pt]{figures/of_img_right.png}};
+
+\begin{scope}[x={(image.north east)},y={(image.south west)}]
+    \draw[very thick,yellow] (0.034375, 0.208333) rectangle (0.471875, 0.889583);
+    \draw[very thick,dashed,red] (0.034375, 0.208333) rectangle (0.667188, 0.9);
+\end{scope}
+
+\end{tikzpicture}
   \end{subfigure}
-\caption{Bal és jobb kamera által látott objektum kijelölve; a sárga keretek jelölik az objektumok befoglaló téglalapjait, a piros pedig ezen téglalapokat tartalmazó legkisebb területű téglalapot \label{fig:of_original}}
+\caption{Bal és jobb kamera által látott objektum kijelölve; a sárga keretek jelölik az objektumok befoglaló téglalapjait, a piros szaggatott pedig ezen téglalapokat tartalmazó legkisebb területű téglalapot \label{fig:of_original}}
 \end{figure}
 
 Első megközelítésem, hogy a két objektum befoglaló téglalapját tekintettem, és vettem azt a téglalapot, mely a legkisebb területű azok közül, amely mindkettőt tartalmazza. Kivágva ezt a téglalapot a két képből, két egyforma méretű képrészletet kaptam, melyek külön-külön tartalmazzák a teljes objektumot. Ez látható \aref{fig:of_original}. ábrán pirossal jelölve. Erre a két részletre számolva optikai folyamot, 7 646 darab vektort kaptam, melyek közül néhányat vizualizáltam \aref{fig:bad0}. ábrán. A vektorok kezdő és végpontjaiból alkottam pontpárokat, ezeket tekintettem egymásnak megfelelő pontoknak a két képen. Jól látható, hogy a kevés kirajzolt pontpárból egyik sem jó, mert a doboz különböző lapjaihoz tartoznak. Ez a nagy elmozdulás miatt van, hiába a piramis módszer, használhatatlan a végeredmény.
@@ -639,7 +667,7 @@ Ezen három vizualizáció eredménye a bal oldali kamera nézpontjából látha
 
 Ahogy \aref{chapter3}. fejezetben említettem, a választott nézőpont, ahonnan érdemes lehet rekonstruálni az objektumot, a két kamera nézőpont között helyezkedhet el. Tehát a két kamera között kellett interpolálni a virtuális kamera helyzetét és irányát, és innen elvégezni a vetítést. Fontos, hogy nem csak a kamera helyzetét ($\mathbf{t_v}$), a forgatási mátrixát ($\mathbf{R_v}$) is meg kellett határoznom. Jelölje $r \in [0; 1]$ a virtuális kamera pozícióját a pályáján, ahol $r = 0$, ha a bal oldali kamera, és $r = 1$, ha a jobb oldali kamera helyzetében van. Ekkor a virtuális kamera eltolási vektora $\mathbf{t_v} = (1-r)\mathbf{t_b} + r\mathbf{t_j}$, ahol $\mathbf{t_b}$ jelöli a bal oldali, $\mathbf{t_j}$ a jobb oldali kamera eltolási vektorát. Ken Shoemake cikke \cite{quaternion} alapján célszerű a forgatási mátrixok (vagy akár az ebből nyerhető Euler-szögek) helyett kvanterniókra áttérni, és ezek között úgynevezett gömbi lineáris interpolációval (\textit{slerp}) kiszámolni a kívánt köztes lépést. Ennek implementációját az Eigen \cite{eigenweb} alkalmazáskönyvtárral valósítottam meg. Először az OpenCV-s \texttt{cv::Mat} mátrix objektumokat Eigen-es \texttt{Eigen::Matrix} objektumokká konvertáltam, majd ezeket már az API-t használva kvaterniókká alakítva a \texttt{slerp()} metódus segítségével egy köztes kvaterniót interpoláltam. Végül ezt visszaalakítottam $\mathbf{R_v}$ OpenCV-s mátrixszá.
 
-Ezt a logikát a \texttt{Visualization} osztályban implementáltam, mely konstruktorában egy \texttt{CameraPose} példányt (eltolási és forgatási vektor -- lásd Rodrigues-formula), valamint egy kamera-mátrixot vár. Négy további metódusa van, ebből három a fenti megjelenítési típusokat valósítja meg, az utolsó pedig visszaadja magát az elkészült képet. Az áttekintő osztálydiagramot \aref{fig:cd:visualization}. ábra mutatja be. Az $r$ arányszámot a felületről egy csúszka segítségével tudjuk változtatni, \aref{fig:visu_slider}. ábra mutatja a két szélső és a középső helyzetben a vizualizáció eredményét.
+Ezt a logikát a \texttt{Visualization} osztályban implementáltam, mely konstruktorában egy \texttt{CameraPose} példányt (eltolási és forgatási vektor -- lásd Rodrigues-formula), valamint egy kamera-mátrixot vár. Négy további metódusa van, ebből három a fenti megjelenítési típusokat valósítja meg, az utolsó pedig visszaadja magát az elkészült képet. Az áttekintő osztálydiagramot \aref{fig:cd:visualization}. ábra mutatja be. Az $r$ arányszámot a felületről egy csúszka segítségével tudjuk változtatni, \aref{fig:visu_slider}. ábra (lásd \pageref{fig:visu_slider}. oldal) mutatja a két szélső és a középső helyzetben a vizualizáció eredményét.
 
 \begin{figure}[tbh]
 \centering
@@ -669,22 +697,24 @@ Ezt a logikát a \texttt{Visualization} osztályban implementáltam, mely konstr
 
 \begin{figure}[tbh]
 \centering
-\begin{subfigure}[b]{.49\linewidth}
+\begin{subfigure}[b]{.43\linewidth}
 	\centering
-	\includegraphics[width=205pt]{figures/visu_pixels_left.png}
-	\caption{}
-  \end{subfigure}
-\begin{subfigure}[b]{.49\linewidth}
+	\includegraphics[width=175pt]{figures/of_img_left.png}\\\vspace{10pt}
+	\includegraphics[width=175pt]{figures/visu_pixels_left.png}
+	\caption{Bal oldali kamera képe és a helyre\-ál\-lí\-tás ugyanebből a nézőpontból}
+  \end{subfigure}\hspace{30pt}
+\begin{subfigure}[b]{.43\linewidth}
+	\centering
+	\includegraphics[width=175pt]{figures/of_img_right.png}\\\vspace{10pt}
+	\includegraphics[width=175pt]{figures/visu_pixels_right.png}
+	\caption{Jobb oldali kamera képe és a helyre\-ál\-lí\-tás ugyanebből a nézőpontból}
+  \end{subfigure}\\\vspace{15pt}
+\begin{subfigure}[b]{.60\linewidth}
 	\centering
 	\includegraphics[width=205pt]{figures/visu_pixels_center.png}
-	\caption{}
+	\caption{Helyreállítás a két kamera közötti, interpolált nézőpontból}
   \end{subfigure}
-\begin{subfigure}[b]{.49\linewidth}
-	\centering
-	\includegraphics[width=205pt]{figures/visu_pixels_right.png}
-	\caption{}
-  \end{subfigure}
-\caption{Választott nézőpont a\inlinelist{\protect\item bal kamera, \protect\item a két kamera között és \protect\item a jobb kamera helyzetében} \label{fig:visu_slider}}
+\caption{Választott nézőpont \inlinelist{\protect\item bal kamera, \protect\item a jobb kamera és \protect\item a két kamera közötti pozícióban} \label{fig:visu_slider}}
 \end{figure}
 
 %----------------------------------------------------------------------------
