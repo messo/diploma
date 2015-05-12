@@ -563,11 +563,11 @@ Ahogy \aref{sec:triangulation}. alfejezetben bemutattam az elméleti hátteret, 
 
 OpenCV \texttt{cv::triangulatePoints} függvényben a \textit{Linear-LS} (lineáris legkisebb négyzetek) módszer van implementálva. A dokumentáció \cite{camera-calib-3d} alapján sztereó-kalibráció során nyert projekciós mátrixokat vár a pontpárok mellett paraméterül. Az én esetemben a kamerák nincsenek sztereó-kalibrálva, de a két projekciós mátrix megvan. Ennek ellenére a kimeneti 3D-s koordináták használhatatlanok voltak. Kis kutatás után az \texttt{cv::undistortPoints()} függvény meghívása jelentette a megoldást. Ez először normalizálta őket, vagyis:
 
-\[\left(\begin{array}{c} u' \\ v' \\ 1 \end{array}\right) = {\underbrace{\left(\begin{array}{ccc}
+\[\left[\begin{array}{c} u' \\ v' \\ 1 \end{array}\right] = {\underbrace{\left[\begin{array}{ccc}
 f_x & 0 & o_x \\ 
 0 & f_y & o_y \\
 0 & 0 & 1
-\end{array}\right)}_{\hbox{kamera-mátrix}}}^{-1} \left(\begin{array}{c} u \\ v \\ 1 \end{array}\right)\]
+\end{array}\right]}_{\hbox{kamera-mátrix}}}^{-1} \left[\begin{array}{c} u \\ v \\ 1 \end{array}\right]\]
 
 ahol $(u', v')$ az $(u, v)$ pont normalizáltja (kamera-mátrixtól független koordináták), majd a torzítási együtthatóakat felhasználva az $(u', v')$ pontoknak meghatározta a javított koordinátájukat. Ezután a \texttt{cv::triangulatePoints} függvénynek a projekciós mátrixok helyett csak az $\Big(\,\mathbf{R}\,|\,\mathbf{t}\,\Big)$ mátrixokat kellett átadnom. Fontos, hogy az előbbiekben kialakított pontpárosítás azon osztályához tartozó pontokat, melyek az eltolt képhez tartoznak, az eltoláshoz használt vektor ellentettjével vissza kellett tolni, hogy valós koordinátákat kapjak.
 

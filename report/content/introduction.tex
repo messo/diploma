@@ -16,14 +16,10 @@ A dolgozat motivációját a következő feltevésekhez hasonló problémák adt
 
 Ezekre és ehhez hasonló kérdésekre részben választ nyújthat a kitűzött feladat megoldása, miszerint több kamerával megfigyelt térrészt egy választott nézpontból rekonstruálunk, mivel a fenti esetekben nem oldható meg, hogy a választott személy nézőpontjába valódi kamerákat állítsunk.
 
-Az 1. fejezetben a feladat értelmezését követően a megoldásához szükséges elméleti háttérről lesz szó, mely tartalmazza a háromdimenziós tér alapvető transzformációit, valamint a dolgozat során használt kameramodellt.
+{\color{blue}
 
-A 2. fejezet a több kamerából álló kamerarendszereknél felmerülő problémákat tárgyalja, illetve, hogy ezekre milyen, a napjainkban is használt megoldások léteznek, kitérve a feladat során szükséges részproblémák megoldására is.
+Az elkészült megoldás a mozgó objektumok pontjait a kamerák képein az optikai folyamok segítségével párosítja, majd ezekből a kamerák ismert paramétereit és helyzetüket felhasználva meghatározza ezen pontok háromdimenziós térbeli koordinátáit. Ezek után a két kamera között választott nézőpontból rekonstruálja az onnan látható képet a kiszámolt koordinátákat alapján.
 
-A 3. fejezet bemutatja az előző fejezetek által leírt információk és algoritmusok alapján egy, a kitűzött feladatra megoldást adó rendszer vázát, megvalósítási tervét.
+Az 1. fejezetben a feladat értelmezését követően a megoldásához szükséges elméleti háttérről lesz szó, mely tartalmazza a háromdimenziós tér alapvető transzformációit, valamint a dolgozat során használt kameramodellt. A 2. fejezet a több kamerából álló kamerarendszereknél felmerülő problémákat tárgyalja, illetve, hogy ezekre milyen, a napjainkban is használt megoldások léteznek, kitérve a feladat során szükséges részproblémák megoldására is. A 3. fejezet bemutatja az előző fejezetek által leírt információk és algoritmusok alapján egy, a kitűzött feladatra megoldást adó rendszer vázát, megvalósítási tervét. A 4. fejezetben a rendszer megvalósítáról, és az aközben hozott tervezői döntésekről lesz szó. Végigvezet az egyes fázisoknál elkészült implementációkon, és végül bemutatja a választott eljárásokat. Az 5. fejezet az elkészült alkalmazás segítségével két különböző helyzetben telepített kamerákkal felvett jelenetet rekonstruál. A 6. fejezet a gyorsítási lehetőségeket vizsgálja meg, kitér a párhuzamosítás lehetőségeire, valamint a GPU-n történő futtatásra, és az így elérhető sebességnövekedésre. Végül megvizsgálja a valós idejű helyreállíthatóság korlátait, melyeket konkrét számokkal támaszt alá. Végezetül a 7. fejezet a gyűjtött eredményeket foglalja össze, és értékeli az elkészült alkalmazást.
 
-A 4. fejezetben a rendszer megvalósítáról, és az aközben hozott tervezői döntésekről lesz szó. Végigvezet az egyes fázisoknál elkészült implementációkon, és végül bemutatja a választott eljárásokat.
-
-Az 5. fejezet a gyorsítási lehetőségeket vizsgálja meg, kitér a párhuzamosítás lehetőségeire, valamint a GPU-n történő futtatásra, és az így elérhető sebességnövekedésre. Végül megvizsgálja a valós idejű helyreállíthatóság korlátait.
-
-Végezetül 6. fejezet a gyűjtött eredményeket foglalja össze, és értékeli az elkészült alkalmazást.
+}

@@ -120,7 +120,10 @@ Sztereó-kalibráció \cite{camera-calib-3d} során egy már ismert háromdimenz
 
 Amennyiben a két kamera képsíkja egybeesik, akkor a bázisegyenesek a képsíkokkal a végtelenben metszik egymást, ebből adódóan az epipoláris egyenesek párhuzamosak. Ha a két kamera közötti transzformáció csak tisztán egy $x$ tengellyel párhuzamos eltolás (standard sztereókamerák), akkor az epipoláris egyenesek az $x$ tengellyel is párhuzamosak, tehát a pontpárok keresése pusztán a képkockák egy adott sorára korlátozódik.
 
-Mivel a gyakorlatban nehéz pontosan úgy elhelyezni a kamerákat, hogy csak víszintes irányú eltolás legyen köztük, ezért a kamerák képeit \textit{rektifikál}ni kell. Ekkor a kamerák képeit úgy transzformáljuk, hogy a képsíkok egy képzeletbeli közös síkba essenek, lásd \aref{fig:rectification}. ábrát.
+{\color{blue}
+
+Mivel a gyakorlatban nehéz pontosan úgy elhelyezni a kamerákat, hogy képsíkjuk egybeessen és csak víszintes irányú eltolás legyen köztük, ezért a kamerák képeit célszerű \textit{rektifikál}ni, hogy a pontok párjait továbbra is csak egy képsoron legyen szükséges keresni. Ekkor a kamerák képeit úgy transzformáljuk, hogy a képsíkok egy képzeletbeli közös síkba essenek, lásd \aref{fig:rectification}. ábrát.
+}
 
 \begin{figure}[tbh]
 \centering
@@ -531,9 +534,9 @@ költségfüggvényt, ahol $d(., .)$ két pont euklideszi távolsága, és kiel�
 
 epipoláris kényszert \cite{hartley-triangulation}. Amikor megvan $\mathbf{\hat{u}}$ és $\mathbf{\hat{u}}'$, már meghatározhatjuk a kameraközéppontokból induló ezen pontokon átmenő sugarak metszéspontjait, hiszen biztosan létezni fog. Hartley és Sturm \cite{hartley-triangulation} megad egy optimális polinomiális megoldást, mely a fenti költségfüggvényt minimalizálja Gauss-eloszlású zaj feltételezése esetén.
 
-Ennek ellenére a gyakorlatban inkább lineáris háromszögelést szoktak alkalmazni \cite[5.1 szekció]{hartley-triangulation}. Legyen $\mathbf{x}$ egy pont és ennek vetülete az első kamera képén $\mathbf{u}$, vagyis $\mathbf{u} = \mathbf{P}\mathbf{x}$. Legyen $\mathbf{u}$ homogén koordinátákkal $\mathbf{u} = w_u(x_u, y_u, 1)^T$, tehát:
+Ennek ellenére a gyakorlatban inkább lineáris háromszögelést szoktak alkalmazni \cite[5.1 szekció]{hartley-triangulation}. Legyen $\mathbf{x}$ egy pont és ennek vetülete az első kamera képén $\mathbf{u}$, vagyis $\mathbf{u} = \mathbf{P}\mathbf{x}$. Legyen $\mathbf{u}$ homogén koordinátákkal $\mathbf{u} = w_u[x_u, y_u, 1]^T$, tehát:
 
-\[w_u\left( \begin{array}{c} x_u \\ y_u \\ 1 \end{array} \right) = \left( \begin{array}{c} \mathbf{p}_1^T \\ \mathbf{p}_2^T \\ \mathbf{p}_3^T \end{array} \right) \mathbf{x}\]
+\[w_u\left[ \begin{array}{c} x_u \\ y_u \\ 1 \end{array} \right] = \left[ \begin{array}{c} \mathbf{p}_1^T \\ \mathbf{p}_2^T \\ \mathbf{p}_3^T \end{array} \right] \mathbf{x}\]
 
 ahol $\mathbf{p}_i^T$ jelöli a $\mathbf{P}$ mátrix $i$. sorvektorát. Így összesen 3 egyenletet kapunk:
 
@@ -544,7 +547,7 @@ Harmadik egyenlőséget felhasználva az első kettőnél, kapjuk, hogy:
 \[x_u\mathbf{p}_3^T\mathbf{x} = \mathbf{p}_1^T\mathbf{x}\]
 \[y_u\mathbf{p}_3^T\mathbf{x} = \mathbf{p}_2^T\mathbf{x}\]
 
-Ugyanezt levezetve $\mathbf{v} = w_v(x_v, y_v, 1)^T = \mathbf{Q}\mathbf{x}$ képpontra:
+Ugyanezt levezetve $\mathbf{v} = w_v[x_v, y_v, 1]^T = \mathbf{Q}\mathbf{x}$ képpontra:
 
 \[x_v\mathbf{q}_3^T\mathbf{x} = \mathbf{q}_1^T\mathbf{x}\]
 \[y_v\mathbf{q}_3^T\mathbf{x} = \mathbf{q}_2^T\mathbf{x}\]
@@ -557,12 +560,19 @@ Ez meghatározza $\mathbf{x}$-et egy faktor erejéig, és ennek nem-zérus megol
 
 Általános esetben a talált $\mathbf{x}$ nem pontos megoldása a fenti egyenleteknek, azaz egy $\varepsilon = x_u\mathbf{p}_3^T\mathbf{x} - \mathbf{p}_1^T\mathbf{x}$ hibával számolhatunk az egyenletrendszer első egyenleténél. Mi nem ezt, hanem $x_u$ és $\mathbf{x}$ vetületének első koordinátája közötti eltérését szeretnénk minimalizálni, azaz $\varepsilon' = \frac{\varepsilon}{\mathbf{p}_3^T\mathbf{x}} = x_u - \frac{\mathbf{p}_1^T\mathbf{x}}{\mathbf{p}_3^T\mathbf{x}}$. Tehát, ha az egyenletet $1 / \mathbf{p}_3^T\mathbf{x}$-szel súlyoztuk volna, akkor az úgy kapott hiba pont az általunk minimalizálandó hiba lett volna. Természetesen ezt nem tudjuk megtenni, hiszen $\mathbf{x}$ még nem ismert, csak miután megoldottuk az egyenletrendszert, de egy iteratív megközelítést tudunk alkalmazni. Minden iteráció végén újrasúlyozzuk a megfelelő sorokat $1 / \mathbf{p}_3^T\mathbf{x}_i$, valamint $1 / \mathbf{q}_3^T\mathbf{x}_i$-vel, ahol $\mathbf{x}_i$ az $i$. iteráció végén kapott megoldás. Ha a lépéseknél az aktuális megoldást az előbbi \textit{Linear-LS}-sel keressük, akkor az így kapott eljárást \textit{Iterative-LS}-nek hívjuk. Hartley és Sturm \cite[5.2 szekció]{hartley-triangulation} munkája alapján az esetek 95\%-ban a megoldás konvergens (epipólus melletti pontokra volt divergens), és amikor az új súly már csak kis mértékben változik az előzőhöz képest, megszakíthatjuk az iterációt.
 
+{\color{blue}
+
 %----------------------------------------------------------------------------
 \section{Objektum-detektálás \label{sec:obj_detection}}
 %----------------------------------------------------------------------------
 
+Objektumok detektálására a szakirodalomban több eltérő módszert is találhatunk. Az egyik legegyszerűbb ezek közül a minta alapú illesztés (\textit{feature matching}) \cite{brunelli1997template}. Ekkor lényegében egy minta képet illesztünk egy forrás képre csúszóablakos módszerrel, és valamely metrika mentén minden pozícióban egy illeszkedési értéket számolunk. Ezt az egész képre meghatározva, majd ennek ennek a maximumát véve kapjuk az illeszkedési pontot, ahol a keresett objektumot megtaláltuk.
 
-A feladat megoldása során mozgó objektumokat kell követnem, azokat modelleznem, így szükség van ezeknek az egymás utáni képkockákon történő azonosítására.
+Egy másik nagyon elterjedt módszer a kaszkád osztályozó (\textit{cascade classifier}), ami gépi tanuláson alapszik \cite{viola2001rapid}. Ennek segítségével egy előzetes tanulási szakasz után viszonylag komplex objektumok felismerése is nagyon gyorsan lehetővé válik.
+
+A harmadik módszer, amit kiemelnék a jellegzetes pontok megfeleltetésén (\textit{feature matching}) alapszik. A keresendő objektumon és a forrás képen különböző algoritmusok segítségével jellegzetes pontokat emelünk ki, majd ezek tulajdonságait egy leíróban tároljuk, végül ezeket egymásnak a két képen megfeleltetjük.
+
+Mivel a feladat megoldása során mozgó objektumokat kell követnem, azokat modelleznem, így szükség van a mozgó objektumok a statikus háttértől történő elkülönítésére.
 
 Egy lehetőségünk például az előző részben leírt Farnebäck-módszer használata. Egy kamera egymás utáni képkockáira alkalmazva, becslést kaphatunk arra vonatkozóan, hogy hol lehetnek a mozgó tárgyak. A kamerák statikus helyzete révén, a háttér képpontjaihoz tartozóan közel zéró elmozdulást várunk, míg a mozgó részeken ettől eltérőt.
 
@@ -576,9 +586,10 @@ Másik megoldás lehet például egy háttér-előtér szegmentálási algoritmu
 
 A választott algoritmus előnye, hogy az árnyékokat nagy valószínűséggel kiszűrí, és azokat nem tekinti az objektum részének, valamint a folyamatos modellépítésnek köszönhetően, nem csak egy fix tanulási időszak alatt gyűjtött információkból határozza meg a hátteret.
 
+}
 
 %----------------------------------------------------------------------------
 \section{Összefoglaló}
 %----------------------------------------------------------------------------
 
-Ebben a fejezetben a több kamerából álló kamera-rendszerek során felmerülő és a dolgozat során is megoldandó problémákat, valamint ezek lehetséges megoldásait mutattam be. Kitértem a kamerák szinkronizációjára, az epipoláris geometriára, mely kapcsolatot teremt a kamerák képei között, és leírtam két lényegében eltérő rekonstrukciós eljárást, és azok mögött meghúzódó elméleti hátteret. Bemutattam a háromszögelés elméleti módszerét, végül a fejezetet az objektum-detekció problémakörével zártam.
+Ebben a fejezetben a több kamerából álló kamera-rendszerek során felmerülő és a dolgozat során is megoldandó problémákat, valamint ezek lehetséges megoldásait mutattam be. Kitértem a kamerák szinkronizációjára, az epipoláris geometriára, mely kapcsolatot teremt a kamerák képei között, és leírtam két lényegében eltérő rekonstrukciós eljárást, és azok mögött meghúzódó elméleti hátteret. Bemutattam a háromszögelés elméleti módszerét, végül a fejezetet az objektum-detektálás problémakörével zártam.

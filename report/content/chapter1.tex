@@ -32,9 +32,26 @@ $\mathcal{F}: \mathbb{R}^n \rightarrow \mathbb{R}^n$ lineáris transzformáció,
 
 \[\mathcal{F}(\mathbf{v} + \mathbf{w}) = \mathcal{F}(\mathbf{v}) + \mathcal{F}(\mathbf{w}) \quad \hbox{ és } \quad \mathcal{F}(\lambda\mathbf{v}) = \lambda\mathcal{F}(\mathbf{v})\]
 
-Az $M$ mátrixot az $\mathcal{F}$  lineáris transzformáció mátrixának hívjuk $B$-ben, ha minden $\mathbf{v}\in \mathbb{R}^n$-re teljesül, hogy:
+{\color{blue}Az $\mathbf{M}$ mátrixot az $\mathcal{F}$  lineáris transzformáció mátrixának hívjuk $B$-ben, ha minden $\mathbf{v}\in \mathbb{R}^n$-re teljesül, hogy:
 
-\[[\mathcal{F}(\mathbf{v})]_B = M \cdot [\mathbf{v}]_B\]
+\[[\mathcal{F}(\mathbf{v})]_B = \mathbf{M} \cdot [\mathbf{v}]_B\]
+
+}
+
+
+{\color{blue}
+%----------------------------------------------------------------------------
+\section{Homogén koordináták}
+%----------------------------------------------------------------------------
+
+Az euklideszi sík, illetve tér projektív lezárása ezek ideális pontokkal való bővítése: minden egymással párhuzamos egyenest ugyanazon ideális ponttal bővítünk. Ezek síkgeometria esetén egy ideális egyenest, térben pedig egy ideális síkot határoznak meg. Algebrai módszerekkel történő kezelésükhöz Descartes-féle koordinátákról át kell térünk homogén koordinátákra.
+
+A homogén koordináták csak egy konstans szorzó erejéig vannak meghatározva, vagyis:
+\[\left[\begin{array}{c} u_1\\ u_2\\ u_3 \end{array}\right] = \left[\begin{array}{c} \lambda u_1\\ \lambda u_2\\ \lambda u_3 \end{array}\right] \qquad \lambda \neq 0\]
+
+Egy euklideszi tér $(x, y, z)^T$ pontjának a $[x, y, z, 1]^T$ homogén koordinátákat és ezzel arányos számnégyeseket feleltetjük meg. Fordítva, ha $[x_1, x_2, x_3, x_4]^T$ homogén koordináták, és $x_4 \neq 0$, akkor ez egy \textit{közönséges} pont, melynek Descartes-koordinátái: $\left(\frac{x_1}{x_4}, \frac{x_2}{x_4}, \frac{x_3}{x_4}\right)^T$. Amennyiben $x_4 = 0$, akkor a kérdéses pont egy ideális pont (és az ehhez tartozó egyenesek irányvektora $(x_1, x_2, x_3)^T$).
+
+}
 
 %----------------------------------------------------------------------------
 \section{Affin transzformációk}
@@ -46,44 +63,46 @@ Az $\sigma$ síkon vett affin transzformáción egy olyan $\phi : \sigma \righta
 
 Vagyis egy affin transzformáció leírható egy lineáris transzformáció és egy eltolás egymásutánjával. Homogenizált alakban -- azaz a pontokat homogén koordinátarendszerben felírva -- az alábbi formát ölti:
 
-\[\left(\begin{array}{c}x' \\y'\\ 1\end{array}\right) = \left(\begin{array}{ccc}a_{11} & a_{12} & b_1\\a_{21} & a_{22} & b_2\\0 & 0 & 1\end{array}\right) \cdot \left(\begin{array}{c}x \\ y\\ 1\end{array}\right)\]
+\[\left[\begin{array}{c}x' \\y'\\ 1\end{array}\right] = \left[\begin{array}{ccc}a_{11} & a_{12} & b_1\\a_{21} & a_{22} & b_2\\0 & 0 & 1\end{array}\right] \cdot \left[\begin{array}{c}x \\ y\\ 1\end{array}\right]\]
 
 %----------------------------------------------------------------------------
 \section{A háromdimenziós tér alapvető transzformációi}
 %----------------------------------------------------------------------------
 
-A következőkben 4 alapvető affin transzformáció kerül bemutatásra a térben, ezek sorrendben: eltolás, forgatás, skálázás és nyírás.
+A következőkben 4 alapvető affin transzformáció kerül bemutatásra a térben {\color{blue} a homogén koordináták segítségével}, ezek sorrendben: eltolás, forgatás, skálázás és nyírás.
 
 \subsection{Eltolás}
 
 Legyen $\mathbf{v}(v_x, v_y, v_z), \mathbf{t}(t_x, t_y, t_z)\in\mathbb{R}^3$, ekkor $\mathbf{v}$ vektor $\mathbf{t}$ eltoltja:
 
-\[\left(\begin{array}{c}v_x' \\v_y'\\ v_z'\\ 1 \end{array}\right) = \left(\begin{array}{cccc}1 & 0 & 0 & t_x\\0 & 1 & 0 & t_y\\ 0 & 0 & 1 & t_z\\ 0 & 0 & 0 & 1\end{array}\right) \cdot \left(\begin{array}{c}v_x \\v_y\\ v_z\\ 1 \end{array}\right)\]
+\[\left[\begin{array}{c}v_x' \\v_y'\\ v_z'\\ 1 \end{array}\right] = \left[\begin{array}{cccc}1 & 0 & 0 & t_x\\0 & 1 & 0 & t_y\\ 0 & 0 & 1 & t_z\\ 0 & 0 & 0 & 1\end{array}\right] \cdot \left[\begin{array}{c}v_x \\v_y\\ v_z\\ 1 \end{array}\right]\]
 
 \subsection{Forgatás}
 
 Legyen $\mathbf{v}(v_x, v_y, v_z)\in\mathbb{R}^3$ és $\theta\in\mathbb{R}$, ekkor $\mathbf{v}$ vektor $x$ tengely körüli $\theta$ szöggel való (jobb-kéz szabályt használva) elforgatottja:
 
-\[\left(\begin{array}{c}v_x' \\v_y' \\v_z' \\ 1 \end{array}\right) = \left(\begin{array}{cccc}1 & 0 & 0 & 0\\0 & \cos (\theta) & -\sin (\theta) & 0\\ 0 & \sin(\theta) & \cos(\theta) & 0 \\ 0 & 0 & 0 & 1\end{array}\right) \cdot \left(\begin{array}{c}v_x\\ v_y\\ v_z\\ 1\end{array}\right)\]
+\[\left[\begin{array}{c}v_x' \\v_y' \\v_z' \\ 1 \end{array}\right] = \left[\begin{array}{cccc}1 & 0 & 0 & 0\\0 & \cos (\theta) & -\sin (\theta) & 0\\ 0 & \sin(\theta) & \cos(\theta) & 0 \\ 0 & 0 & 0 & 1\end{array}\right] \cdot \left[\begin{array}{c}v_x\\ v_y\\ v_z\\ 1\end{array}\right]\]
 
 \subsection{Skálázás}
 
 Legyen $\mathbf{v}(v_x, v_y, v_z), \mathbf{s}(s_x, s_y, s_z)\in\mathbb{R}^3$, ekkor $\mathbf{v}$ vektor origóból történő skálázása $\mathbf{s}$-sel:
 
-\[\left(\begin{array}{c}v_x' \\v_y' \\v_z' \\ 1 \end{array}\right) = \left(\begin{array}{cccc}s_x & 0 & 0 & 0\\0 & s_y & 0 & 0\\ 0 & 0 & s_z & 0\\ 0 & 0 & 0 & 1\end{array}\right) \cdot \left(\begin{array}{c}v_x\\ v_y\\ v_z\\ 1\end{array}\right)\]
+\[\left[\begin{array}{c}v_x' \\v_y' \\v_z' \\ 1 \end{array}\right] = \left[\begin{array}{cccc}s_x & 0 & 0 & 0\\0 & s_y & 0 & 0\\ 0 & 0 & s_z & 0\\ 0 & 0 & 0 & 1\end{array}\right] \cdot \left[\begin{array}{c}v_x\\ v_y\\ v_z\\ 1\end{array}\right]\]
 
 \subsection{Nyírás}
 
 A térbeli nyírás a tér $P$ pontjainak egy fix síkkal történő párhuzamos csúsztatása. Legyen $\mathbf{v}(v_x, v_y, v_z)\in\mathbb{R}^3$ és $\lambda\in\mathbb{R}$, ekkor a $\mathbf{v}$ vektor $x$ tengely irányában az $x-y$ sík mentén vett nyírása:
 
-\[\left(\begin{array}{c}v_x' \\v_y' \\v_z' \\ 1 \end{array}\right) = \left(\begin{array}{cccc}1 & \lambda & 0 & 0\\0 & 1 & 0 & 0\\ 0 & 0 & 1 & 0\\ 0 & 0 & 0 & 1\end{array}\right) \cdot \left(\begin{array}{c}v_x\\ v_y\\ v_z\\ 1\end{array}\right) = \left(\begin{array}{c}v_x + \lambda\cdot v_y\\ v_y\\ v_z\\ 1\end{array}\right)\]
+\[\left[\begin{array}{c}v_x' \\v_y' \\v_z' \\ 1 \end{array}\right] = \left[\begin{array}{cccc}1 & \lambda & 0 & 0\\0 & 1 & 0 & 0\\ 0 & 0 & 1 & 0\\ 0 & 0 & 0 & 1\end{array}\right] \cdot \left[\begin{array}{c}v_x\\ v_y\\ v_z\\ 1\end{array}\right] = \left[\begin{array}{c}v_x + \lambda\cdot v_y\\ v_y\\ v_z\\ 1\end{array}\right]\]
 
 \subsection{Transzformációk egymásutánja}
 
-Ha egy $\mathcal{A}_1, \mathcal{A}_2, \ldots, \mathcal{A}_n$ transzformáció sorozatnak megfelelő transzformációs mátrixok rendre $T_1, T_2, \ldots, T_n$, akkor $\mathbf{v}$ transzformáltja:
-\[\mathbf{v}' = \mathcal{A}_n(\mathcal{A}_{n-1}(\ldots \mathcal{A}_2(\mathcal{A}_1(\mathbf{v}))\ldots)) = T_n \cdot T_{n-1} \cdot \ldots \cdot T_2 \cdot T_1 \cdot \mathbf{v}\]
+{\color{blue}
+Ha egy $\mathcal{A}_1, \mathcal{A}_2, \ldots, \mathcal{A}_n$ transzformáció sorozatnak megfelelő transzformációs mátrixok rendre $\mathbf{T_1}, \mathbf{T_2}, \ldots, \mathbf{T_n}$, akkor $\mathbf{v}$ transzformáltja:
+\[\mathbf{v}' = \mathcal{A}_n(\mathcal{A}_{n-1}(\ldots \mathcal{A}_2(\mathcal{A}_1(\mathbf{v}))\ldots)) = \mathbf{T_n} \cdot \mathbf{T_{n-1}} \cdot \ldots \cdot \mathbf{T_2} \cdot \mathbf{T_1} \cdot \mathbf{v}\]
 Így az eredő transzformációt lényegében úgy kapjuk, hogy a transzformációs mátrixok szorzatával, azaz az ,,eredő transzformációs mátrixszal'' szorozzuk be a vektort:
-\[\mathbf{v}' = T \cdot \mathbf{v} \qquad \hbox{ahol} \; T = \prod_{i=1}^{n}{T_i}\]
+\[\mathbf{v}' = \mathbf{T} \cdot \mathbf{v} \qquad \hbox{ahol} \; \mathbf{T} = \prod_{i=1}^{n}{\mathbf{T_i}}\]
+}
 
 %----------------------------------------------------------------------------
 \section{Perspektivikus projekció -- A lyukkamera-modell \label{sec:pinhole}}
@@ -172,39 +191,39 @@ A kamerák a valós világot képezik le egy adott nézőpontból. A lyukkamera-
 
 Tegyük fel, hogy az optikai tengely párhuzamos a $z$ tengellyel, és az optikai középpont a 3D-s koordinátarendszer origójában van. Ekkor az alábbi egyenlettel írható fel a projekció:
 
-\[s \left(\begin{array}{c}
+\[s \left[\begin{array}{c}
 u \\ 
 v \\
 1
-\end{array}\right) = \left(\begin{array}{cccc}
+\end{array}\right] = \left[\begin{array}{cccc}
 f & 0 & 0 & 0 \\ 
 0 & f & 0 & 0\\
 0 & 0 & 1 & 0
-\end{array}\right) \left(\begin{array}{c}
+\end{array}\right] \left[\begin{array}{c}
 X \\ 
 Y \\
 Z \\
 1
-\end{array}\right)\]
+\end{array}\right]\]
 
 ahol $f$ a fókusztávolság ($C$ és a képsík távolsága), $s = Z$ pedig a skálázási tényező.
 
 A manapság használt képalkotó rendszerek a képsík origójának nem a főpontot, hanem a kép balfelső sarkát tekintik, így a fenti egyenlet a következő  alakot ölti, amennyiben a főpont koordinátája $(o_x, o_y)$:
 
-\[s \left(\begin{array}{c}
+\[s \left[\begin{array}{c}
 u \\ 
 v \\
 1
-\end{array}\right) = \left(\begin{array}{cccc}
+\end{array}\right] = \left[\begin{array}{cccc}
 f & 0 & o_x & 0 \\ 
 0 & f & o_y & 0 \\
 0 & 0 & 1 & 0
-\end{array}\right) \left(\begin{array}{c}
+\end{array}\right] \left[\begin{array}{c}
 X \\ 
 Y \\
 Z \\
 1
-\end{array}\right)\]
+\end{array}\right]\]
 
 Valódi kamerák használata esetén számolni kell azzal, hogy a lencséknek van radiális (lásd \aref{fig:radial-distortion}. ábra) és tangenciális torzításuk (ami abból adódik, hogy a lencse és a képalkotó sík nem párhuzamos). Mivel ezek csak a konkrét kamerától függnek, ezért mértékük kalibrációval meghatározható és hatásuk kiküszöbölhető. 
 
@@ -258,71 +277,71 @@ Az előzőekben a kamera \textit{belső paramétereit} tekintettük át, melyeke
 
 A gyakorlatban a kamera helyét és irányát egy $\mathbf{c} = (c_1, c_2, c_3)^T$ vektorral és egy $\mathbf{R}$ forgatási mátrixszal adjuk meg. Így ahhoz, hogy egy 3D-s pont képét megkapjuk, először a kamerát el kell tolni a világkoordináta-rendszer origójába, majd forgatni, vagyis:
 
-\[s \left(\begin{array}{c}
+\[s \left[\begin{array}{c}
 u \\ 
 v \\
 1
-\end{array}\right) = \left(\begin{array}{cccc}
+\end{array}\right] = \left[\begin{array}{cccc}
 f & 0 & o_x & 0 \\ 
 0 & f & o_y & 0 \\
 0 & 0 & 1 & 0
-\end{array}\right) \left(\begin{array}{cccc}
+\end{array}\right] \left[\begin{array}{cccc}
 r_{11} & r_{12} & r_{13} & 0 \\ 
 r_{21} & r_{22} & r_{23} & 0 \\ 
 r_{31} & r_{32} & r_{33} & 0 \\ 
 0 & 0 & 0 & 1 \\ 
-\end{array}\right) \left(\begin{array}{cccc}
+\end{array}\right] \left[\begin{array}{cccc}
 1 & 0 & 0 & -c_1 \\ 
 0 & 1 & 0 & -c_2 \\ 
 0 & 0 & 1 & -c_3 \\ 
 0 & 0 & 0 & 1 \\ 
-\end{array}\right) \left(\begin{array}{c}
+\end{array}\right] \left[\begin{array}{c}
 X \\ 
 Y \\
 Z \\
 1
-\end{array}\right)\]
+\end{array}\right]\]
 
 A két transzformácó összevonása után:
 
-\[s \left(\begin{array}{c}
+\[s \left[\begin{array}{c}
 u \\ 
 v \\
 1
-\end{array}\right) = \left(\begin{array}{cccc}
+\end{array}\right] = \left[\begin{array}{cccc}
 f & 0 & o_x & 0 \\ 
 0 & f & o_y & 0 \\
 0 & 0 & 1 & 0
-\end{array}\right) \left(\begin{array}{cc}
+\end{array}\right] \left[\begin{array}{cc}
 \mathbf{R} & -\mathbf{R} \mathbf{c} \\ 
 \mathbf{0} & 1 \\ 
-\end{array}\right) \left(\begin{array}{c}
+\end{array}\right] \left[\begin{array}{c}
 X \\ 
 Y \\
 Z \\
 1
-\end{array}\right)\]
+\end{array}\right]\]
 
 $\mathbf{t} = -\mathbf{R}\mathbf{c}$ helyettesítéssel, valamint a fókusztávolságot az effektív pixelméretekkel beszorozva kapjuk \cite{camera-calib}-ban is található egyenletet:
 
-\[s \left(\begin{array}{c}
+\[s \left[\begin{array}{c}
 u \\ 
 v \\
 1
-\end{array}\right) = \underbrace{\left(\begin{array}{ccc}
+\end{array}\right] = \underbrace{\left[\begin{array}{ccc}
 f_x & 0 & o_x \\ 
 0 & f_y & o_y \\
 0 & 0 & 1
-\end{array}\right)}_{\mathbf{A}} \left(\begin{array}{ccc|cc}
+\end{array}\right]}_{\mathbf{A}} \left[\begin{array}{ccc|cc}
 r_{11} & r_{12} & r_{13} & t_1 \\ 
 r_{21} & r_{22} & r_{23} & t_2 \\
 \undermat{\mathbf{R}}{r_{31} & r_{32} & r_{33}} & t_3 \\
-\end{array}\right) \left(\begin{array}{c}
+\end{array}\right] \left[\begin{array}{c}
 X \\ 
 Y \\
 Z \\
 1
-\end{array}\right)\]
+\end{array}\right]\]
 ahol:
 \begin{itemize}[itemsep=0pt]
 \item $s$ a homogén skálázási tényező

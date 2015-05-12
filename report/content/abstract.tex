@@ -7,14 +7,19 @@
 \selectlanguage{magyar}
 \hungarianParagraph
 
+{\color{blue}
 \chapter*{Kivonat}\addcontentsline{toc}{chapter}{Kivonat}
+}
 
-Több évtizede folynak kutatások a gépi látás területén. A technika és a számítási kapacitás növekedésével, mind újabb és hatékonyabb algoritmusok látnak napvilágot, melyek a felmerült problémák más és más részhalmazát oldják meg. Napjainkban több különböző területen is támaszkodunk ezen megoldásokra, legyen az egészségügy, biztonság, szórakozás vagy éppen a kényelmünk biztosítása.
+A szakirodalomban jól ismert probléma egy jelenet háromdimenziós helyreállítása különböző pozíciókba helyezett kamerák által készített képek alapján, melyet utána szabadon bejárhatunk, több nézőpontból megfigyelhetünk.
 
-A diplomaterv célja, hogy megvizsgálja egy fix telepítésű kamerákkal megfigyelt térrészben egy választott pontban és irányban látható kép valós idejű helyreállíthatóságát.
+%A diplomamunkámban megvizsgálom ennek a problémának a térrészben mozgó objektumokra korlátozott valós idejű megoldhatóságát. Két rögzített kamera képeiből és azok pozíciójából a mozgó objektumokat három dimenzióban a két kamera között választott nézőpontból rekonstruálom, melyhez egy szimulációs szoftvert készítettem. Bemutatom az alkalmazás tervezési és implementációs lépéseit, valamint konkrét példákon keresztül demonstrálom a helyreállítást két különböző elrendezésben telepített kamerákkal.
 
-Első feladatom, hogy áttekintsem és megismerjem a háromdimenziós tér alapvető transzformációit, valamint a több kamerából álló rendszerek sajátosságait, azoknál felhasználható elméletet és gyakorlati megközelítéseket. Ezt követően egy, a kamerák által megfigyelt térrészben mozgó objektumokat tartalmazó kép egy választott pontból történő rekonstrukcióját vizsgálom meg. Végül bemutatom az általam tervezett alkalmazás vázát, annak implementációs részleteit, mely elvégzi a rekonstrukciót, és választ adok arra, hogy milyen feltételek és körülmények között tekinthető a megoldás valós idejűnek.
+A diplomamunka e problémakört járja körbe, megvizsgálja adott térrészben mozgó objektum(ok)ra vonatkozóan a valós idejű megoldhatóság feltételeit és korlátait. Leírja két rögzített kamera videojelfolyamából és a kamerák pozíciójából kiindulva a mozgó objektum(ok) három dimenziós rekonstrukciójának lépéseit egy, a két kamera között választott nézőpontból. A feladat során erre a célra készített szimulációs szoftver segítségével konkrét példákon keresztül demonstrálja a helyreállítást két, különböző elrendezésben telepített kamera párral.
 
+%Végül mérésekkel támasztom alá a rendelkezésre álló eszközökön elért teljesítményt, mely alapján a megoldás kisebb felbontású képeken közel-valós idejűnek tekinthető.
+
+Az elkészült implementációval elért teljesítményt a rendelkezésre álló eszközökön mérésekkel támasztja alá, melyek alapján a megvalósított megoldás adott felbontás mellett közel valós idejűnek tekinthető.
 
 \vfill
 
@@ -25,7 +30,9 @@ Első feladatom, hogy áttekintsem és megismerjem a háromdimenziós tér alapv
 \selectlanguage{english}
 \englishParagraph
 
+{\color{red}
 \chapter*{Abstract}\addcontentsline{toc}{chapter}{Abstract}
+}
 
 \vfill
 
