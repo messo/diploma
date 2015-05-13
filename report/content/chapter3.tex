@@ -6,7 +6,7 @@ Az elméleti megfontolások, alapelvek bemutatását követően ebben a fejezetb
 
 \section{A célkitűzés}
 
-A diplomamunka során elkészített rendszernek képesnek kellett lennie egy zárt térrész tetszőlegesen választott pontjában és irányában látható, a mozgó objektumokat tartalmazó kép helyreállítására fix telepítésű kamerák valós idejű videofolyamai alapján. A helyreállítást akkor tekintettem sikeresnek, ha a mozgó objektumokat detektáltam és választott nézőpontból azok megközelítő kontúrjait sikeresen meghatároztam. A tényleges objektum struktúrájának illetve textúrájának meghatározása nem esett a dolgozat hatáskörébe. A választott nézőpontra is voltak korlátaink, érdemi rekonstrukciót csak a kamerákat összekötő képzeletbeli szakaszon és annak környezetében várhatunk, így a tesztelést is így végeztem.
+A diplomamunka során elkészített rendszernek képesnek kellett lennie egy zárt térrész tetszőlegesen választott pontjában és irányában látható, a mozgó objektumokat tartalmazó kép helyreállítására fix telepítésű kamerák valós idejű videofolyamai alapján. A kamerák fix helyzete egyszerűsíti a problémát, mert ezzel a kamera koordinátarendszerét kalibráció segítségével előre össze lehet hangolni a világ-koordinátarendszerrel. A helyreállítást akkor tekintettem sikeresnek, ha a mozgó objektumokat detektáltam és választott nézőpontból azok megközelítő kontúrjait sikeresen meghatároztam. A tényleges objektum struktúrájának illetve textúrájának meghatározása nem esett a dolgozat hatáskörébe. A választott nézőpontra is voltak korlátaink, érdemi rekonstrukciót csak a kamerákat összekötő képzeletbeli szakaszon és annak környezetében várhatunk, így a tesztelést is így végeztem.
 
 A rendszer tervezése során figyelembe vettem, hogy lényegében tetszőleges számú kamerát is felhasználhattam a probléma megoldásához, ennek megfelelően a megvalósított rendszer architektúráját így készítettem el, de az elérhető eszközök korlátozott száma miatt csak két kamerával teszteltem.
 
@@ -20,18 +20,161 @@ A diplomamunka során az OpenCV \cite{opencv} keretrendszert használtam, melyne
 
 A feladat megoldásához \aref{methods:optic}. részben leírt optikai folyam alapú eljárást használtam fel. A rendszer tervét, átfogó képét a következőkben mutatom be.
 
-A kamerákat két lépésben kalibráltam; először, hogy a torzításukat minimalizáljam, majd azért, hogy meghatározhassam az elhelyezkedésüket egy rögzített koordinátarendszerben.
+A kamerákat két lépésben kalibráltam; először, hogy a torzításukat minimalizáljam, majd azért, hogy meghatározhassam az elhelyezkedésüket egy rögzített koordinátarendszerben, melyet egy sakktábla segítségével definiálok. Ezt a lépést részletesen \aref{fig:plan-calibration}. ábra szemlélteti.
 
-Ezt követően a kamerák képeiből meghatároztam az előtér maszkot. Erre kétféle megközelítést is implementáltam; az egyik az optikai folyamokat használja a mozgás érzékeléséhez, ami kijelöli az előteret, a másik pedig egy előtér-háttér szegmentációs eljárás. Ezek közül összehasonlítás után választottam, lásd a következő fejezet.
+\begin{figure}[tbh]
+\centering
 
-{\color{blue}
-Miután a vélt előtér objektumok maszkjait meghatároztam, ezek által kijelölt képrészleteket (\textit{blob}ok) a kamerák képein fel kellett ismernem és egymással párosítanom. Az első egy egyszerű ,,legnagyobb-területű'' kiválasztás, amely mindkét képen a legnagyobb területű \textit{blob}ot keresi, és ezeket párosítja egymással. Természetesen ezzel csak egy objektumot rekonstruálhatunk, de a további lépéseket jól lehet rajta tesztelni. A másik eljárás pedig, hogy a kamerák képein látható képrészleteket egymással párosítottam, így alkotva meg az objektumokat. Erre a feladatra a kaszkád osztályozót a szükséges előzetes tanítás miatt elvetettem. A minta alapú illesztést alkalmazhattam volna úgy, hogy az egyik képen meghatározott képrészleteket egyenként használom a másik kép számára mintaként. Ahogy majd később látni fogjuk az optikai folyam alapú sűrű pont-pont megfeleltetés robosztus meghatározásához szükségünk lesz előzetes megfeleltetésre, ezért az előző fejezetben leírt objektumok detektálásához használható eljárások közül a jellegzetes pont alapú megfeleltetését választottam. A képrészleteken a talált jellegzetes pontokat egymással párosítottam, majd többségi döntést alkalmazva határoztam meg, hogy az egyik kép blobja melyik másik blobnak felel meg.
-
+\begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto]
+\tikzset{
+box/.style={draw, rectangle, text width=10em, minimum height=3em, text centered, fill=white},
+plain/.style={text width=10em, text centered},
+line/.style = {-,shorten >=0pt},
+graybox/.style = {box, gray}
 }
 
-A blob-párosítások alapján, külön-külön optikai folyamokkal sűrű pont-pont megfeleltetést számoltam a két képen. Felhasználva, hogy a kamerák helyzetét ismertem, háromszögeléssel megkaptam a pontok világbeli koordinátáit.
+\node[box,copy shadow,text width=13.5em] (PicsForDistortion) {Képek gyűjtése több különböző pozícóban egy sakktábláról};
+
+\node[box,text width=10em] (Distortion) [right of=PicsForDistortion,xshift=12em] {Kamera torzításának meghatározása};
+
+\node[box,text width=8em] (Chessboard) [below of=Distortion,yshift=-3em] {Kép egy rögzített sakktábláról};
+
+\node[box,text width=8em] (Pose) [right of=Chessboard,xshift=8em] {Kamera helyzetének meghatározása};
+
+\draw (PicsForDistortion) -- (Distortion);
+
+\draw (Distortion) -- (Chessboard);
+
+%\draw[->,color=black,rounded corners=2mm] (Distortion.east) -| ++(1.5em,-3em) -|
+%                 ([xshift=-1.5em]Chessboard.west) -- (Chessboard.west);
+
+\draw (Chessboard) -- (Pose);
+
+\end{tikzpicture}
+
+\caption{Kamerák kalibrációja \label{fig:plan-calibration}}
+\end{figure}
+
+Ezt követően a kamerák képeiből meghatároztam az előtér maszkot. Erre kétféle megközelítést is implementáltam; az egyik az optikai folyamokat használja a mozgás érzékeléséhez, ami kijelöli az előteret, a másik pedig egy előtér-háttér szegmentációs eljárás. Ezeket \aref{fig:plan-mask}. ábra mutatja be, közülük összehasonlítás után választottam, lásd a következő fejezet.
+
+\begin{figure}[tbh]
+\centering
+
+\begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto]
+\tikzset{
+box/.style={draw, rectangle, text width=10em, minimum height=3em, text centered, fill=white},
+plain/.style={text width=10em, text centered},
+line/.style = {-,shorten >=0pt},
+graybox/.style = {box, gray}
+}
+
+
+\node[plain] (input1) {képkocka};
+
+\node[plain] (input2) [right of=input1,xshift=14em] {képkocka};
+
+
+\node[box] (Model) [below of=input1,yshift=-3em] {Előtér-háttér modell építése};
+
+\node [box] (OptFlow) [below of=input2,yshift=-1em] {Optikai folyam gyors számolása};
+
+\node[plain,text width=4em] (prev) [right of=OptFlow,xshift=7em] {előző\\ képkocka};
+
+
+\draw (input1) -- (Model);
+
+\draw (input2) -- (OptFlow);
+\draw (prev.west) -- (OptFlow);
+
+\node [box] (Moving) [below of=OptFlow,yshift=-2.5em] {Folyam alapján mozgó részek meghatározása};
+
+\draw (OptFlow) -- (Moving);
+
+\node [box] (PostProcess) [below of=Moving,yshift=-4em,xshift=-8.25em] {Maszk\\ utófeldolgozása};
+
+\draw (Model) -- (PostProcess) node [midway, left] (mask1) {előtér maszk};
+\draw (Moving) -- (PostProcess) node [midway, right] (mask2) {előtér maszk};
+
+\node (l2) [above of=PostProcess] {};
+\node (l1) [above of=PostProcess,yshift=14em] {};
+
+\draw[line,dashed,gray] (l1) -- (l2);
+
+\end{tikzpicture}
+
+\caption{Előtér maszk meghatározásának két módja \label{fig:plan-mask}}
+\end{figure}
+
+
+Miután a vélt előtér objektumok maszkjait meghatároztam, ezek által kijelölt képrészleteket (\textit{blob}ok) a kamerák képein fel kellett ismernem és egymással párosítanom. Az első egy egyszerű ,,legnagyobb-területű'' kiválasztás, amely mindkét képen a legnagyobb területű \textit{blob}ot keresi, és ezeket párosítja egymással. Természetesen ezzel csak egy objektumot rekonstruálhatunk, de a további lépéseket jól lehet rajta tesztelni. A másik eljárás pedig, hogy a képrészleteken jellegzetes pontokat kerestem, ezeket egymással párosítottam, majd többségi döntést alkalmazva határoztam meg, hogy az egyik kép blobja melyik másik blobnak felel meg. Így alakítottam ki az objektumokat a kamerák képein megadó blob-blob párok alapján. Ezt a két folyamatot \aref{fig:plan-objects}. ábra mutatja be.
+
+\begin{figure}[tbh]
+\centering
+
+\begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto]
+\tikzset{
+box/.style={draw, rectangle, text width=10em, minimum height=3em, text centered, fill=white},
+plain/.style={text width=10em, text centered},
+line/.style = {-,shorten >=0pt},
+graybox/.style = {box, gray}
+}
+
+
+\node[box,text width=7em] (Largest) {Legnagyobb\\ blobok\\ kijelölése\\ és párosítása};
+
+\node[plain,text width=6em] (input1_1) [left of=Largest,xshift=-8em,yshift=2em] {bal kép előtér blobjai};
+
+\node[plain,text width=6em] (input1_2) [left of=Largest,xshift=-8em,yshift=-2em] {jobb kép előtér blobjai};
+
+\node[plain,text width=4em] (output1) [right of=Largest,xshift=6em] {egyetlen\\ objektum};
+
+\draw (input1_1) -- (Largest);
+\draw (input1_2) -- (Largest);
+\draw (Largest) -- (output1);
+
+% ---------------------
+
+\node[plain,text width=4em] (input2_1) [below of=input1_1,yshift=-8em] {bal kép előtér\\ blobjai};
+
+\node[box,text width=6em] (Feature1) [right of=input2_1,xshift=5em] {Jellegzetes\\ pontok\\ detektálása\\ és leírása};
+
+\node[plain,text width=4em] (input2_2) [below of=input2_1,yshift=-4em] {jobb kép előtér\\ blobjai};
+
+\node[box,text width=6em] (Feature2) [right of=input2_2,xshift=5em] {Jellegzetes\\ pontok\\ detektálása\\ és leírása};
+
+\draw (input2_1) -- (Feature1);
+\draw (input2_2) -- (Feature2);
+
+\node[box,text width=6em] (Pairing) [right of=Feature1,xshift=6em,yshift=-3.25em] {Leírók párosítása};
+
+\draw (Feature1) -- (Pairing);
+\draw (Feature2) -- (Pairing);
+
+\node[box,text width=7em] (BlobMatching) [right of=Pairing,xshift=6em] {Leíró-párok alapján\\ blobok\\ párosítása};
+
+\draw (Pairing) -- (BlobMatching);
+
+\node[plain,text width=4em] (output2) [right of=BlobMatching,xshift=5em] {több\\ objektum};
+
+\draw (BlobMatching) -- (output2);
+
+\node (l1) [above of=input2_1,xshift=-4em,yshift=1.75em] {};
+\node (l2) [right of=l1,xshift=37em] {};
+
+
+\draw[line,dashed,gray] (l1) -- (l2);
+
+\end{tikzpicture}
+
+\caption{Objektumok detektálásának két módja \label{fig:plan-objects}}
+\end{figure}
+
+
+Az objektumok (blob-párosítások) alapján, külön-külön optikai folyamokkal sűrű pont-pont megfeleltetést számoltam a két képen. Felhasználva, hogy a kamerák helyzetét ismertem, háromszögeléssel megkaptam a pontok világbeli koordinátáit.
 
 Végül a választott nézőpontból projekció segítségével meghatároztam az onnan látható becsült képet (felhasználva az eredeti képből kinyerhető színinformációkat), valamint az objektumokhoz tartozó kontúrokat.
+
+Gondoljuk meg, hogy a fenti eljárás tetszőleges számú kamera-párra (amelyek nem feltétlen diszjunktak) általánosítható, és az így kapott pontfelhőket, felhasználva, hogy az adatokat az előzetes kalibrációnak köszönhetően egy közös világ-koordinátarendszerben kapjuk meg, ezeket könnyen egyesíthetjük. A diplomaterv keretében \aref{fig:of-method}. ábrán látható színezett hátterű lépések készültek el, a több kamerára vonatkozó együttes kezelés nem.
 
 \begin{sidewaysfigure}
 \centering
@@ -55,10 +198,10 @@ graybox/.style = {box, gray}
 
 \node[box,fill=green!10] (GetFrames1) [below of=Calib1,yshift=-1.5em] {Aktuális képkocka lekérése};
 
-\node[box,fill=green!10] (OD1) [below of=GetFrames1,yshift=-1.5em] {Objektum(ok) detektálása};
+\node[box,fill=green!10] (FgMask1) [below of=GetFrames1,yshift=-1.5em] {Előtér maszkok meghatározása};
 
 \draw (Calib1) -- (GetFrames1);
-\draw (GetFrames1) -- (OD1);
+\draw (GetFrames1) -- (FgMask1);
 
 
 
@@ -68,10 +211,10 @@ graybox/.style = {box, gray}
 
 \node[box,fill=green!10] (GetFrames2) [below of=Calib2,yshift=-1.5em] {Aktuális képkocka lekérése};
 
-\node[box,fill=green!10] (OD2) [below of=GetFrames2,yshift=-1.5em] {Objektum(ok) detektálása};
+\node[box,fill=green!10] (FgMask2) [below of=GetFrames2,yshift=-1.5em] {Előtér maszkok meghatározása};
 
 \draw (Calib2) -- (GetFrames2);
-\draw (GetFrames2) -- (OD2);
+\draw (GetFrames2) -- (FgMask2);
 
 
 
@@ -81,10 +224,10 @@ graybox/.style = {box, gray}
 
 \node[box] (GetFrames3) [below of=Calib3,yshift=-1.5em] {Aktuális képkocka lekérése};
 
-\node[box] (OD3) [below of=GetFrames3,yshift=-1.5em] {Objektum(ok) detektálása};
+\node[box] (FgMask3) [below of=GetFrames3,yshift=-1.5em] {Előtér maszkok meghatározása};
 
 \draw (Calib3) -- (GetFrames3);
-\draw (GetFrames3) -- (OD3);
+\draw (GetFrames3) -- (FgMask3);
 
 
 
@@ -94,32 +237,42 @@ graybox/.style = {box, gray}
 
 \node[box] (GetFramesN) [below of=CalibN,yshift=-1.5em] {Aktuális képkocka lekérése};
 
-\node[box] (ODN) [below of=GetFramesN,yshift=-1.5em] {Objektum(ok) detektálása};
+\node[box] (FgMaskN) [below of=GetFramesN,yshift=-1.5em] {Előtér maszkok meghatározása};
 
 \draw (CalibN) -- (GetFramesN);
-\draw (GetFramesN) -- (ODN);
+\draw (GetFramesN) -- (FgMaskN);
 
 
 \node[plain] (LDots) [right of=GetFrames3,xshift=7.75em] {$\ldots$};
 
 
-\node[box,fill=green!10] (OF12) [below of=OD1,xshift=8.25em,yshift=-2.5em] {Optikai folyam meghatározása};
+\node[box,fill=green!10] (Obj12) [below of=FgMask1,xshift=8.25em,yshift=-2.5em] {Objektumok detektálása a képpárokon};
  
-\draw (OD1) |- (OF12);
-\draw (OD2) |- (OF12);
+\draw (FgMask1) |- (Obj12);
+\draw (FgMask2) |- (Obj12);
 
 
-\node[box] (OF23) [below of=OD2,xshift=8.25em,yshift=-2.5em] {Optikai folyam meghatározása};
+\node[box] (Obj23) [below of=FgMask2,xshift=8.25em,yshift=-2.5em] {Objektumok detektálása a képpárokon};
  
-\draw (OD2) |- (OF23);
-\draw (OD3) |- (OF23);
+\draw (FgMask2) |- (Obj23);
+\draw (FgMask3) |- (Obj23);
 
 
-\node[plain] (OF34) [below of=OD3,xshift=6em,yshift=-2.5em,text width=2em] {$\ldots$};
-\draw (OD3) |- (OF34);
+\node[box,fill=green!10] (OF12) [below of=Obj12,yshift=-1.5em] {Optikai folyam meghatározása};
+ 
+\draw (Obj12) -- (OF12);
 
-\node[plain,below of=ODN,xshift=-6em,yshift=-2.5em,text width=2em] (OFnn) {$\ldots$};
-\draw (ODN) |- (OFnn);
+\node[box] (OF23) [below of=Obj23,yshift=-1.5em] {Optikai folyam meghatározása};
+ 
+\draw (Obj23) -- (OF23);
+
+
+
+\node[plain] (OF34) [below of=FgMask3,xshift=6em,yshift=-2.5em,text width=2em] {$\ldots$};
+\draw (FgMask3) |- (OF34);
+
+\node[plain,below of=FgMaskN,xshift=-6em,yshift=-2.5em,text width=2em] (OFnn) {$\ldots$};
+\draw (FgMaskN) |- (OFnn);
 
 
 
@@ -132,7 +285,7 @@ graybox/.style = {box, gray}
 \draw (OF23) -- (Triangle23);
 
 
-\node[plain] (Others) [below of=OD3,xshift=10em,yshift=-8em,text width=2em] {$\vdots$};
+\node[plain] (Others) [below of=FgMask3,xshift=10em,yshift=-9em,text width=2em] {$\vdots$};
 
 \node[box] (Merge) [below of=Triangle12,xshift=8em,yshift=-2.5em] {Összefűzés};
 
@@ -149,36 +302,34 @@ graybox/.style = {box, gray}
 
 \begin{pgfonlayer}{background}
     \path (Cam1.north west)+(-0.5,0.5) node (a) {};
-    \path (OD1.south east)+(+0.5,-0.5) node (b) {};
+    \path (FgMask1.south east)+(+0.5,-0.5) node (b) {};
     \path[rounded corners, draw=black!50, dashed] (a) rectangle (b);
 \end{pgfonlayer}
 
 \begin{pgfonlayer}{background}
     \path (Cam2.north west)+(-0.5,0.5) node (a) {};
-    \path (OD2.south east)+(+0.5,-0.5) node (b) {};
+    \path (FgMask2.south east)+(+0.5,-0.5) node (b) {};
     \path[rounded corners, draw=black!50, dashed] (a) rectangle (b);
 \end{pgfonlayer}
 
 \begin{pgfonlayer}{background}
     \path (Cam3.north west)+(-0.5,0.5) node (a) {};
-    \path (OD3.south east)+(+0.5,-0.5) node (b) {};
+    \path (FgMask3.south east)+(+0.5,-0.5) node (b) {};
     \path[rounded corners, draw=black!50, dashed] (a) rectangle (b);
 \end{pgfonlayer}
 
 
 \begin{pgfonlayer}{background}
     \path (CamN.north west)+(-0.5,0.5) node (a) {};
-    \path (ODN.south east)+(+0.5,-0.5) node (b) {};
+    \path (FgMaskN.south east)+(+0.5,-0.5) node (b) {};
     \path[rounded corners, draw=black!50, dashed] (a) rectangle (b);
 \end{pgfonlayer}
 
 \end{tikzpicture}
 }
 
-\caption{Optikai folyamok módszere \label{fig:of-method}}
+\caption{Elkészített megoldás átfogó terve \label{fig:of-method}}
 \end{sidewaysfigure}
-
-Gondoljuk meg, hogy a fenti eljárás tetszőleges számú kamera-párra (amelyek nem feltétlen diszjunktak) általánosítható, és az így kapott pontfelhőket, felhasználva, hogy az adatokat az előzetes kalibrációnak köszönhetően egy közös világ-koordinátarendszerben kapjuk meg, ezeket könnyen egyesíthetjük. Ezt a folyamatot mutatja be \aref{fig:of-method}. ábra. A diplomaterv keretében a színezett hátterű lépések készültek el, a több kamerára vonatkozó együttes kezelés nem.
 
 % --------------------------------
 \section{Összefoglaló}

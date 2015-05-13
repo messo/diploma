@@ -120,10 +120,7 @@ Sztereó-kalibráció \cite{camera-calib-3d} során egy már ismert háromdimenz
 
 Amennyiben a két kamera képsíkja egybeesik, akkor a bázisegyenesek a képsíkokkal a végtelenben metszik egymást, ebből adódóan az epipoláris egyenesek párhuzamosak. Ha a két kamera közötti transzformáció csak tisztán egy $x$ tengellyel párhuzamos eltolás (standard sztereókamerák), akkor az epipoláris egyenesek az $x$ tengellyel is párhuzamosak, tehát a pontpárok keresése pusztán a képkockák egy adott sorára korlátozódik.
 
-{\color{blue}
-
 Mivel a gyakorlatban nehéz pontosan úgy elhelyezni a kamerákat, hogy képsíkjuk egybeessen és csak víszintes irányú eltolás legyen köztük, ezért a kamerák képeit célszerű \textit{rektifikál}ni, hogy a pontok párjait továbbra is csak egy képsoron legyen szükséges keresni. Ekkor a kamerák képeit úgy transzformáljuk, hogy a képsíkok egy képzeletbeli közös síkba essenek, lásd \aref{fig:rectification}. ábrát.
-}
 
 \begin{figure}[tbh]
 \centering
@@ -349,7 +346,7 @@ Jelöljük $I(x, y, t)$-vel a kép $(x, y)$ pontjának intenzitását a $t$ idő
 \[I(x,\; y,\; t) = I(x+dx,\; y+dy,\; t+dt)\]
 ahol az $(x,y)$ képpont $dt$ idő alatt $(dx,dy)$-nal mozdult el. A jobb oldal jól közelíthető az első-rendű Taylor-sor kifejtésével:
 
-\[I(x+dx, y+dy, t+dt) \approx I(x, y, t) + \frac{\partial I}{\partial x} dx + \frac{\partial I}{\partial y} dy + \frac{\partial I}{\partial t} dt\]
+\[I(x+dx,\; y+dy,\; t+dt) \approx I(x,\; y,\; t) + \frac{\partial I}{\partial x} dx + \frac{\partial I}{\partial y} dy + \frac{\partial I}{\partial t} dt\]
 
 Felhasználva a világosság állandóság kényszert:
 
@@ -556,11 +553,9 @@ A fenti négy egyenletet rendezve:
 
 \[\left( \begin{array}{c} x_u\mathbf{p}_3^T - \mathbf{p}_1^T \\ y_u\mathbf{p}_3^T - \mathbf{p}_2^T \\ x_v\mathbf{q}_3^T - \mathbf{q}_1^T \\ y_v\mathbf{q}_3^T - \mathbf{q}_2^T \end{array} \right) \mathbf{x} = 0\]
 
-Ez meghatározza $\mathbf{x}$-et egy faktor erejéig, és ennek nem-zérus megoldását keressük. Zajos adatokat feltételezve ennek nem feltétlen találunk pontos megoldást, így közelítenünk kell. Egy lehetséges megközelítés a \textit{Linear-LS} (lineáris, legkisebb négyzetek) módszer, mely $\mathbf{x} = (x, y, z, 1)^T$ alakú megoldások között keresi az egyenletrendszer legkisebb négyzetek megoldását (pl. szinguláris érték szerinti felbontással (SVD) \cite{cs-svd}). 
+Ez meghatározza $\mathbf{x}$-et egy faktor erejéig, és ennek nem-zérus megoldását keressük. Zajos adatokat feltételezve ennek nem feltétlen találunk pontos megoldást, így közelítenünk kell. Egy lehetséges megközelítés a \textit{Linear-LS} (lineáris, legkisebb négyzetek) módszer, mely $\mathbf{x} = [x, y, z, 1]^T$ alakú megoldások között keresi az egyenletrendszer legkisebb négyzetek megoldását (pl. szinguláris érték szerinti felbontással (SVD) \cite{cs-svd}). 
 
 Általános esetben a talált $\mathbf{x}$ nem pontos megoldása a fenti egyenleteknek, azaz egy $\varepsilon = x_u\mathbf{p}_3^T\mathbf{x} - \mathbf{p}_1^T\mathbf{x}$ hibával számolhatunk az egyenletrendszer első egyenleténél. Mi nem ezt, hanem $x_u$ és $\mathbf{x}$ vetületének első koordinátája közötti eltérését szeretnénk minimalizálni, azaz $\varepsilon' = \frac{\varepsilon}{\mathbf{p}_3^T\mathbf{x}} = x_u - \frac{\mathbf{p}_1^T\mathbf{x}}{\mathbf{p}_3^T\mathbf{x}}$. Tehát, ha az egyenletet $1 / \mathbf{p}_3^T\mathbf{x}$-szel súlyoztuk volna, akkor az úgy kapott hiba pont az általunk minimalizálandó hiba lett volna. Természetesen ezt nem tudjuk megtenni, hiszen $\mathbf{x}$ még nem ismert, csak miután megoldottuk az egyenletrendszert, de egy iteratív megközelítést tudunk alkalmazni. Minden iteráció végén újrasúlyozzuk a megfelelő sorokat $1 / \mathbf{p}_3^T\mathbf{x}_i$, valamint $1 / \mathbf{q}_3^T\mathbf{x}_i$-vel, ahol $\mathbf{x}_i$ az $i$. iteráció végén kapott megoldás. Ha a lépéseknél az aktuális megoldást az előbbi \textit{Linear-LS}-sel keressük, akkor az így kapott eljárást \textit{Iterative-LS}-nek hívjuk. Hartley és Sturm \cite[5.2 szekció]{hartley-triangulation} munkája alapján az esetek 95\%-ban a megoldás konvergens (epipólus melletti pontokra volt divergens), és amikor az új súly már csak kis mértékben változik az előzőhöz képest, megszakíthatjuk az iterációt.
-
-{\color{blue}
 
 %----------------------------------------------------------------------------
 \section{Objektum-detektálás \label{sec:obj_detection}}
@@ -570,13 +565,16 @@ Objektumok detektálására a szakirodalomban több eltérő módszert is talál
 
 Egy másik nagyon elterjedt módszer a kaszkád osztályozó (\textit{cascade classifier}), ami gépi tanuláson alapszik \cite{viola2001rapid}. Ennek segítségével egy előzetes tanulási szakasz után viszonylag komplex objektumok felismerése is nagyon gyorsan lehetővé válik.
 
-A harmadik módszer, amit kiemelnék a jellegzetes pontok megfeleltetésén (\textit{feature matching}) alapszik. A keresendő objektumon és a forrás képen különböző algoritmusok segítségével jellegzetes pontokat emelünk ki, majd ezek tulajdonságait egy leíróban tároljuk, végül ezeket egymásnak a két képen megfeleltetjük.
+A harmadik módszer, amit kiemelnék a jellegzetes pontok megfeleltetésén (\textit{feature matching}) alapszik. A keresendő objektumon és a forrás képen különböző algoritmusok segítségével jellegzetes pontokat emelünk ki, majd ezek tulajdonságait egy leíróban tároljuk, végül ezeket egymásnak a két képen megfeleltetjük, párosítjuk és a legnagyobb egyezőség
 
-Mivel a feladat megoldása során mozgó objektumokat kell követnem, azokat modelleznem, így szükség van a mozgó objektumok a statikus háttértől történő elkülönítésére.
+\subsection{Mozgó objektumok kiválasztása}
+%----------------------------------------------------------------------------
+
+Mivel a feladat megoldása során mozgó objektumokat kell követnem, azokat modelleznem, így szükség van a mozgó objektumok statikus háttértől való elkülönítésére.
 
 Egy lehetőségünk például az előző részben leírt Farnebäck-módszer használata. Egy kamera egymás utáni képkockáira alkalmazva, becslést kaphatunk arra vonatkozóan, hogy hol lehetnek a mozgó tárgyak. A kamerák statikus helyzete révén, a háttér képpontjaihoz tartozóan közel zéró elmozdulást várunk, míg a mozgó részeken ettől eltérőt.
 
-Másik megoldás lehet például egy háttér-előtér szegmentálási algoritmus (MOG) \cite{MOG}, mely az egymás utáni képkockákból egy háttér-modellt épít. Az aktuális képkockából a kapott hátteret kivonva, megkapjuk az éppen aktuális előtérhez tartozó maszkot, lásd \aref{fig:mog-example}. ábrát.
+Másik megoldás lehet például egy háttér-előtér szegmentálási algoritmus (MOG) \cite{MOG}, mely az egymás utáni képkockákból egy háttér-modellt épít. Az aktuális képkockából a kapott hátteret kivonva, megkapjuk az éppen aktuális előtérhez tartozó maszkot, lásd \aref{fig:mog-example}. ábrát. Ezen algoritmus előnye, hogy az árnyékokat nagy valószínűséggel kiszűrí, és azokat nem tekinti az objektum részének, valamint a folyamatos modellépítésnek köszönhetően, nem csak egy fix tanulási időszak alatt gyűjtött információkból határozza meg a hátteret.
 
 \begin{figure}[tbh]
 \centering
@@ -584,9 +582,12 @@ Másik megoldás lehet például egy háttér-előtér szegmentálási algoritmu
 \caption{Minta a háttér-előtér elválasztási algoritmus eredményére \cite{mog-example} \label{fig:mog-example}}
 \end{figure}
 
-A választott algoritmus előnye, hogy az árnyékokat nagy valószínűséggel kiszűrí, és azokat nem tekinti az objektum részének, valamint a folyamatos modellépítésnek köszönhetően, nem csak egy fix tanulási időszak alatt gyűjtött információkból határozza meg a hátteret.
+\subsection{Objektumok meghatározása a kamerák képein}
+%----------------------------------------------------------------------------
 
-}
+Miután meghatároztam a mozgó objektumokhoz tartozó maszkokat, az ezek által kijelölt képrészleteket kell úgy párosítanom a kamerák képein, hogy azok egy valódi objektumhoz tartozzanak.
+
+Erre a feladatra a kaszkád osztályozót a szükséges előzetes tanítás miatt elvetettem. A minta alapú illesztést alkalmazhattam volna úgy, hogy az egyik képen meghatározott képrészleteket egyenként használom a másik kép számára mintaként. Ahogy majd később látni fogjuk az optikai folyam alapú sűrű pont-pont megfeleltetés robosztus meghatározásához szükségünk lesz előzetes megfeleltetésre, ezért az előző fejezetben leírt objektumok detektálásához használható eljárások közül a jellegzetes pont alapú megfeleltetését választottam. Ennek segítségével az előtérhez tartozó képrészleteket párosítottam a kamerák képein, így sikeresen detektáltam a mozgó objektumokat a kamerák képein.
 
 %----------------------------------------------------------------------------
 \section{Összefoglaló}

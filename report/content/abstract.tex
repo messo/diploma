@@ -7,19 +7,11 @@
 \selectlanguage{magyar}
 \hungarianParagraph
 
-{\color{blue}
 \chapter*{Kivonat}\addcontentsline{toc}{chapter}{Kivonat}
-}
 
-A szakirodalomban jól ismert probléma egy jelenet háromdimenziós helyreállítása különböző pozíciókba helyezett kamerák által készített képek alapján, melyet utána szabadon bejárhatunk, több nézőpontból megfigyelhetünk.
+%A diplomaterv a szakirodalomban jól ismert problémakört, egy jelenet különböző pozíciókba helyezett kamerák által készített képek alapján történő háromdimenziós helyreállítását járja körül, mely során fontos szempont a videofolyamok valós idejű feldolgozása. Megvizsgálja két rögzített kamera videojelfolyamából és a kamerák pozíciójából kiindulva a mozgó objektumok háromdimenziós rekonstrukciójának lépéseit egy, a két kamera között választott nézőpontból. A feladat során erre a célra készített szimulációs szoftver segítségével konkrét példákon keresztül demonstrálja a helyreállítást két, különböző elrendezésben telepített kamera párral. Az elkészült implementációval elért teljesítményt a rendelkezésre álló eszközökön mérésekkel támasztja alá, melyek alapján a megvalósított megoldás adott felbontás mellett közel valós idejűnek tekinthető.
 
-%A diplomamunkámban megvizsgálom ennek a problémának a térrészben mozgó objektumokra korlátozott valós idejű megoldhatóságát. Két rögzített kamera képeiből és azok pozíciójából a mozgó objektumokat három dimenzióban a két kamera között választott nézőpontból rekonstruálom, melyhez egy szimulációs szoftvert készítettem. Bemutatom az alkalmazás tervezési és implementációs lépéseit, valamint konkrét példákon keresztül demonstrálom a helyreállítást két különböző elrendezésben telepített kamerákkal.
-
-A diplomamunka e problémakört járja körbe, megvizsgálja adott térrészben mozgó objektum(ok)ra vonatkozóan a valós idejű megoldhatóság feltételeit és korlátait. Leírja két rögzített kamera videojelfolyamából és a kamerák pozíciójából kiindulva a mozgó objektum(ok) három dimenziós rekonstrukciójának lépéseit egy, a két kamera között választott nézőpontból. A feladat során erre a célra készített szimulációs szoftver segítségével konkrét példákon keresztül demonstrálja a helyreállítást két, különböző elrendezésben telepített kamera párral.
-
-%Végül mérésekkel támasztom alá a rendelkezésre álló eszközökön elért teljesítményt, mely alapján a megoldás kisebb felbontású képeken közel-valós idejűnek tekinthető.
-
-Az elkészült implementációval elért teljesítményt a rendelkezésre álló eszközökön mérésekkel támasztja alá, melyek alapján a megvalósított megoldás adott felbontás mellett közel valós idejűnek tekinthető.
+A gépi látás területén manapság népszerű kutatási téma a különböző pozícióba helyezett kamerák képei alapján történő háromdimenziós jelenet visszaállítás. A diplomaterv egy, a szakterület újabb eredményeire alapozó eljárást ír le, amely képes két rögzített kamera videojelfolyamát felhasználva mozgó objektumok háromdimenziós rekonstrukciójára a kamerák nézőpontja közötti tetszőleges irányból. A módszer hatékonyságát egy erre a célra készített szimulációs szoftverben végzett mérésekkel támasztja alá, továbbá lehetséges továbbfejlesztési irányokat vázol.
 
 \vfill
 
@@ -30,20 +22,10 @@ Az elkészült implementációval elért teljesítményt a rendelkezésre álló
 \selectlanguage{english}
 \englishParagraph
 
-{\color{red}
 \chapter*{Abstract}\addcontentsline{toc}{chapter}{Abstract}
-}
+
+One of the popular topics in machine vision nowadays is the three dimensional scene reconstruction using cameras with different placement. This paper presents a method, which is able to reconstruct three dimensional objects based on video streams of two fixed cameras from any viewpoint between these cameras utilizing recent results in the field. It confirms the efficiency of the procedure by measurements performed in a simulation software created for this purpose, and provides directions for further improvement.
 
 \vfill
 
-
-%-----------
-% RESET
-% ----------
-
 \dolgozatnyelve
-\defaultParagraph
-
-\newcounter{romanPage}
-\setcounter{romanPage}{\value{page}}
-\stepcounter{romanPage}

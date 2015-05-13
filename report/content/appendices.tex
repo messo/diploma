@@ -10,28 +10,19 @@
 %\numberwithin{tabular}{section}
 
 %----------------------------------------------------------------------------
-\section{A TeXstudio felülete}
+\section{Az alkalmazás elérhetősége}
 %----------------------------------------------------------------------------
-\begin{figure}[!ht]
-\centering
-\includegraphics[width=150mm, keepaspectratio]{figures/TeXstudio.png}
-\caption{A TeXstudio \LaTeX-szerkesztő.} 
-\end{figure}
 
-%----------------------------------------------------------------------------
-\clearpage\section{Válasz az ,,Élet, a világmindenség, meg minden'' kérdésére}
-%----------------------------------------------------------------------------
-A Pitagorasz-tételből levezetve
-\begin{align}
-c^2=a^2+b^2=42.
-\end{align}
-A Faraday-indukciós törvényből levezetve
-\begin{align}
-\rot E=-\frac{dB}{dt}\hspace{1cm}\longrightarrow \hspace{1cm}
-U_i=\oint\limits_\mathbf{L}{\mathbf{E}\mathbf{dl}}=-\frac{d}{dt}\int\limits_A{\mathbf{B}\mathbf{da}}=42.
-\end{align}
+Az elkészült alkalmazás elérhető online egy Git tárolóban az alábbi címen: 
 
+\url{https://github.com/messo/diploma}
 
+Az alkalmazás C++ nyelven íródott, a platform független támogatást és a függőségek kezelését a CMake teszi lehetővé. Linuxon az alkalmazás a következő parancsok kiadásával fordítható:
 
+\begin{lstlisting}[language=bash,basicstyle=\ttfamily\small]
+   $ mkdir build && cd build
+   $ cmake ..
+   $ make -j4
+\end{lstlisting}
 
-
+A folyamat végén 3 bináris készül: \texttt{Calibration}, \texttt{PoseCalculation} és \texttt{Diploma}. Az elsővel generálhatóak a kamerák belső paramétereit tartalmazó fájlok, másodikkal a fix telepítésű kamerák elhelyezéseit számolhatjuk ki, majd a harmadik az előzőek által generált fájlok alapján a folyamatos helyreállítást végzi.

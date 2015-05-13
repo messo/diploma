@@ -32,14 +32,11 @@ $\mathcal{F}: \mathbb{R}^n \rightarrow \mathbb{R}^n$ lineáris transzformáció,
 
 \[\mathcal{F}(\mathbf{v} + \mathbf{w}) = \mathcal{F}(\mathbf{v}) + \mathcal{F}(\mathbf{w}) \quad \hbox{ és } \quad \mathcal{F}(\lambda\mathbf{v}) = \lambda\mathcal{F}(\mathbf{v})\]
 
-{\color{blue}Az $\mathbf{M}$ mátrixot az $\mathcal{F}$  lineáris transzformáció mátrixának hívjuk $B$-ben, ha minden $\mathbf{v}\in \mathbb{R}^n$-re teljesül, hogy:
+Az $\mathbf{M}$ mátrixot az $\mathcal{F}$  lineáris transzformáció mátrixának hívjuk $B$-ben, ha minden $\mathbf{v}\in \mathbb{R}^n$-re teljesül, hogy:
 
 \[[\mathcal{F}(\mathbf{v})]_B = \mathbf{M} \cdot [\mathbf{v}]_B\]
 
-}
 
-
-{\color{blue}
 %----------------------------------------------------------------------------
 \section{Homogén koordináták}
 %----------------------------------------------------------------------------
@@ -49,9 +46,10 @@ Az euklideszi sík, illetve tér projektív lezárása ezek ideális pontokkal v
 A homogén koordináták csak egy konstans szorzó erejéig vannak meghatározva, vagyis:
 \[\left[\begin{array}{c} u_1\\ u_2\\ u_3 \end{array}\right] = \left[\begin{array}{c} \lambda u_1\\ \lambda u_2\\ \lambda u_3 \end{array}\right] \qquad \lambda \neq 0\]
 
-Egy euklideszi tér $(x, y, z)^T$ pontjának a $[x, y, z, 1]^T$ homogén koordinátákat és ezzel arányos számnégyeseket feleltetjük meg. Fordítva, ha $[x_1, x_2, x_3, x_4]^T$ homogén koordináták, és $x_4 \neq 0$, akkor ez egy \textit{közönséges} pont, melynek Descartes-koordinátái: $\left(\frac{x_1}{x_4}, \frac{x_2}{x_4}, \frac{x_3}{x_4}\right)^T$. Amennyiben $x_4 = 0$, akkor a kérdéses pont egy ideális pont (és az ehhez tartozó egyenesek irányvektora $(x_1, x_2, x_3)^T$).
+Egy euklideszi tér $(x, y, z)^T$ pontjának a $[x, y, z, 1]^T$ homogén koordinátákat és ezzel arányos számnégyeseket feleltetjük meg. Fordítva, ha $[x_1, x_2, x_3, x_4]^T$ homogén koordináták, és $x_4 \neq 0$, akkor ez egy \textit{közönséges} pont, melynek Descartes-koordinátái: $\left(\frac{x_1}{x_4}, \frac{x_2}{x_4}, \frac{x_3}{x_4}\right)^T$. Amennyiben $x_4 = 0$, akkor a kérdéses pont egy ideális pont (és az ehhez tartozó egyenesek irányvektora $[x_1, x_2, x_3]^T$).
 
-}
+A síkban egy egyenes $ax + by + c = 0$ alakban írható fel, melyet az $[a, b, c]^T$ homogén koordinátákkal reprezentálhatunk. Egy $(x, y)^T$ pont rajta van ezen az egyenesen, ha kielégíti az egyenes egyenletét. Tekintsünk a $P$ pontot $\mathbf{p} = [x, y, 1]^T$ inhomogén koordinátákkal és az $e$ egyenest az $\mathbf{e} = [a, b, c]^T$ vektorral, ekkor $P$ rajta van $e$-n, ha: 
+\[\mathbf{p}^T \mathbf{e} = 0\]
 
 %----------------------------------------------------------------------------
 \section{Affin transzformációk}
@@ -69,40 +67,42 @@ Vagyis egy affin transzformáció leírható egy lineáris transzformáció és 
 \section{A háromdimenziós tér alapvető transzformációi}
 %----------------------------------------------------------------------------
 
-A következőkben 4 alapvető affin transzformáció kerül bemutatásra a térben {\color{blue} a homogén koordináták segítségével}, ezek sorrendben: eltolás, forgatás, skálázás és nyírás.
+A következőkben négy alapvető affin transzformáció kerül bemutatásra a térben a homogén koordináták segítségével, ezek sorrendben: eltolás, forgatás, skálázás és nyírás.
 
 \subsection{Eltolás}
 
-Legyen $\mathbf{v}(v_x, v_y, v_z), \mathbf{t}(t_x, t_y, t_z)\in\mathbb{R}^3$, ekkor $\mathbf{v}$ vektor $\mathbf{t}$ eltoltja:
+Legyen $\mathbf{v}=(v_x, v_y, v_z)^T, \mathbf{t}=(t_x, t_y, t_z)^T\in\mathbb{R}^3$, ekkor $\mathbf{v}$ vektor $\mathbf{t}$ eltoltja:
 
 \[\left[\begin{array}{c}v_x' \\v_y'\\ v_z'\\ 1 \end{array}\right] = \left[\begin{array}{cccc}1 & 0 & 0 & t_x\\0 & 1 & 0 & t_y\\ 0 & 0 & 1 & t_z\\ 0 & 0 & 0 & 1\end{array}\right] \cdot \left[\begin{array}{c}v_x \\v_y\\ v_z\\ 1 \end{array}\right]\]
 
 \subsection{Forgatás}
 
-Legyen $\mathbf{v}(v_x, v_y, v_z)\in\mathbb{R}^3$ és $\theta\in\mathbb{R}$, ekkor $\mathbf{v}$ vektor $x$ tengely körüli $\theta$ szöggel való (jobb-kéz szabályt használva) elforgatottja:
+Legyen $\mathbf{v}=(v_x, v_y, v_z)^T\in\mathbb{R}^3$ és $\theta\in\mathbb{R}$, ekkor $\mathbf{v}$ vektor $y$ tengely körüli $\theta$ szöggel való (jobb-kéz szabályt használva) elforgatottja:
 
-\[\left[\begin{array}{c}v_x' \\v_y' \\v_z' \\ 1 \end{array}\right] = \left[\begin{array}{cccc}1 & 0 & 0 & 0\\0 & \cos (\theta) & -\sin (\theta) & 0\\ 0 & \sin(\theta) & \cos(\theta) & 0 \\ 0 & 0 & 0 & 1\end{array}\right] \cdot \left[\begin{array}{c}v_x\\ v_y\\ v_z\\ 1\end{array}\right]\]
+\[\left[\begin{array}{c}v_x' \\v_y' \\v_z' \\ 1 \end{array}\right] = \left[\begin{array}{cccc}
+\cos (\theta) & 0 & \sin (\theta) & 0\\
+0 & 1 & 0 & 0\\
+-\sin(\theta) & 0 & \cos(\theta) & 0\\
+0 & 0 & 0 & 1\end{array}\right] \cdot \left[\begin{array}{c}v_x\\ v_y\\ v_z\\ 1\end{array}\right]\]
 
 \subsection{Skálázás}
 
-Legyen $\mathbf{v}(v_x, v_y, v_z), \mathbf{s}(s_x, s_y, s_z)\in\mathbb{R}^3$, ekkor $\mathbf{v}$ vektor origóból történő skálázása $\mathbf{s}$-sel:
+Legyen $\mathbf{v}=(v_x, v_y, v_z)^T, \mathbf{s}=(s_x, s_y, s_z)^T\in\mathbb{R}^3$, ekkor $\mathbf{v}$ vektor origóból történő skálázása $\mathbf{s}$-sel:
 
 \[\left[\begin{array}{c}v_x' \\v_y' \\v_z' \\ 1 \end{array}\right] = \left[\begin{array}{cccc}s_x & 0 & 0 & 0\\0 & s_y & 0 & 0\\ 0 & 0 & s_z & 0\\ 0 & 0 & 0 & 1\end{array}\right] \cdot \left[\begin{array}{c}v_x\\ v_y\\ v_z\\ 1\end{array}\right]\]
 
 \subsection{Nyírás}
 
-A térbeli nyírás a tér $P$ pontjainak egy fix síkkal történő párhuzamos csúsztatása. Legyen $\mathbf{v}(v_x, v_y, v_z)\in\mathbb{R}^3$ és $\lambda\in\mathbb{R}$, ekkor a $\mathbf{v}$ vektor $x$ tengely irányában az $x-y$ sík mentén vett nyírása:
+A térbeli nyírás a tér $P$ pontjainak egy fix síkkal történő párhuzamos csúsztatása. Legyen $\mathbf{v}=(v_x, v_y, v_z)^T\in\mathbb{R}^3$ és $\lambda\in\mathbb{R}$, ekkor a $\mathbf{v}$ vektor $x$ tengely irányában az $x-y$ sík mentén vett nyírása:
 
 \[\left[\begin{array}{c}v_x' \\v_y' \\v_z' \\ 1 \end{array}\right] = \left[\begin{array}{cccc}1 & \lambda & 0 & 0\\0 & 1 & 0 & 0\\ 0 & 0 & 1 & 0\\ 0 & 0 & 0 & 1\end{array}\right] \cdot \left[\begin{array}{c}v_x\\ v_y\\ v_z\\ 1\end{array}\right] = \left[\begin{array}{c}v_x + \lambda\cdot v_y\\ v_y\\ v_z\\ 1\end{array}\right]\]
 
 \subsection{Transzformációk egymásutánja}
 
-{\color{blue}
 Ha egy $\mathcal{A}_1, \mathcal{A}_2, \ldots, \mathcal{A}_n$ transzformáció sorozatnak megfelelő transzformációs mátrixok rendre $\mathbf{T_1}, \mathbf{T_2}, \ldots, \mathbf{T_n}$, akkor $\mathbf{v}$ transzformáltja:
 \[\mathbf{v}' = \mathcal{A}_n(\mathcal{A}_{n-1}(\ldots \mathcal{A}_2(\mathcal{A}_1(\mathbf{v}))\ldots)) = \mathbf{T_n} \cdot \mathbf{T_{n-1}} \cdot \ldots \cdot \mathbf{T_2} \cdot \mathbf{T_1} \cdot \mathbf{v}\]
 Így az eredő transzformációt lényegében úgy kapjuk, hogy a transzformációs mátrixok szorzatával, azaz az ,,eredő transzformációs mátrixszal'' szorozzuk be a vektort:
 \[\mathbf{v}' = \mathbf{T} \cdot \mathbf{v} \qquad \hbox{ahol} \; \mathbf{T} = \prod_{i=1}^{n}{\mathbf{T_i}}\]
-}
 
 %----------------------------------------------------------------------------
 \section{Perspektivikus projekció -- A lyukkamera-modell \label{sec:pinhole}}

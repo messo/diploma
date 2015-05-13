@@ -34,16 +34,28 @@
 	\include{include/titlepage}		   % Szakdolgozat/Diplomaterv címlap
 
 
-% Table of Contents
-%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	\tableofcontents\vfill
-
-
 % Declaration and Abstract
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	\include{include/declaration} %TODO Hallgatói nyilatkozat -- TDK és OTDK esetén törlendő!
 	\include{content/abstract}	  %TODO Összefoglaló -- TDK és OTDK esetén nem kötelező
 
+\setlength{\parindent}{2em} % angol nyelvű dokumentumokban jellemző
+\setlength{\parskip}{0pt}   % angol nyelvű dokumentumokban jellemző
+\frenchspacing
+
+% Table of Contents
+%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	\tableofcontents\vfill
+
+%-----------
+% RESET
+% ----------
+
+\defaultParagraph
+
+\newcounter{romanPage}
+\setcounter{romanPage}{\value{page}}
+\stepcounter{romanPage}
 
 % The main part of the thesis
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -86,7 +98,7 @@
 
 % Appendix
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-%	\include{content/appendices}
+	\include{content/appendices}
 
 \label{page:last}
 \end{document}
