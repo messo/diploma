@@ -4,7 +4,7 @@
 
 Az elméleti megfontolások, alapelvek bemutatását követően ebben a fejezetben rátérek a feladat megoldását adó rendszer struktúrájának, főbb komponenseinek tárgyalására.
 
-\section{A célkitűzés}
+\section{Specifikáció kidolgozása}
 
 A diplomamunka során elkészített rendszernek képesnek kellett lennie egy zárt térrész tetszőlegesen választott pontjában és irányában látható, a mozgó objektumokat tartalmazó kép helyreállítására fix telepítésű kamerák valós idejű videofolyamai alapján. A kamerák fix helyzete egyszerűsíti a problémát, mert ezzel a kamera koordinátarendszerét kalibráció segítségével előre össze lehet hangolni a világ-koordinátarendszerrel. A helyreállítást akkor tekintettem sikeresnek, ha a mozgó objektumokat detektáltam és választott nézőpontból azok megközelítő kontúrjait sikeresen meghatároztam. A tényleges objektum struktúrájának illetve textúrájának meghatározása nem esett a dolgozat hatáskörébe. A választott nézőpontra is voltak korlátaink, érdemi rekonstrukciót csak a kamerákat összekötő képzeletbeli szakaszon és annak környezetében várhatunk, így a tesztelést is így végeztem.
 
@@ -14,7 +14,7 @@ Egyre több kamera bevonásával a rekonstrukció minősége, valamint a helyese
 
 \section{Keretrendszer}
 
-A diplomamunka során az OpenCV \cite{opencv} keretrendszert használtam, melynek célja, hogy a fejlesztőknek egy szabadon és ingyenes elérhető alkalmazás-könyvtárat biztosítson a gépi látás területén elterjedt és gyakran használt algoritmusokhoz. Több nyelvhez is biztosít API-t, én ezek közül a C++-os interfészét alkalmaztam, a lehető legnagyobb teljesítmény elérése érdekében. Az OpenCV-t már az előző félévekben megismertem, így a diplomamunka során már eredményesen tudtam építkezni az általa nyújtott funkciókra.
+A diplomamunka készítése során az OpenCV \cite{opencv} keretrendszert használtam, melynek célja, hogy a fejlesztőknek egy szabadon és ingyenes elérhető alkalmazás-könyvtárat biztosítson a gépi látás területén elterjedt és gyakran használt algoritmusokhoz. Több nyelvhez is biztosít API-t, én ezek közül a C++-os interfészét alkalmaztam, a lehető legnagyobb teljesítmény elérése érdekében. Az OpenCV-t már az előző félévekben megismertem, így a diplomamunka során már eredményesen tudtam építkezni az általa nyújtott funkciókra.
 
 \section{A tervezett rendszer működése}
 
@@ -174,7 +174,7 @@ Az objektumok (blob-párosítások) alapján, külön-külön optikai folyamokka
 
 Végül a választott nézőpontból projekció segítségével meghatároztam az onnan látható becsült képet (felhasználva az eredeti képből kinyerhető színinformációkat), valamint az objektumokhoz tartozó kontúrokat.
 
-Gondoljuk meg, hogy a fenti eljárás tetszőleges számú kamera-párra (amelyek nem feltétlen diszjunktak) általánosítható, és az így kapott pontfelhőket, felhasználva, hogy az adatokat az előzetes kalibrációnak köszönhetően egy közös világ-koordinátarendszerben kapjuk meg, ezeket könnyen egyesíthetjük. A diplomaterv keretében \aref{fig:of-method}. ábrán látható színezett hátterű lépések készültek el, a több kamerára vonatkozó együttes kezelés nem.
+A fenti eljárás tetszőleges számú kamera-párra (amelyek nem feltétlen diszjunktak) általánosítható, és az így kapott pontfelhőket, felhasználva, hogy az adatokat az előzetes kalibrációnak köszönhetően egy közös világ-koordinátarendszerben kapjuk meg, ezeket könnyen egyesíthetjük. A diplomaterv keretében \aref{fig:of-method}. ábrán látható színezett hátterű lépések készültek el, a több kamerára vonatkozó együttes kezelés nem.
 
 \begin{sidewaysfigure}
 \centering
@@ -335,4 +335,4 @@ graybox/.style = {box, gray}
 \section{Összefoglaló}
 % --------------------------------
 
-Ebben a fejezetben bemutattam az alkalmazott keretrendszert, melyre a megoldásomat építettem. Megfogalmaztam a célkitűzésem, miszerint két rögzített kamera által megfigyelt térrészben rekonstruálok egy illetve két mozgó objektumot egy a két kamera közötti szakaszon választott nézőpontból. Rögzítettem a sikerkritériumot, hogy a rekonstruálást akkor tekintem sikeresnek, ha a mozgó objektumok megközelítő kontúrjait sikeresen meghatározom. Végül leírtam az implementálásra kerülő rendszer lépésekre bontott logikáját.
+Ebben a fejezetben bemutattam az alkalmazott keretrendszert, melyre a megoldásomat építettem. Kidolgoztam a specifikációt, miszerint két rögzített kamera által megfigyelt térrészben rekonstruálok egy illetve két mozgó objektumot egy a két kamera közötti szakaszon választott nézőpontból. Rögzítettem a sikerkritériumot, hogy a helyreállítást akkor tekintem sikeresnek, ha a mozgó objektumok megközelítő kontúrjait sikeresen meghatározom. Végül leírtam az implementálásra kerülő rendszer lépésekre bontott logikáját.

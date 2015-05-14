@@ -2,18 +2,8 @@
 \chapter{Összefoglalás}
 %----------------------------------------------------------------------------
 
-A feladatkiírás pontjainak eleget tettem. Áttekintettem a szükséges irodalmat, elméleti hátteret, valamint megterveztem a megoldáshoz szükséges alkalmazást. Leírtam az implementálás részleteit, a hozott tervezői döntéseket, valamint kitértem a választott algoritmusok indoklására. Az elkészült alkalmazást két jeleneten teszteltem, a valós idejű feldolgozás korlátait megvizsgáltam, valamint részletesen dokumentáltam az eredményeket.
+Diplomamunkámban két rögzített kamera videofolyamai alapján előállítottam a megfigyelt térrészben mozgó objektumok rekonstrukcióját egy, a két kamera között választott nézőpontból. Áttekintettem a gépi látás szakirodalmában publikált legfontosabb eredményeket, különös tekintettel azok elméleti hátterére és az alkalmazható algoritmusokra. Megterveztem és elkészítettem egy szimulációs alkalmazást, aminek segítségével az eljárást két jeleneten teszteltem. A szoftver segítségével a használt kamerákat bekalibrálhatjuk, és azok videófolyamai alapján folyamatos rekonstrukciót végezhetünk, melyhez tartozó nézőpontot egy csúszka segítségével adhatjuk meg a két kamera között. A valós idejű feldolgozás korlátait megvizsgáltam, az eredmények alapján a megoldást a gyakorlatban is alkalmazhatónak találtam.
 
-Az 1. fejezetben a feladat értelmezését követően a szükséges lineáris algebrai kitekintő után az alapvető háromdimenziós transzformációkat tárgyaltam. Végül a szakirodalomban és a dolgozat során is használt lyukkamera-modellel zártam, mely a kép- és videofeldolgozási algoritmusok alapjául szolgál.
+Az alkalmazott kamerák számának további növelésével a nézőpont helyzete, ahonnan megfelelő rekonstrukcióra számíthatunk, nagyobb szabadságfokkal választható. Például egy kellő számú kamerával felszerelt teremben mozgó személyek helyzetei a valós idejű videofolyamok alapján nagyon jó közelítéssel meghatározhatóak, amely egy biztonsági megoldás alapjául szolgálhat.
 
-A 2. fejezetben a több kamerából álló rendszereknél felmerülő, a feladatom során is megoldandó problémákat jártam körbe. Kitértem a kamerák szinkronizációjára, valamint a kamerák által látott képekből a háromdimenziós világ lehetséges rekonstrukciójára. Ehhez két lényegében eltérő megoldást vázoltam és mutattam be; a sztereó-kalibrációt valamint az optikai folyamokat. A fejezetet az objektum-detektálással zártam, mely felhasználásával a probléma megoldásának keresési tere csökkenthető. Az első két fejezettel a feladatkiírásom első pontjának eleget tettem.
-
-A 3. fejezetben a célkitűzésem megfogalmazása után az előző fejezetekben megismert megközelítésekre és algoritmusokra támaszkodva megterveztem az elkészítendő rendszert.
-
-A 4. fejezetben a megvalósítás lépéseit írtam le, az alkalmazás struktúráját osztály- és szekvencia diagramokkal szemléltettem, valamint az egyes fázisok eredményeit ábrákkal demonstráltam. Kitértem a megoldáshoz használt OpenCV-s függvényekre, valamint ezek paraméterezéseire.
-
-Az 5. fejezetben az elkészült alkalmazást két jelenet segítségével teszteltem, melyek során két eltérő kamera telepítést alkalmaztam. Az eredményeket ábrákon keresztül bemutattam, valamint véleményt alkottam ennek minőségéről. Ezzel és az előző két fejezettel a feladatkiírásom második, valamint részben az utolsó pontjának tettem eleget.
-
-A 6. fejezetben megvizsgáltam, majd alkalmaztam néhány lehetőséget, mellyel a teljesítmény javítható, ezeket mérésekkel is alátámasztottam. Végül megvizsgáltam, hogy milyen korlátok mellett, milyen sebesség érhető el. Az eredmények alapján azt találtam, hogy választható olyan kicsi, de még hasznos információval rendelkező képrészlet, mely esetén a közel valós idejű feldolgozás megvalósítható. Ezzel a feladatkiírásom utolsó két pontjának feleltem meg.
-
-A 7. fejezetben tömören összesítem és értékelem az elért eredményeket, valamint kitérek a továbbfejlesztési lehetőségekre.
+A továbbfejlesztés egy másik lehetősége a feldolgozási teljesítmény növelése, mely hatékonyabb algoritmusokkal és azok célhardveren történő futtatásával érhető el.

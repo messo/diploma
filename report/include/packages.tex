@@ -38,12 +38,9 @@
 \usepackage[backend=bibtex,backref=true,sorting=none]{biblatex}
 \addbibresource{bib/mybib.bib}
 
-\usepackage[simplified]{pgf-umlcd}
-\usepackage{pgf-umlsd}
-
 \usepackage{tikz, tikz-3dplot}
 \usepackage{pgfplots}
-\usetikzlibrary{arrows, decorations.markings, shapes.misc, chains, decorations.pathreplacing, spy, shadows}
+\usetikzlibrary{arrows, decorations.markings, shapes.misc, chains, decorations.pathreplacing, spy, shadows,calc,positioning}
 
 \tikzset{cross/.style={cross out, draw=black, minimum size=2*(#1-\pgflinewidth), inner sep=0pt, outer sep=0pt},
 %default radius will be 1pt. 
@@ -54,3 +51,6 @@ cross/.default={2pt}}
 \usepackage{rotating}
 \usepackage{multirow}
 \usepackage{verbatim}
+
+\usepackage[simplified]{pgf-umlcd}
+\usepackage{pgf-umlsd}

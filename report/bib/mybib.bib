@@ -1,10 +1,8 @@
-@thesis{pinhole-model,
-author = {Yannick Morvan},
-title = {Acquisition, Compression and Rendering of Depth and Texture for Multi-View Video},
-type = {Ph.D. Thesis},
-institution = {Technische Universiteit Eindhoven},
-year = {2009},
-url = {http://vca.ele.tue.nl/publications/data/Morvan2009b.pdf}
+@phdthesis{pinhole-model,
+  title={Acquisition, compression and rendering of depth and texture for multi-view video},
+  author={Morvan, Yanninck},
+  year={2009},
+  school={Technische Universiteit Eindhoven}
 }
 
 @thesis{onlab-1,
@@ -30,33 +28,30 @@ year = {2015},
 url = {http://docs.opencv.org/modules/calib3d/doc/camera_calibration_and_3d_reconstruction.html}
 }
 
-@ARTICLE{SGBM, 
-author={Hirschmuller, H.}, 
-journal={Pattern Analysis and Machine Intelligence, IEEE Transactions on}, 
-title={Stereo Processing by Semiglobal Matching and Mutual Information}, 
-year={2008}, 
-month={2}, 
-volume={30}, 
-number={2}, 
-pages={328-341}, 
-keywords={image matching;image reconstruction;stereo image processing;3D reconstruction;multibaseline matching;mutual information based matching;occlusion detection;orthographic projection;pathwise optimization;pixelwise matching;radiometric transformation;semiglobal matching;stereo processing;subpixel refinement;global optimization;multi-baseline;mutual information;stereo}, 
-doi={10.1109/TPAMI.2007.1166}, 
-ISSN={0162-8828},}
-
-@MastersThesis{stereo-var,
-author = {Sergey Kosov},
-title = {Multi - View 3D Reconstruction with Variational Method},
-school = {Saarland University},
-year = {2008},
-url = {http://www.project-10.de/Kosov/files/masterthesis.pdf}
+@article{SGBM,
+  title={Stereo processing by semiglobal matching and mutual information},
+  author={Hirschmuller, Heiko},
+  journal={Pattern Analysis and Machine Intelligence, IEEE Transactions on},
+  volume={30},
+  number={2},
+  pages={328--341},
+  year={2008},
+  publisher={IEEE}
 }
 
-@Book{HZ, 
-    author = "Hartley, R.~I. and Zisserman, A.",
-    title = "Multiple View Geometry in Computer Vision",
-    edition = "Second",
-    year = "2004",
-    publisher = "Cambridge University Press, ISBN: 0521540518"
+@mastersthesis{stereo-var,
+  title={Multi--View 3D Reconstruction with Variational Method},
+  author={Kosov, Sergey},
+  year={2008},
+  school={Department of Computer Science, Saarland University}
+}
+
+@book{HZ,
+  title={Multiple view geometry in computer vision},
+  author={Hartley, Richard and Zisserman, Andrew},
+  year={2004},
+  publisher={Cambridge university press},
+  edition = "Second"
 }
 
 @article{hartley-triangulation,
@@ -70,51 +65,40 @@ url = {http://www.project-10.de/Kosov/files/masterthesis.pdf}
   publisher={Elsevier}
 }
 
-@misc{LK,
-  added-at = {2009-06-16T08:56:01.000+0200},
-  author = {Bouguet, Jean-Yves},
-  biburl = {http://www.bibsonomy.org/bibtex/26d526b728a7c2bfa9309469c69e0bdff/midtiby},
-  interhash = {eef6e5d46faede3c0e1fe7cd755790bb},
-  intrahash = {6d526b728a7c2bfa9309469c69e0bdff},
-  keywords = {lucas-kanade tracking},
-  publisher = {Intel Corporation Microprocessor Research Labs},
-  timestamp = {2009-06-16T08:56:01.000+0200},
-  title = {Pyramidal Implementation of the Lucas Kanade Feature Tracker Description of the algorithm},
-  url = {http://robots.stanford.edu/cs223b04/algo_tracking.pdf},
-  year = 2000
+@article{LK,
+  title={Pyramidal implementation of the affine lucas kanade feature tracker description of the algorithm},
+  author={Bouguet, Jean-Yves},
+  journal={Intel Corporation},
+  volume={5},
+  pages={1--10},
+  year={2001}
 }
 
-@INPROCEEDINGS{shi-thomasi, 
-author={Shi, J. and Tomasi, C.}, 
-booktitle={Computer Vision and Pattern Recognition, 1994. Proceedings CVPR '94., 1994 IEEE Computer Society Conference on}, 
-title={Good features to track}, 
-year={1994}, 
-month={6}, 
-pages={593-600}, 
-keywords={computer vision;feature extraction;tracking;Newton-Raphson style search methods;affine image transformations;disocclusions;feature monitoring;feature selection;feature-based;occlusions;performance;tracker;tracking;vision system;Feature extraction;Machine vision;Tracking}, 
-doi={10.1109/CVPR.1994.323794}, 
-ISSN={1063-6919},}
+@inproceedings{shi-thomasi,
+  title={Good features to track},
+  author={Shi, Jianbo and Tomasi, Carlo},
+  booktitle={Computer Vision and Pattern Recognition, 1994. Proceedings CVPR'94., 1994 IEEE Computer Society Conference on},
+  pages={593--600},
+  year={1994},
+  organization={IEEE}
+}
 
-@inproceedings{farneback,
- author = {Farneb\"{a}ck, Gunnar},
- title = {Two-frame Motion Estimation Based on Polynomial Expansion},
- booktitle = {Proceedings of the 13th Scandinavian Conference on Image Analysis},
- series = {SCIA'03},
- year = {2003},
- isbn = {3-540-40601-8},
- location = {Halmstad, Sweden},
- pages = {363--370},
- numpages = {8},
- url = {http://dl.acm.org/citation.cfm?id=1763974.1764031},
- acmid = {1764031},
- publisher = {Springer-Verlag},
-% address = {Berlin, Heidelberg},
-} 
+@incollection{farneback,
+  title={Two-frame motion estimation based on polynomial expansion},
+  author={Farneb{\"a}ck, Gunnar},
+  booktitle={Image Analysis},
+  pages={363--370},
+  year={2003},
+  publisher={Springer}
+}
 
-@MISC{MOG,
-    author = {P. Kaewtrakulpong and R. Bowden},
-    title = {An Improved Adaptive Background Mixture Model for Realtime Tracking with Shadow Detection},
-    year = {2001}
+@incollection{MOG,
+  title={An improved adaptive background mixture model for real-time tracking with shadow detection},
+  author={KaewTraKulPong, Pakorn and Bowden, Richard},
+  booktitle={Video-based surveillance systems},
+  pages={135--144},
+  year={2002},
+  publisher={Springer}
 }
 
 @online{opencv-mog,
@@ -144,16 +128,11 @@ year = {2015},
 url = {http://docs.opencv.org/modules/highgui/doc/reading_and_writing_images_and_video.html}
 }
 
-@InProceedings{quadropter,
-author="Andrew Nolan
-and Daniel Serrano
-and Aura Hernandez-Sabate
-and Daniel Ponsa
-and Antonio Lopez",
-title="Obstacle mapping module for quadrotors on outdoor Search and Rescue operations",
-booktitle="International Micro Air Vehicle Conference and Flight Competition",
-year="2013",
-url= {http://refbase.cvc.uab.es/files/NSH2013.pdf}
+@inproceedings{quadropter,
+  title={Obstacle mapping module for quadrotors on outdoor Search and Rescue operations},
+  author={Nolan, Andrew and Serrano, Daniel and Sabat{\'e}, Aura Hernandez and Mussarra, Daniel Ponsa and Pena, Antonio M L{\'o}pez},
+  booktitle={International Micro Air Vehicle Conference and Flight Competition (IMAV2013), Toulouse, France},
+  year={2013}
 }
 
 @online{distortion,
@@ -171,31 +150,24 @@ url = {http://www.uni-koeln.de/~al001/radcor_files/hs100.htm}
    note = "[Online; hozzáférve 2014. december 1-jén]"
 }
 
-@ARTICLE{sfm, 
-author={Jebara, T. and Azarbayejani, A. and Pentland, A.}, 
-journal={Signal Processing Magazine, IEEE}, 
-title={3D structure from 2D motion}, 
-year={1999}, 
-month={5}, 
-volume={16}, 
-number={3}, 
-pages={66-84}, 
-keywords={image matching;image motion analysis;image reconstruction;image sequences;video signal processing;2D motion;3D structure;camera geometry;nonlinear dynamic system framework;real-time applications;recursive estimation;structure from motion;synthetic images;Application software;Artificial intelligence;Cameras;Computational geometry;Computer vision;Facial animation;Head;Layout;Learning;Tracking}, 
-doi={10.1109/79.768574}, 
-ISSN={1053-5888},}
+@article{sfm,
+  title={3D structure from 2D motion},
+  author={Jebara, Tony and Azarbayejani, Ali and Pentland, Alex},
+  journal={Signal Processing Magazine, IEEE},
+  volume={16},
+  number={3},
+  pages={66--84},
+  year={1999},
+  publisher={IEEE}
+}
 
 @incollection{optic-flow,
-year={2006},
-isbn={978-0-387-26371-7},
-booktitle={Handbook of Mathematical Models in Computer Vision},
-editor={Paragios, Nikos and Chen, Yunmei and Faugeras, Olivier},
-doi={10.1007/0-387-28831-7_15},
-title={Optical Flow Estimation},
-url={http://dx.doi.org/10.1007/0-387-28831-7_15},
-publisher={Springer US},
-author={Fleet, D. and Weiss, Y.},
-pages={237-257},
-language={English}
+  title={Optical flow estimation},
+  author={Fleet, David and Weiss, Yair},
+  booktitle={Handbook of Mathematical Models in Computer Vision},
+  pages={237--257},
+  year={2006},
+  publisher={Springer}
 }
 
 @online{lk-wiki,
@@ -206,30 +178,22 @@ url = {http://en.wikipedia.org/wiki/Lucas-Kanade_method}
 }
 
 @incollection{quad-autonomous,
-year={2011},
-isbn={978-3-642-21974-0},
-booktitle={Research and Education in Robotics - EUROBOT 2011},
-volume={161},
-series={Communications in Computer and Information Science},
-editor={Obdržálek, David and Gottscheber, Achim},
-doi={10.1007/978-3-642-21975-7_16},
-title={AR-Drone as a Platform for Robotic Research and Education},
-url={http://dx.doi.org/10.1007/978-3-642-21975-7_16},
-publisher={Springer Berlin Heidelberg},
-author={Krajník, Tomáš and Vonásek, Vojtěch and Fišer, Daniel and Faigl, Jan},
-pages={172-186},
-language={English}
+  title={AR-drone as a platform for robotic research and education},
+  author={Krajn{\'\i}k, Tom{\'a}{\v{s}} and Von{\'a}sek, Vojt{\v{e}}ch and Fi{\v{s}}er, Daniel and Faigl, Jan},
+  booktitle={Research and Education in Robotics-EUROBOT 2011},
+  pages={172--186},
+  year={2011},
+  publisher={Springer}
 }
 
-@INPROCEEDINGS{quad-swarm, 
-author={Ma'sum, M.A. and Jati, G. and Arrofi, M.K. and Wibowo, A. and Mursanto, P. and Jatmiko, W.}, 
-booktitle={Micro-NanoMechatronics and Human Science (MHS), 2013 International Symposium on}, 
-title={Autonomous quadcopter swarm robots for object localization and tracking}, 
-year={2013}, 
-month={11}, 
-pages={1-6}, 
-keywords={autonomous aerial vehicles;helicopters;military aircraft;mobile robots;multi-robot systems;object tracking;operating systems (computers);particle swarm optimisation;robot vision;telerobotics;ROS framework;UAV;autonomous quadcopter swarm robots;community perception;exploration;fully random based moving algorithm;individual perception;intelligent feature;military purpose;modified PSO;modified particle swarm optimization;moving target scenario;object localization;object tracking;patrol;robot operating system;steady target scenario;unmanned aerial vehicle;Algorithm design and analysis;Cameras;Robot kinematics;Robot sensing systems;Target tracking}, 
-doi={10.1109/MHS.2013.6710447},}
+@inproceedings{quad-swarm,
+  title={Autonomous quadcopter swarm robots for object localization and tracking},
+  author={Ma'sum, M Anwar and Jati, Grafika and Arrofi, M Kholid and Wibowo, Adi and Mursanto, Petrus and Jatmiko, Wisnu},
+  booktitle={Micro-NanoMechatronics and Human Science (MHS), 2013 International Symposium on},
+  pages={1--6},
+  year={2013},
+  organization={IEEE}
+}
 
 @phdthesis{phd,
 	author		= "Vámossy, Zoltán",
@@ -251,18 +215,14 @@ year = {2012}
 }
 
 @article{optical-flow-rectification,
-    author = {Yang, You AND Liu, Qiong AND Ji, Rongrong AND Gao, Yue},
-    journal = {PLoS ONE},
-    publisher = {Public Library of Science},
-    title = {Dynamic 3D Scene Depth Reconstruction via Optical Flow Field Rectification},
-    year = {2012},
-    month = {11},
-    volume = {7},
-    url = {http://dx.doi.org/10.1371/journal.pone.0047041},
-    pages = {e47041},
-    abstract = {<p>In this paper, we propose a depth propagation scheme based on optical flow field rectification towards more accurate depth reconstruction. In depth reconstruction, the occlusions and low-textural regions easily result in optical flow field errors, which lead ambiguous depth value or holes without depth in the obtained depth map. In this work, a scheme is proposed to improve the precision of depth propagation and the quality of depth reconstruction for dynamic scene. The proposed scheme first adaptively detects the occlusive or low-textural regions, and the obtained vectors in optical flow field are rectified properly. Subsequently, we process the occluded and ambiguous vectors for more precise depth propagation. We further leverage the boundary enhancement filters as a post-processing to sharpen the object boundaries in obtained depth maps for better quality. Quantitative evaluations show that the proposed scheme can reconstruct depth map with higher accuracy and better quality compared with the state-of-the-art methods.</p>},
-    number = {11},
-    doi = {10.1371/journal.pone.0047041}
+  title={Dynamic 3D scene depth reconstruction via optical flow field rectification},
+  author={Yang, You and Liu, Qiong and Ji, Rongrong and Gao, Yue},
+  journal={PloS one},
+  volume={7},
+  number={11},
+  pages={e47041},
+  year={2012},
+  publisher={Public Library of Science}
 }
 
 @online{cs-svd,
@@ -312,20 +272,13 @@ url = {https://github.com/royshil/SfM-Toy-Library}
 
 
 
-
 @incollection{surf,
-year={2006},
-isbn={978-3-540-33832-1},
-booktitle={Computer Vision – ECCV 2006},
-volume={3951},
-series={Lecture Notes in Computer Science},
-editor={Leonardis, Aleš and Bischof, Horst and Pinz, Axel},
-doi={10.1007/11744023_32},
-title={SURF: Speeded Up Robust Features},
-url={http://dx.doi.org/10.1007/11744023_32},
-publisher={Springer Berlin Heidelberg},
-author={Bay, Herbert and Tuytelaars, Tinne and Van Gool, Luc},
-pages={404-417}
+  title={Surf: Speeded up robust features},
+  author={Bay, Herbert and Tuytelaars, Tinne and Van Gool, Luc},
+  booktitle={Computer vision--ECCV 2006},
+  pages={404--417},
+  year={2006},
+  publisher={Springer}
 }
 
 @incollection{FAST,
@@ -354,7 +307,7 @@ pages={404-417}
   booktitle={Computer Vision and Pattern Recognition (CVPR), 2012 IEEE Conference on},
   pages={510--517},
   year={2012},
-  organization={Ieee}
+  organization={IEEE}
 }
 
 @article{SIFT,
@@ -405,17 +358,14 @@ pages={404-417}
 }
 
 @article{Bajaj198699,
-title = "Proving geometric algorithm non-solvability: An application of factoring polynomials ",
-journal = "Journal of Symbolic Computation ",
-volume = "2",
-number = "1",
-pages = "99 - 102",
-year = "1986",
-note = "",
-issn = "0747-7171",
-doi = "http://dx.doi.org/10.1016/S0747-7171(86)80015-3",
-url = "http://www.sciencedirect.com/science/article/pii/S0747717186800153",
-author = "Chanderjit Bajaj"
+  title={Proving geometric algorithm non-solvability: An application of factoring polynomials},
+  author={Bajaj, Chanderjit},
+  journal={Journal of Symbolic Computation},
+  volume={2},
+  number={1},
+  pages={99--102},
+  year={1986},
+  publisher={Elsevier}
 }
 
 @misc{OpenMP-specs,
@@ -427,16 +377,14 @@ author = "Chanderjit Bajaj"
 }
 
 @article{OpenMP,
-    Author = {Dagum, Leonardo and Menon, Ramesh},
-    Date-Added = {2014-07-24 11:13:01 +0000},
-    Date-Modified = {2014-07-24 11:13:01 +0000},
-    Journal = {Computational Science \& Engineering, IEEE},
-    Number = {1},
-    Pages = {46--55},
-    Publisher = {IEEE},
-    Title = {OpenMP: an industry standard API for shared-memory programming},
-    Volume = {5},
-    Year = {1998}
+  title={OpenMP: an industry standard API for shared-memory programming},
+  author={Dagum, Leonardo and Menon, Ramesh},
+  journal={Computational Science \& Engineering, IEEE},
+  volume={5},
+  number={1},
+  pages={46--55},
+  year={1998},
+  publisher={IEEE}
 }
 
 @techreport{kepfeldolg-modszerek,
@@ -449,23 +397,15 @@ author = "Chanderjit Bajaj"
 }
 
 @article{parallel-cuda,
- author = {Nickolls, John and Buck, Ian and Garland, Michael and Skadron, Kevin},
- title = {Scalable Parallel Programming with CUDA},
- journal = {Queue},
- issue_date = {March/April 2008},
- volume = {6},
- number = {2},
- month = mar,
- year = {2008},
- issn = {1542-7730},
- pages = {40--53},
- numpages = {14},
- url = {http://doi.acm.org/10.1145/1365490.1365500},
- doi = {10.1145/1365490.1365500},
- acmid = {1365500},
- publisher = {ACM},
- address = {New York, NY, USA},
-} 
+  title={Scalable parallel programming with CUDA},
+  author={Nickolls, John and Buck, Ian and Garland, Michael and Skadron, Kevin},
+  journal={Queue},
+  volume={6},
+  number={2},
+  pages={40--53},
+  year={2008},
+  publisher={ACM}
+}
 
 @online{cuda-nvidia,
 title={CUDA Toolkit},

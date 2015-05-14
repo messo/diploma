@@ -347,8 +347,8 @@ ahol:
 \item $s$ a homogén skálázási tényező
 \item $\mathbf{A}$ a kamera-mátrix (\textit{belső paraméterek mátrixa})
 \item $(o_x, o_y)$ a főpont képsíkbeli koordinátája, amely általában a kép közepe
-\item $(f_x, f_y)$ pedig a fókusztávolságok pixelekben kifejezve
-\item $\mathbf{R}$ a forgatási mátrix és $\mathbf{t} = (t_1, t_2, t_3)^T$ az eltolás-vektor -- együttesen $\Big(\,\mathbf{R}\,|\,\mathbf{t}\,\Big)$ a forgatás-eltolás mátrix, mely a \textit{külső paraméterek mátrixa}; azt határozza meg, hogy a statikus világhoz képest a kamera hol helyezkedik el, vagy fordítva, a statikus kamerához képest a világ hogyan van pozícionálva.
+\item $(f_x, f_y)$ a fókusztávolságok pixelekben kifejezve
+\item $\mathbf{R}$ pedig a forgatási mátrix és $\mathbf{t} = (t_1, t_2, t_3)^T$ az eltolás-vektor -- együttesen $\Big(\,\mathbf{R}\,|\,\mathbf{t}\,\Big)$ a forgatás-eltolás mátrix, mely a \textit{külső paraméterek mátrixa}; azt határozza meg, hogy a statikus világhoz képest a kamera hol helyezkedik el, vagy fordítva, a statikus kamerához képest a világ hogyan van pozícionálva.
 \end{itemize}
 
 A kamera külső paramétereit, a belső paraméterekhez hasonlóan kalibrálással kapjuk meg. Ehhez egy ismert objektumot használunk fel, pl. egy sakktáblát: a sarokpontokat a világ-koordinátarend\-szerben koordinátázzuk például úgy, hogy azok az $x$-$y$ síkba essenek, 3. koordinátájukat pedig fixen zérusnak választjuk. Ezeket a világbeli koordinátákat a képpontoknak megfeleltetve meghatározható $\mathbf{R}$ és $\mathbf{t}$ \cite{camera-calib}, feltéve, hogy a kamera képét már az előbbiek alapján rektifikáltuk.
