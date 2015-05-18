@@ -8,9 +8,9 @@ Ebben a fejezetben az előzőekben bemutatott első jelenet képsorait fogom fel
 \section{Első mérések}
 % -------------------------------------------------------
 
-A teszteket egy olyan számítógépen végeztem, amiben egy Intel\textsuperscript{\textregistered} Core\texttrademark{} i5-4440 processzor és 8GB memória volt, és a kódot Linux operációs rendszerre fordítottam, és azon futtattam.
+A teszteket egy olyan számítógépen végeztem, amiben egy Intel\textsuperscript{\textregistered} Core\texttrademark{} i5-4440 processzor, NVIDIA GeForce GTX 750 Ti típusú videókártya és 8GB memória volt, a kódot pedig ezen futó Linux operációs rendszerre fordítottam, majd futtattam.
 
-A következő mérésekhez az előző fejezetben bemutatott első jelenetet (tehát, amikor a kamerák képsíkjai nagyjából egybeesnek) használtam fel. A jelenethez tartozó, már említett fontosabb adatok: 178 képkocka (\textasciitilde 6 másodperc), mindegyik $640\times 480$-as felbontású, színes kép, ezeken két mozgó teásdoboz. Az alkalmazást lefuttatva erre a jelenetre \aref{table:result_scene1_single}. táblázatban látható időket kaptam, lebontva a fontosabb lépésekre sorrendben, majd a teljes folyamatra is nézve. A legtöbb időt az optikai folyam meghatározása vitte el, utána az előtér maszkok, majd a textúrázottság meghatározása következett. Az átlagos visszavetítési hiba 0,806 pixelnyi lett az összes képkockára nézve. A teljes folyamat átlaga alapján 1 képkockapár rekonstrukciója majdnem 1 másodperc volt, azaz kb. 1,1 FPS sebességgel lehet rekonstruálni ezzel a megközelítéssel, ezen a hardveren, ilyen jellegű jelenet esetén.
+A következő mérésekhez az előző fejezetben bemutatott első jelenetet (tehát, amikor a kamerák képsíkjai nagyjából egybeesnek) használtam fel. A jelenethez tartozó, már említett fontosabb adatok: 178 képkocka (\textasciitilde 6 másodperc), mindegyik $640\times 480$-as felbontású, színes kép, ezeken pedig két mozgó teásdoboz. Az alkalmazást lefuttatva erre a jelenetre \aref{table:result_scene1_single}. táblázatban látható időket kaptam, lebontva a fontosabb lépésekre sorrendben, majd a teljes folyamatra is nézve. A legtöbb időt az optikai folyam meghatározása vitte el, utána az előtér maszkok, majd a textúrázottság meghatározása következett. Az átlagos visszavetítési hiba 0,806 pixelnyi lett az összes képkockára nézve. A teljes folyamat átlaga alapján 1 képkockapár rekonstrukciója majdnem 1 másodperc volt, azaz kb. 1,1 FPS sebességgel lehet rekonstruálni ezzel a megközelítéssel, ezen a hardveren, ilyen jellegű jelenet esetén.
 
 \begin{table}[tbh]
 \centering
@@ -44,13 +44,13 @@ Teljes folyamat & 0,0695 & 1,16 & 0,908 & 0,17 \\ \hline
 
 Az előző szekcióban leírtak alapján látható, hogy szekvenciális végrehajtás esetén mekkora sebességet várhatunk az említett hardveren. A következőkben a párhuzamosításban rejlő lehetőségeket vizsgáltam meg.
 
-Különböző platformokon különböző megoldásokat találhatunk többszálú feladatvégrehajtásra. C++-ban az egyik legelterjedtebb az OpenMP API \cite{OpenMP, OpenMP-specs}. Felhasználásával platform-független, megosztott-memóriás párhuzamos programokat írhatunk. Nagy előnye, hogy ha a cél nem támogatja (legyen az a fordító, vagy a platform), akkor az API megfelelő alkalmazása esetén az alkalmazás ugyanúgy fordítható, azzal a különbséggel, hogy az elkészült bináris csak egy szálon hajtja végre az utasításokat. A következőkben röviden áttekintem az általam használt OpenMP funkciókat.
+Különböző platformokon különböző megoldásokat találhatunk többszálú feladatvégrehajtásra. C++-ban az egyik legelterjedtebb az OpenMP API \cite{OpenMP, OpenMP-specs}. Felhasználásával platform-független, megosztott-memóriás párhuzamos programokat írhatunk. Nagy előnye, hogy ha a cél nem támogatja (legyen az a fordító, vagy a platform), akkor az API megfelelő alkalmazása esetén az alkalmazás ugyanúgy fordítható és futtatható, azzal a különbséggel, hogy az elkészült bináris csak egy szálon hajtja végre az utasításokat. A következőkben röviden áttekintem az általam használt OpenMP funkciókat.
 
 A többszálúság kezelése deklaratív alapon történik a \texttt{\#pragma omp} utasításokkal. Az első \texttt{\#pragma omp parallel} direktívánál egy fix számú szál-csapat jön létre (ami általában a CPU magjainak számától függ, de \texttt{num\_threads(N)} attribútummal ez kézzel is állítható), amely a program futása alatt konstans méretű. Ennek az az indoka, hogy a szálak létrehozása költséges folyamat, míg munkába állításuk nem.
 
-A legegyszerűbb párhuzamosítási lehetőség, hogy az egymástól független lépéseket, amelyek ugyanazt csinálják (pl. két kamera két képéből külön-külön egy előtér meghatározása) \textit{for}-ciklusokba szervezzük, és ezek iterációit külön szálakon hajtjuk végre a \texttt{\#pragma omp for} utasítással. Hasonlóan a képek olyan feldolgozásakor (pl. textúrázottság vizsgálata), amikor egy iterációs lépés független a többitől, szintén használhatjuk ezt a módszert.
+A legegyszerűbb párhuzamosítási lehetőség, hogy az egymástól független lépéseket, amelyek ugyanazon algoritmusokat hajtják végre eltérő bemeneteken (pl. két kamera két képéből külön-külön egy előtér meghatározása, textúrázottság meghatározása) \textit{for}-ciklusokba szervezzük, és ezek iterációit külön szálakon hajtjuk végre a \texttt{\#pragma omp for} utasítással.
 
-Az OpenCV (vagy az alatta lévő hardver-illesztő) a kamerák képeit buffereli, így ha az adott képkockákat nem tudjuk elég gyorsan lekérni, akkor beragadnak az egymás utániak, a későbbiek (amik nem férnek be a várakozási sorba) pedig elvesznek. Ha \textasciitilde{}30 FPS sebességgel rögzíti a képeket a kamera, akkor nagyjából 33ms időnk van egy képkocka feldolgozására. Mivel ezt nem sikerült elérni, így a következő ötletet alkalmaztam. Annak érdekében, hogy mindig azt a képkockát dolgozzam fel, amit éppen aktuálisan a kamera rögzít, a képek lekérését egy szálon folyamatosan végzem, és amikor éppen nem fut egy feldolgozás, akkor indítok egyet az aktuális képkockával. Ennek köszönhetően ugyan a feldolgozás nem folytonos, kimaradnak képkockák, viszont az adott rekontrukció a jelenlegi időponthoz nagyon közeli. A \texttt{\#pragma omp task} direktíva segítségével szerveztem a rekonstrukciót OpenMP feladattá, amely tulajdonképpen egy aszinkron végrehajtást jelent.
+Az OpenCV (illetve az általa használt hardver-illesztő) a kamerák képeit buffereli, így ha az adott képkockákat nem tudjuk elég gyorsan lekérni, akkor azok ,,beragadnak'', a későbbiek (amik nem férnek be a várakozási sorba) pedig elvesznek. Ha \textasciitilde{}30 FPS sebességgel rögzíti a képeket a kamera, akkor nagyjából 33ms időnk van egy képkocka feldolgozására. Mivel ezt nem sikerült elérni, így a következő ötletet alkalmaztam. Annak érdekében, hogy mindig azt a képkockát dolgozzam fel, amit éppen aktuálisan a kamera rögzít, a képek lekérését egy szálon folyamatosan végzem, és amikor éppen nem fut egy feldolgozás, akkor indítok egyet az aktuális képkockával. Ennek köszönhetően ugyan a feldolgozás nem folytonos, kimaradnak képkockák, viszont az adott rekontrukció a jelenlegi időponthoz nagyon közeli. A \texttt{\#pragma omp task} direktíva segítségével szerveztem a rekonstrukciót OpenMP feladattá, amely tulajdonképpen egy aszinkron végrehajtást jelent.
 
 \definecolor{color1}{HTML}{4D4D4D}
 \definecolor{color2}{HTML}{5DA5DA}
@@ -141,9 +141,9 @@ Teljes folyamat & 0,109 & 0,574 & \textbf{0,391} & 0,105 \\ \hline
 
 OpenCV keretrendszerben néhány általam is használt eljárást a CUDA \cite{parallel-cuda} platformra is implementálták, melyeket egy külön \texttt{cv::cuda} névtéren belül találhatunk. Ezek segítségével, ha a videókártya támogatja, az algoritmusok implementációit a grafikus kártyán hatékonyabban futtathatjuk így növelve a teljesítményt.
 
-\Aref{table:result_scene1_multi}. táblázatban láthatjuk, hogy az optikai folyam számolások, mind a sűrű pontmegfeleltetések számolásához, mind az előtér maszkhoz sok időt emésztenek fel. Miután feltelepítettem a CUDA Toolkit-et az NVIDIA honlapjáról \cite{cuda-nvidia}, újrafordítottam az OpenCV-t forrásból engedélyezve a CUDA modulokat. A GPU-s Färneback optikai folyam implementációját a \texttt{cv::cuda::FarnebackOpticalFlow} osztályban találhatjuk. Ezzel a módosítással további jelentős sebességnövekedést értem el, mely statisztikáit \aref{table:result_scene1_multi_gpu}. táblázat mutatja. Ezzel a megoldással az első jeleneten kb. 4 FPS-es feldolgozási sebességet értem el.
+\Aref{table:result_scene1_multi}. táblázatban láthatjuk, hogy az optikai folyam számolások, mind a sűrű pontmegfeleltetések számolásához, mind az előtér maszkhoz sok időt emésztenek fel. Miután feltelepítettem a CUDA Toolkit-et az NVIDIA honlapjáról \cite{cuda-nvidia}, újrafordítottam az OpenCV-t forrásból engedélyezve a CUDA modulokat. A GPU-s Färneback optikai folyam implementációját a \texttt{cv::cuda::FarnebackOpticalFlow} osztályban találtam meg. Ezzel a módosítással további jelentős sebességnövekedést értem el, mely statisztikáit \aref{table:result_scene1_multi_gpu}. táblázat mutatja. Ezzel a megoldással az első jeleneten kb. 4 FPS-es feldolgozási sebességet értem el.
 
-Az ORB-bal történő jellegzetes pontok detektálása és leírók számolása is történhet a GPU-n, viszont tesztelések alapján úgy tűnt, hogy ezek a műveletek nem szálbiztosak. A dokumentáció\cite{cuda-stream} is említi, hogy némelyik függvény konstans GPU buffert használ, így ugyanazon műveletek egymás utáni többszöri meghívása okozhat problémákat (az előző optikai folyam számolása úgy tűnik nem ilyen -- konkrét dokumentációt erről nem találtam). Sebességben ez kb. 0,01 másodpercet jelentett volna, annak kárára, hogy ezt a részt szálbiztossá teszem, így ezt az ötletet elvetettem.
+Az ORB-bal történő jellegzetes pontok detektálása és leírók számolása is történhet a GPU-n, viszont tesztelések alapján úgy tűnt, hogy ezek a műveletek nem szálbiztosak. A dokumentáció \cite{cuda-stream} is említi, hogy némelyik függvény konstans GPU buffert használ, így ugyanazon műveletek egymás utáni többszöri meghívása okozhat problémákat (az előző optikai folyam számolása úgy tűnt nem ilyen -- konkrét dokumentációt erről nem találtam). Sebességben ez kb. 0,01 másodpercet jelentett volna képkockánként, annak kárára, hogy ezt a részt szálbiztossá teszem, így ezt az ötletet elvetettem.
 
 \Aref{table:result_scene1_multi_gpu}. táblázatban jól látható, hogy jelenleg a legtöbb időt a textúrázottság meghatározása, valamint maga az optikai folyam kiszámolása viszi el. Utóbbin már nagyon nem lehet javítani, esetleg egy másik algoritmus választásával, előbbin pedig GPU-n történő számolással. Ezeket érdemes lenne a jövőben megvizsgálni.
 
@@ -173,16 +173,16 @@ Teljes folyamat & 0,137 & 0,338 & \textbf{0,259} & 0,0406 \\ \hline
 \caption{Többszálú végrehajtás és GPU-n történő optikai folyam számolás esetén az első jelenet feldolgozási statisztikája \label{table:result_scene1_multi_gpu}}
 \end{table}
 
-Megjegyzem, hogy az OpenCV-nek a még ki nem adott 3.0-s verziójától kezdve az OpenCL keretrendszerrel is jobb az integrációja \cite{amd-opencl-opencv}, és a dokumentáció alapján kicsiny befektetés mellett, szinte transzparensen érhető el, hogy minden, amit felkészítettek rá az OpenCL kernelek segítségével párhuzamosan fusson heterogén rendszereken. Amint láthattuk a CUDA-s megvalósítás nem ilyen, ott explicit függvényhívásokkal kell operálnunk a megnövekedett teljesítmény eléréséhez. Az OpenCL egyik előnye az lenne, hogy a videókártya típusától függetlenül tudnánk kihasználni az ebben rejlő lehetőségeket. Nekem sajnos nem sikerült a gyakorlatban kipróbálnom az OpenCL-es újításokat, és a kódbázis még annyira friss, hogy a dokumentációban és az interneten sem találtam ehhez segítséget.
+Megjegyzem, hogy az OpenCV-nek a még ki nem adott 3.0-s verziójától kezdve az OpenCL keretrendszerrel is jobb az integrációja \cite{amd-opencl-opencv}, és a dokumentáció alapján kicsiny befektetés mellett, lényegében transzparensen érhető el, hogy minden, amit felkészítettek rá az OpenCL kernelek segítségével párhuzamosan fusson heterogén rendszereken. Amint láthattuk a CUDA-s megvalósítás nem ilyen, ott explicit függvényhívásokkal kell operálnunk a megnövekedett teljesítmény eléréséhez. Az OpenCL egyik előnye az lenne, hogy a videókártya típusától függetlenül tudnánk kihasználni az ebben rejlő lehetőségeket. Nekem sajnos nem sikerült a gyakorlatban kipróbálnom az OpenCL-es újításokat, és a kódbázis még annyira friss, hogy a dokumentációban és az interneten sem találtam ehhez segítséget.
 
 
 %----------------------------------------------------------------------------
 \section{Valós idejű helyreállíthatóság vizsgálata}
 %----------------------------------------------------------------------------
 
-A következőkben megvizsgálom, hogy milyen feltételek mellett érhető el a megvalósított megoldással valós idejű helyreállítás az átalam használt száímtógépen. A használt kamerákból \textasciitilde 30 FPS-es videófolyamok nyerhetőek. Mivel a televíziózásban és a mozi világában még mindig igen elterjedt a 24 FPS használata, így én is akkor tekintem valós idejűnek a feldolgozást, ha legalább 24 képkockát sikerül rekonstruálnom másodpercenként. Amennyiben meghaladom a 12 képkockát másodpercenként, akkor azt közel-valós idejűnek tekintem. A következőkben megvizsgálom, hogy mekkora felbontás, valamint képen látható objektum-méret esetén milyen sebesség érhető el.
+A következőkben megvizsgálom, hogy milyen feltételek mellett érhető el a megvalósított megoldással valós idejű helyreállítás az átalam használt számítógépen. Az alkalmazott kamerákból kinyert videofolyamok átlagosan 30 képkockát tartalmaznak másodpercenként. Mivel a televíziózásban és a mozi világában még mindig igen elterjedt a 24 FPS használata, így én is akkor tekintem valós idejűnek a feldolgozást, ha legalább 24 képkockát sikerül rekonstruálnom másodpercenként. Amennyiben meghaladom a 12 képkockát másodpercenként, akkor azt közel-valós idejűnek tekintem. A következőkben megvizsgálom, hogy mekkora felbontás, valamint képen látható objektum-méret esetén milyen sebesség érhető el.
 
-Először a képkockák méretét próbáltam csökkenteni a \texttt{cv::resize()} függvénnyel két lépésben, először $320\times 240$-es, majd $160\times 120$-as felbontásra. A sebességre jótékony hatással volt a képméretek csökkenése, viszont a rekonstrukció minőségére éppen ellenkezőleg. Azokon a képkockákon, ahol az objektumok helyben forogtak, de víszintes irányban nem sokat mozdultak értékelhetetlen lett a helyreállítás. Ez annak a következménye, hogy sok párosítás szempontjából fontos pont a kicsinyítés miatt eltűnt, illetve a képpontok eredeti mozgása a kisebb képeken elhanyagolható lett. Azonos képkockához tartozó rekonstrukciók eredményei és azok sebességei (csak azon képkockák feldolgozásai idejeit számolva, ahol ténylegesen sikerült helyreállítani legalább 1 objektumot) láthatóak \aref{fig:resize}. ábrán, amikor főleg csak vízszintes irányú mozgás történt. Ezek alapján sajnos nem sikerült elérni a valós idejű feldolgozást, csak a közel-valós idejűt, viszont jelentős minőségcsökkenéssel együtt.
+Először a képkockák méretét próbáltam csökkenteni a \texttt{cv::resize()} függvénnyel két lépésben, először $320\times 240$-es, majd $160\times 120$-as felbontásra. A sebességre jótékony hatással volt a képméretek csökkenése, viszont a rekonstrukció minőségére éppen ellenkezőleg. Azokon a képkockákon, ahol az objektumok helyben forogtak, de vízszintes irányban nem sokat mozdultak értékelhetetlen lett a helyreállítás. Ez annak a következménye, hogy sok párosítás szempontjából fontos pont a kicsinyítés miatt eltűnt, illetve a képpontok eredeti mozgása a kisebb képeken elhanyagolható lett. Azonos képkockához tartozó rekonstrukciók eredményei és azok sebességei (csak azon képkockák feldolgozásai idejeit számolva, ahol ténylegesen sikerült helyreállítani legalább 1 objektumot) láthatóak \aref{fig:resize}. ábrán. Ezek alapján sajnos nem sikerült elérni a valós idejű feldolgozást, csak a közel-valós idejűt jelentős minőségcsökkenés és információsveszteség mellett.
 
 \begin{figure}[tbh]
 \centering
@@ -204,7 +204,7 @@ Először a képkockák méretét próbáltam csökkenteni a \texttt{cv::resize(
 \caption{Egyre kisebb képkockák esetén a helyreállítás eredménye a bal oldali kamera nézőpontjából \label{fig:resize}}
 \end{figure}
 
-Ezt követően, a képkockák méretét nem kicsinyítéssel, hanem levágással csökkentettem. Az első jelenet esetében a képek érdemi része középen található, így először nagyjából középső $320\times 240$-es felbontású részt vettem figyelembe (mindegyik kamerán azt a részt, amelyen nagyjából ugyanaz a térrész látható). Ekkor átlagosan 7,35 FPS-es sebességet értem el, mely főleg annak köszönhető, hogy a kisebb méret miatt általában csak 1 objektum látszódott, így csak egyet kellett rekonstruálni. \Aref{fig:cut_320_240}. ábrán látható ugyanazok képkockáknak a helyreállított vizualizációi, mint \aref{fig:scene1_frames}. ábrán.
+Ezt követően, a képkockák méretét nem kicsinyítéssel, hanem levágással csökkentettem. Az első jelenet esetében a képek érdemi része középen található, így először nagyjából középső $320\times 240$-es felbontású részt vettem figyelembe (mindegyik kamerán azt a részt, amelyen nagyjából ugyanaz a térrész látható). Ekkor átlagosan 7,35 FPS-es sebességet értem el, mely főleg annak köszönhető, hogy a kisebb méret miatt általában csak 1 objektum látszódott, így csak egyet kellett rekonstruálni. \Aref{fig:cut_320_240}. ábrán látható ugyanazon képkockáknak a helyreállított vizualizációi, mint \aref{fig:scene1_frames}. ábrán (\pageref{fig:scene1_frames}. oldal).
 
 \begin{figure}[tbh]
 \centering
@@ -223,40 +223,30 @@ Ezt követően, a képkockák méretét nem kicsinyítéssel, hanem levágással
 \caption{Az első jelenet 40., 100. és 170. képkockájának a középső $320\times 240$-es képrészleteinek helyreállításai a bal oldai kamera nézőpontjából \label{fig:cut_320_240}}
 \end{figure}
 
-Ebből kiindulva az objektum detektálás implementációját lecseréltem a \texttt{SingleObjectSelector}-ra, valamint az objektumot a kamerától távolabb mozgattam, hogy kisebb területet foglaljon el és a képeken az objektumot tartalmazó $160\times 140$-as területeket használtam a rekonstruáláshoz. Sajnos csak kb. minden második képkockánál volt értékelhető az eredmény, ez a kis objektum méretnek és a rendelkezésre álló területen történő kicsiny mozgásnak tudható be. Időnként a maszk kijelölés nem sikerült jól, máskor pedig az előzetes ORB alapú párosítás volt helytelen, ami rossz optikai folyamot eredményezett. \Aref{fig:cut_160_140}. ábrán látható néhány egészen pontos rekonstrukció a két kamera képével és a két kamera közötti nézőpontból rekonstruált nézettel.
+Ebből kiindulva az objektum detektálás implementációját lecseréltem a \texttt{SingleObjectSelector}-ra, valamint az objektumot a kamerától távolabb mozgattam, hogy kisebb területet foglaljon el, és a képeken az objektumot tartalmazó $160\times 140$-as területeket használtam a rekonstruáláshoz. Nagyjából minden második képkockánál volt értékelhető az eredmény, a kis objektum méret és a rendelkezésre álló területen történő kicsiny mozgás miatt. Időnként a maszk kijelölés nem sikerült jól, máskor pedig az előzetes ORB alapú párosítás volt helytelen, ami rossz optikai folyamot eredményezett. \Aref{fig:cut_160_140}. ábrán látható néhány egészen pontos rekonstrukció a két kamera képével és a két kamera közötti nézőpontból rekonstruált nézettel.
 
 \begin{figure}[tbh]
 \centering
-\begin{subfigure}[b]{.32\linewidth}
+\begin{subfigure}[b]{\linewidth}
 	\centering
-	\includegraphics[width=137pt]{figures/tiny_vis_153_left.png}
-  \end{subfigure}
-\begin{subfigure}[b]{.32\linewidth}
-	\centering
+	\includegraphics[width=137pt]{figures/tiny_vis_153_left.png}\hspace{5pt}
+	\includegraphics[width=137pt]{figures/tiny_vis_153_right.png}\hspace{5pt}
 	\includegraphics[width=137pt]{figures/tiny_vis_153.png}
-  \end{subfigure}
-\begin{subfigure}[b]{.32\linewidth}
+	\caption{}
+  \end{subfigure} \\\vspace{5pt}
+  \begin{subfigure}[b]{\linewidth}
 	\centering
-	\includegraphics[width=137pt]{figures/tiny_vis_153_right.png}
-  \end{subfigure} \\
-  \begin{subfigure}[b]{.32\linewidth}
-	\centering
-	\includegraphics[width=137pt]{figures/tiny_vis_76_left.png}
-  \end{subfigure}
-\begin{subfigure}[b]{.32\linewidth}
-	\centering
+	\includegraphics[width=137pt]{figures/tiny_vis_76_left.png}\hspace{5pt}
+	\includegraphics[width=137pt]{figures/tiny_vis_76_right.png}\hspace{5pt}
 	\includegraphics[width=137pt]{figures/tiny_vis_76.png}
+	\caption{}
   \end{subfigure}
-\begin{subfigure}[b]{.32\linewidth}
-	\centering
-	\includegraphics[width=137pt]{figures/tiny_vis_76_right.png}
-  \end{subfigure}
-\caption{$160\times 140$-es felbontású képek rekonstrukciója, melyen pont egy teásdoboz elfér. A rekonstrukció a két kamera között félúton lévő kamera nézőpontjából készült \label{fig:cut_160_140}}
+\caption{$160\times 140$-es felbontású képek és azok rekonstrukciói. A rekonstrukció a két kamera közötti képzeletbeli szakasz felezőpontjában vett nézőpontból készült \label{fig:cut_160_140}}
 \end{figure}
 
-Ilyen korlátok mellett is alig 12 képkockát sikerült rekonstruálnom másodpercenként, ami éppen eléri az általam közel-valós idejű feldolgozásnak tekintett sebességet. \Aref{table:cut_160_140}. táblázat mutatja az adott lépések hosszát. Átlagosan 5 pixel lett képkockánként az átlagos visszavetítési hiba, ami szintén az információhiánynak tudható be. A továbbiakban nem próbálkoztam még kisebb képeken az objektumok helyreállításával, mert már ezen utolsó feldolgozás hasznossága az alsó küszöböt érinti. Ennél kisebb információtartalommal rendelkező rekonstrukcióknak nincs gyakorlati haszna, még valós időben sem.
+Ilyen korlátok mellett éppen sikerült elérni a másodpercenkénti 12 képkocka rekonstrukcióját, ami az általam közel-valós idejű feldolgozásnak tekintett sebesség alsó határa. \Aref{table:cut_160_140}. táblázat mutatja az adott lépések hosszát. Átlagosan 5 pixel lett képkockánként az átlagos visszavetítési hiba, ami szintén a távoli objektum következtében jelentkező információhiánynak tudható be. A továbbiakban nem próbálkoztam még kisebb képeken az objektumok helyreállításával, mert már ezen utolsó feldolgozás hasznossága az alsó küszöböt érinti. Ennél kisebb információtartalommal rendelkező rekonstrukcióknak nincs gyakorlati haszna, még valós időben sem.
 
-\begin{table}[tbh]
+\begin{table}[b]
 \centering
 
 \begin{tabular}{|l|l|l|l|l|}
@@ -287,4 +277,4 @@ Teljes folyamat & 0,0184 & 0,206 & \textbf{0,083} & 0,0263 \\ \hline
 \section{Összefoglaló}
 %----------------------------------------------------------------------------
 
-Ebben a fejezetben bemutattam, hogy az implementáció sebességét milyen megközelítések mentén tudtam javítani. Kitértem az OpenMP segítségével megvalósított párhuzamosításra, valamint az OpenCV-ben támogatott CUDA platform használatára. A fejezet végén pedig a valós idejű helyreállíthatóságot és ennek korlátait vizsgáltam meg. Ennek során arra jutottam, hogy az elkészült megoldással szigorúan vett valós idejű rekonstrukció nem valósítható meg, ellenben kvázi-valós idejű igen, amennyiben kicsiny (\textasciitilde $150\times 150$) objektumot kell detektálni a képen.
+Ebben a fejezetben bemutattam, hogy az implementáció sebességét milyen megközelítések mentén tudtam javítani. Kitértem az OpenMP segítségével megvalósított párhuzamosításra, valamint az OpenCV-ben támogatott CUDA platform használatára. A fejezet végén pedig a valós idejű helyreállíthatóságot és ennek korlátait vizsgáltam meg. Ennek során arra jutottam, hogy az elkészült megoldással szigorúan vett valós idejű rekonstrukció nem valósítható meg az általam használt hardveren, ellenben kvázi-valós idejű igen, amennyiben kis méretű (\textasciitilde $150\times 150$) objektumot kell detektálni és helyreállítani a videofolyamok alapján.

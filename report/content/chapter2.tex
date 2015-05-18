@@ -2,7 +2,7 @@
 \chapter{Több kamerából álló kamera-rendszerek \label{chapter2}}
 %----------------------------------------------------------------------------
 
-A kitűzött feladat szempontjából két fontos részproblémát kell több kamerából álló rendszerek esetén megoldanom. Az első a kamerák szinkronizációjának problémája, ami akkor merül fel, ha a kamerák nem egy közös feldolgozó egységhez kapcsolódnak, hanem például a kamerák képeit egy videófolyamként kapjuk. A második pedig, hogy a kamerák képei alapján a háromdimenziós teret, vagy annak egy részét a lehető legjobban rekonstruáljam. Ez a fejezet ezen két problémát járja körbe, valamint végül bemutat egy megoldást a mozgó objektumok detektálására.
+A kitűzött feladat szempontjából két fontos részproblémát kell több kamerából álló rendszerek esetén megoldanom. Az első a kamerák szinkronizációjának problémája, ami akkor merül fel, ha a kamerák nem egy közös feldolgozó egységhez kapcsolódnak, hanem például a kamerák képeit egy videofolyamként kapjuk. A második pedig, hogy a kamerák képei alapján a háromdimenziós teret, vagy annak egy részét a lehető legjobban rekonstruáljam. Ez a fejezet ezen két problémát járja körbe, valamint a mozgó objektumok detektálását mutatja be.
 
 
 %----------------------------------------------------------------------------
@@ -10,17 +10,16 @@ A kitűzött feladat szempontjából két fontos részproblémát kell több kam
 %----------------------------------------------------------------------------
 
 
-Amennyiben a videófolyamba időpecséteket kódolunk, a kamerák szinkronizációja könnyen megoldható. A képsorokat a kódolt információ alapján egymáshoz tudjuk időzíteni, feltéve, hogy a kamerák óráit már előtte szinkronizáltuk.
+Amennyiben a videofolyamokba időpecséteket kódolunk, a kamerák szinkronizációja könnyen megoldható. A képsorokat a kódolt információ alapján egymáshoz tudjuk időzíteni, feltéve, hogy a kamerák óráit már előtte szinkronizáltuk.
 
-Amennyiben ilyen adat nem áll rendelkezésre a videófolyamban, egyéb módszert kell keresnünk. Megoldás lehet, ha a kamerák képsorain egy közös trigger-eseményt keresünk. Egy korábbi munkám során \cite{onlab-1} egy lézerpontot kerestem mindegyik képen, és a felvillanás időpontját tekintettem referenciának. Ehhez nagyon hasonló a filmiparban használt \textit{clapperboard}, aminek összeütését használják szinkronizációra, de akár egy egyszerű taps is megfelelhet, amennyiben a kamerák hangot is rögzítenek.
+Amennyiben ilyen adat nem áll rendelkezésre a videofolyamban, egyéb módszert kell keresnünk. Megoldás lehet, ha a kamerák képsorozatain egy közös trigger-eseményt keresünk. Egy korábbi munkám során \cite{onlab-1} egy lézerpontot kerestem mindegyik képen, és a felvillanás időpontját tekintettem referenciának. Ehhez nagyon hasonló a filmiparban használt \textit{clapperboard}, aminek összeütését használják szinkronizációra, de akár egy egyszerű taps is megfelelhet, amennyiben a kamerák hangot is rögzítenek.
 
 
 %----------------------------------------------------------------------------
 \section{Epipoláris geometria \label{sec:epipolar}}
 %----------------------------------------------------------------------------
 
-Az epipoláris geometria adja meg a kapcsolatot két kamera képe között \cite[9. fejezet]{HZ}. Tekintsük \aref{fig:epipolar}. ábrát. $C_1$ és $C_2$ pontok a kamerák középpontjai, és legyen $P$ egy pont a térben, mely az első kamera $I_1$ képén $p_1$-be, a második kamera $I_2$ képén $p_2$-be képződik le. $p_1$, $p_2$ és $P$ egy síkot határoz meg, jelöljük ezt $\pi$-vel. Ezen a síkon vannak rajta a kamerák középpontjaiból a képpontokon áthaladó félegyenesek is melyek $P$-ben metszik egymást. $\pi$-t a $P$-hez tartozó \textit{epipoláris sík}nak, a két kameraközéppontot összekötő egyenest \textit{bázis egyenes}nek, ennek metszéspontjait a képsíkokkal ($e_1$ és $e_2$) \textit{epipólus}oknak nevezzük. Gondoljuk meg, hogy ha $p_1$-t ismerjük és $p_2$-t szeretnénk meghatározni, akkor azt az epipoláris sík és az $I_2$ képsík metszésvonalán kell keresni, ezt a $p_1$-hez tartozó \textit{epipoláris egyenes}. Ezt a tulajdonságot tudjuk kihasználni ahhoz, hogy egy képpont párját a másik képen nem az egész síkon, hanem csak egy egyenesen kell keresnünk.
-
+Az epipoláris geometria adja meg a kapcsolatot két kamera képe között \cite[9. fejezet]{HZ}. Tekintsük \aref{fig:epipolar}. ábrát. Legyenek $C_1$ és $C_2$ pontok a kamerák középpontjai, és $P$ egy pont a térben, mely az első kamera $I_1$ képén $p_1$-be, a második kamera $I_2$ képén $p_2$-be képződik le. $p_1$, $p_2$ és $P$ egy síkot határoz meg, jelöljük ezt $\pi$-vel. Ezen a síkon vannak rajta a kamerák középpontjaiból a képpontokon áthaladó félegyenesek is melyek $P$-ben metszik egymást. $\pi$-t a $P$-hez tartozó \textit{epipoláris sík}nak, a két kameraközéppontot összekötő egyenest \textit{bázis egyenes}nek, ennek metszéspontjait a képsíkokkal ($e_1$ és $e_2$) \textit{epipólus}oknak nevezzük. Gondoljuk meg, hogy ha $p_1$-et ismerjük és $p_2$-t szeretnénk meghatározni, akkor azt az epipoláris sík és az $I_2$ képsík metszésvonalán kell keresnünk, ezt a $p_1$-hez tartozó \textit{epipoláris egyenes}nek hívjuk. Így egy képpont párját a másik képen nem az egész síkon, hanem csak egy egyenesen kell keresnünk.
 
 \begin{figure}[tbh]
 \centering
@@ -97,13 +96,13 @@ Az epipoláris geometria adja meg a kapcsolatot két kamera képe között \cite
 \caption{Epipoláris geometria szemléltetése \label{fig:epipolar}}
 \end{figure}
 
-Az $\mathbf{F}$ fundamentális mátrix az epipoláris geometria algebrai megfeleltetése, mely az előbb említett képpontból epipoláris egyenesre történő leképezést adja meg:
+Az $\mathbf{F}$ fundamentális mátrix az epipoláris geometria algebrai megfeleltetése, mely az előbb említett képpontból epipoláris egyenesre történő leképezést adja meg. Legyen $\mathbf{x}$ egy $X$ pont képe az egyik képsíkon, $\mathbf{l}'$ pedig a hozzá tartozó epipoláris egyenes a másik képsíkon, ekkor tehát
 
-\[\mathbf{l}' = \mathbf{F}\mathbf{x}\]
+\[\mathbf{l}' = \mathbf{F}\mathbf{x}.\]
 
-ahol $\mathbf{x}$ egy $X$ pont képe az egyik képsíkon, $\mathbf{l}'$ pedig a hozzá tartozó epipoláris egyenes a másik képsíkon. Legyen $\mathbf{x}'$ az $X$ képe a másik képsíkon, mivel rajta van $\mathbf{l}'$-n ezért $\mathbf{x}'^T \mathbf{l}' = 0$, tehát:
+Amennyiben $\mathbf{x}'$-vel jelöljük $X$ képét a másik képsíkon, akkor $\mathbf{x}'^T \mathbf{l}' = 0$, hiszen $\mathbf{x}'$ rajta van $\mathbf{l}'$-n. Felhasználva az előző egyenletet kapjuk tehát, hogy egy $X$ pont két képére
 
-\[\mathbf{x}'^T\mathbf{F}\mathbf{x} = 0\]
+\[\mathbf{x}'^T\mathbf{F}\mathbf{x} = 0.\]
 
 Ezen mátrixegyenletből kiindulva, egymásnak megfelelő képpontpárokból kiszámolhatjuk $\mathbf{F}$-et, 8 pontpárból egy skála erejéig, 8-nál több esetén pedig legkisebb négyzetek módszerével (7 esetén pedig létezik nem-lineáris megoldás) \cite[10.1 alfejezet]{HZ}.
 
@@ -112,15 +111,15 @@ Ezen mátrixegyenletből kiindulva, egymásnak megfelelő képpontpárokból kis
 %----------------------------------------------------------------------------
 
 
-A dolgozat során két, alapvetően eltérő módszerre térek ki. Az első a sztereó-látás elvén alapszik, azaz a kamerákat párosával használva, azokat sztereó-kalibrálva alkotunk mélységképet, mely segítségével a képpontokat mélységinformációval ruházzuk fel. A második eljárás az optikai folyamok segítségével a kamerák képein meghatározza az egymásnak megfelelő pontokat, és ezekből a párosításokból háromszögelés után meghatározza a pontok világbeli koordinátáját.
+A dolgozat során két, alapvetően eltérő módszerre térek ki. Az első a sztereó-látás elvén alapszik, azaz a kamerákat párosával használva, azokat sztereó-kalibrálva alkotunk mélységképet, mely segítségével a képpontokat mélységinformációval ruházzuk fel. A második eljárás az optikai folyamok segítségével a kamerák képein meghatározza az egymásnak megfelelő pontokat, és ezekből a párosításokból háromszögelés után kiszámolja a pontok világbeli koordinátáját.
 
 \subsection{Sztereó-látás, sztereó-kalibráció}
 
-Sztereó-kalibráció \cite{camera-calib-3d} során egy már ismert háromdimenziós objektumot használunk, és az alapján, hogy az objektum ismert pontjait a két kamera képén hol látjuk, kiszámolhatjuk a kamerák belső és külső paramétereit (lásd előző fejezet), valamint a kamerák egymáshoz való viszonyát (eltolás, forgatás). 
+Sztereó-kalibráció \cite{camera-calib-3d} során egy már ismert háromdimenziós objektumot használunk, és az alapján, hogy az objektum ismert pontjait a két kamera képén hol látjuk, kiszámoljuk a kamerák belső és külső paramétereit (lásd előző fejezet), valamint a kamerák egymáshoz való viszonyát (eltolás, forgatás). 
 
 Amennyiben a két kamera képsíkja egybeesik, akkor a bázisegyenesek a képsíkokkal a végtelenben metszik egymást, ebből adódóan az epipoláris egyenesek párhuzamosak. Ha a két kamera közötti transzformáció csak tisztán egy $x$ tengellyel párhuzamos eltolás (standard sztereókamerák), akkor az epipoláris egyenesek az $x$ tengellyel is párhuzamosak, tehát a pontpárok keresése pusztán a képkockák egy adott sorára korlátozódik.
 
-Mivel a gyakorlatban nehéz pontosan úgy elhelyezni a kamerákat, hogy képsíkjuk egybeessen és csak víszintes irányú eltolás legyen köztük, ezért a kamerák képeit célszerű \textit{rektifikál}ni, hogy a pontok párjait továbbra is csak egy képsoron legyen szükséges keresni. Ekkor a kamerák képeit úgy transzformáljuk, hogy a képsíkok egy képzeletbeli közös síkba essenek, lásd \aref{fig:rectification}. ábrát.
+Mivel a gyakorlatban nehéz pontosan úgy elhelyezni a kamerákat, hogy képsíkjuk egybeessen és csak víszintes irányú eltolás legyen köztük, ezért a kamerák képeit célszerű \textit{rektifikál}ni, hogy a pontok párjait továbbra is csak egy-egy képsoron legyen szükséges keresni. Ekkor a kamerák képeit úgy transzformáljuk, hogy a képsíkok egy képzeletbeli közös síkba essenek, lásd \aref{fig:rectification}. ábrát.
 
 \begin{figure}[tbh]
 \centering
@@ -228,7 +227,7 @@ Mivel a gyakorlatban nehéz pontosan úgy elhelyezni a kamerákat, hogy képsík
 \caption{Rektifikáció szemléltetése \label{fig:rectification}}
 \end{figure}
 
-\Aref{fig:stereo-calibration-before}. és \aref{fig:stereo-calibration-after}. ábrán látható, ahogy egy sakktábla-mintát (melynek valódi koordinátái ismertek), több szögből lefotózva a rektifikáció \cite{camera-calib-3d} előtt és után, hogy alakul a két kamera képe. A piros segéd egyenesek segítségével az is jó látható, hogy a rektifikáció után az egymásnak megfelelő rácspontok valóban egy vízszintes egyenesre esnek.
+\Aref{fig:stereo-calibration-before}. és \aref{fig:stereo-calibration-after}. ábrán látható egy sakktábla-minta a kamerák képein a rektifikáció \cite{camera-calib-3d} előtt és után. A piros segédegyenesek segítségével az is jó látható, hogy a rektifikáció után az egymásnak megfelelő rácspontok valóban egy vízszintes egyenesre esnek.
 
 \begin{figure}[tbh]
   \centering
@@ -342,36 +341,38 @@ Az előzőekben megismert eljárás azt feltételezi, hogy a kamerák párosáva
 
 A most ismertetésre kerülő eljárás, az \textit{optikai folyam}okat \cite{optic-flow} hívja segítségül. Vegyünk egymás utáni képeket egy mozgó objektumról. Az objektum mindegyik pontja egy háromdimenziós $\mathbf{P}(t)$ útvonalon mozog, mely a kamerák képén egy $\mathbf{p}(t) = \big(x(t), y(t)\big)$ kétdimenziós útvonalnak feleltethető meg. Minden pontra nézve az elmozdulás $d\mathbf{p}(t) / dt$ irányát egy vektormezőt kapunk, ezt hívjuk optikai folyamnak.
 
-Jelöljük $I(x, y, t)$-vel a kép $(x, y)$ pontjának intenzitását a $t$ időpillanatban. Feltehető, hogy két egymás utáni képkockán ugyanazon pont képpontjainak intenzitása konstans (\textit{világosság állandóság}, az angol \textit{brightness constancy} kifejezésből), vagyis:
-\[I(x,\; y,\; t) = I(x+dx,\; y+dy,\; t+dt)\]
+Jelöljük $I(x, y, t)$-vel a kép $(x, y)$ pontjának intenzitását a $t$ időpillanatban. Feltehető, hogy két egymás utáni képkockán ugyanazon pont képpontjainak intenzitása konstans (\textit{világosság állandóság}, az angol \textit{brightness constancy} kifejezésből), vagyis
+
+\[I(x,\; y,\; t) = I(x+dx,\; y+dy,\; t+dt),\]
+
 ahol az $(x,y)$ képpont $dt$ idő alatt $(dx,dy)$-nal mozdult el. A jobb oldal jól közelíthető az első-rendű Taylor-sor kifejtésével:
 
-\[I(x+dx,\; y+dy,\; t+dt) \approx I(x,\; y,\; t) + \frac{\partial I}{\partial x} dx + \frac{\partial I}{\partial y} dy + \frac{\partial I}{\partial t} dt\]
+\[I(x+dx,\; y+dy,\; t+dt) \approx I(x,\; y,\; t) + \frac{\partial I}{\partial x} dx + \frac{\partial I}{\partial y} dy + \frac{\partial I}{\partial t} dt.\]
 
-Felhasználva a világosság állandóság kényszert:
+Felhasználva a világosság állandóság kényszert kapjuk, hogy
 
-\[\frac{\partial I}{\partial x} dx + \frac{\partial I}{\partial y} dy + \frac{\partial I}{\partial t} dt = 0\]
+\[\frac{\partial I}{\partial x} dx + \frac{\partial I}{\partial y} dy + \frac{\partial I}{\partial t} dt = 0.\]
 
 Mindkét oldalt $dt$-vel osztva:
 
 \[\frac{\partial I}{\partial x} \frac{dx}{dt} + \frac{\partial I}{\partial y} \frac{dy}{dt} + \frac{\partial I}{\partial t} \frac{dt}{dt} = 0\]
 
-Végül bevezetve a $\nabla \mathbf{I} = \left(\frac{\partial I}{\partial x}, \frac{\partial I}{\partial y}\right)$ és $\mathbf{V} = \left(\frac{dx}{dt}, \frac{dy}{dt}\right)$ jelöléseket, az alábbi egyszerű alakot ölti:
+Végül bevezetve a $\nabla \mathbf{I} = \left(\frac{\partial I}{\partial x}, \frac{\partial I}{\partial y}\right)$ és $\mathbf{V} = \left(\frac{dx}{dt}, \frac{dy}{dt}\right)$ jelöléseket, az alábbi egyszerű alakot kapjuk:
 
-\[\nabla \mathbf{I} \cdot \mathbf{V} = -\frac{\partial I}{\partial t}\]
+\[\nabla \mathbf{I} \cdot \mathbf{V} = -\frac{\partial I}{\partial t}.\]
 
 Ezt nevezzük az optikai folyam feltételi egyenletének \cite{phd}. Mivel $\mathbf{V}\left(\frac{dx}{dt}, \frac{dy}{dt}\right)$ nem ismert, ezért egy egyenletben két ismeretlenünk van, így az optikai folyam általános esetben nem oldható meg.
 
 \subsubsection{Lucas-Kanade módszer \cite{LK}}
 
-Ez a módszer ritka vektor-mezőt generál a jellegzetes pontok elmozdulására. Lényege, hogy a vizsgált pontok és azok környezetében az elmozdulás azonos \cite{lk-wiki}, vagyis:
+Ez a módszer ritka vektor-mezőt generál a jellegzetes pontok elmozdulására. Lényege, hogy a vizsgált pontok és azok környezetében az elmozdulást azonosnak tekinti \cite{lk-wiki}, vagyis:
 
 \[\nabla \mathbf{I}_{\mathbf{q_1}} \cdot \mathbf{V} = -\frac{\partial I}{\partial t}(\mathbf{q_1}, t)\]
 \[\nabla \mathbf{I}_{\mathbf{q_2}} \cdot \mathbf{V} = -\frac{\partial I}{\partial t}(\mathbf{q_2}, t)\]
 \[\vdots\]
-\[\nabla \mathbf{I}_{\mathbf{q_n}} \cdot \mathbf{V} = -\frac{\partial I}{\partial t}(\mathbf{q_n}, t)\]
+\[\nabla \mathbf{I}_{\mathbf{q_n}} \cdot \mathbf{V} = -\frac{\partial I}{\partial t}(\mathbf{q_n}, t),\]
 
-ahol $\mathbf{q_1},\mathbf{q_2},\ldots,\mathbf{q_n}$ a vizsgált pont környezetében lévő pontok és $\nabla \mathbf{I}_{\mathbf{q_i}} = \left(\frac{\partial I}{\partial x}(\mathbf{q_i}), \frac{\partial I}{\partial y}(\mathbf{q_i})\right)$. Ez így viszont már egy túlhatározott egyenletrendszer, melyhez közelítő megoldás a legkisebb-négyzetek módszerével kereshető \cite{LK, lk-wiki}. A gyakorlatban a követendő pontokra a Shi-Thomasi \cite{shi-thomasi} módszer által adott sarokpontokat szokták használni (lásd \aref{fig:lk}. ábra).
+ahol $\mathbf{q_1},\mathbf{q_2},\ldots,\mathbf{q_n}$ a vizsgált pont környezetében lévő pontok és $\nabla \mathbf{I}_{\mathbf{q_i}} = \left(\frac{\partial I}{\partial x}(\mathbf{q_i}), \frac{\partial I}{\partial y}(\mathbf{q_i})\right)$. Ez így viszont már egy túlhatározott egyenletrendszer, melyhez közelítő megoldás a legkisebb-négyzetek módszerével kereshető \cite{LK, lk-wiki}. A gyakorlatban a követendő pontokra a Shi-Tomasi módszer \cite{shi-thomasi} által adott sarokpontokat szokták használni (lásd \aref{fig:lk}. ábra).
 
 \begin{figure}[tbh]
 \centering
@@ -387,20 +388,20 @@ A módszer lényege, hogy a kép pixeleinek intenzitását egy polinommal közel
 
 ahol $\mathbf{A}$ egy szimmetrikus mátrix, $\mathbf{b}$ vektor és $c$ skalár.
 
-Ezeket az együtthatókat a legkisebb-négyzetek módszerével közelítően meghatározhatjuk. Tegyük fel, hogy mindkét kép összes pixelének intenzitása egyetlen polinommal felírható, és a két képkockán az egész polinom ideálisan $\mathbf{d}$-vel mozdul el, vagyis:
+Ezeket az együtthatókat a legkisebb-négyzetek módszerével közelítően meghatározhatjuk. Tegyük fel, hogy mindkét kép összes pixelének intenzitása egyetlen polinommal felírható, és a két képkockán az egész polinom ideálisan $\mathbf{d}$-vel mozdul el, vagyis
 
-\[f_1(\mathbf{x} - \mathbf{d}) = f_2(\mathbf{x})\]
+\[f_1(\mathbf{x} - \mathbf{d}) = f_2(\mathbf{x}).\]
 
-A fenti képlet jelenti a világosság állandóság kényszer teljesülését. Bal oldalt kifejtve, jobb oldalt pedig átírva a polinom-alakba \cite{farneback}:
+A fenti képlet jelenti a világosság állandóság kényszer teljesülését. Bal oldalt kifejtve, jobb oldalt pedig átírva a polinom-alakba \cite{farneback} kapjuk, hogy
 
-\[\mathbf{x}^T \mathbf{A}_1 \mathbf{x} + (\mathbf{b_1} - 2 \mathbf{A}_1\mathbf{d})^T \mathbf{x} + \mathbf{d}^T \mathbf{A}_1 \mathbf{d} -\mathbf{b}_1^T + c_1 = \mathbf{x}^T \mathbf{A}_2 \mathbf{x} + \mathbf{b_2}^T \mathbf{x} + c_2\]
+\[\mathbf{x}^T \mathbf{A}_1 \mathbf{x} + (\mathbf{b_1} - 2 \mathbf{A}_1\mathbf{d})^T \mathbf{x} + \mathbf{d}^T \mathbf{A}_1 \mathbf{d} -\mathbf{b}_1^T + c_1 = \mathbf{x}^T \mathbf{A}_2 \mathbf{x} + \mathbf{b_2}^T \mathbf{x} + c_2.\]
 
 Az együtthatókat egyenlővé téve, kapjuk a következő egyenleteket:
 
 \[\begin{array}{rcl}\mathbf{A}_2 &=& \mathbf{A}_1\\\mathbf{b_2} &=& \mathbf{b_1} - 2 \mathbf{A}_1\mathbf{d}\\ c_2 &=& \mathbf{d}^T \mathbf{A}_1 \mathbf{d} -\mathbf{b}_1^T + c_1 \end{array}\]
 
-Jól látható, hogy $\mathbf{d}$ meghatározható ha $\mathbf{A}_1$ determinánsa nem nulla. Általános esetben természetesen nem élhetünk az előbbi feltételekkel, miszerint mindkét kép leírható egyetlen polinommal és ideálisan minden pont $\mathbf{d}$-vel mozdult el. Ezért lokális polinomokkal dolgozunk, melyek a pontok egy környezetében érvényesek, vagyis $\mathbf{A}_1(\mathbf{x}), \mathbf{b_1}(\mathbf{x}),$ $c_1(\mathbf{x})$ és $\mathbf{A}_2(\mathbf{x}), \mathbf{b_2}(\mathbf{x}), c_2(\mathbf{x})$ együtthatókkal kell számolunk. Ekkor az alábbi közelítéseket téve:
-\[\mathbf{A}(\mathbf{x}) = \frac{\mathbf{A}_2(\mathbf{x}) + \mathbf{A}_2(\mathbf{x})}{2}\]
+Jól látható, hogy $\mathbf{d}$ meghatározhatóságának szükséges feltétele, hogy $\mathbf{A}_1$ determinánsa nem nulla. Általános esetben természetesen nem élhetünk az előbbi feltételekkel, miszerint mindkét kép leírható egyetlen polinommal és ideálisan minden pont $\mathbf{d}$-vel mozdult el. Ezért lokális polinomokkal dolgozunk, melyek a pontok egy környezetében érvényesek, vagyis $\mathbf{A}_1(\mathbf{x}), \mathbf{b_1}(\mathbf{x}),$ $c_1(\mathbf{x})$ és $\mathbf{A}_2(\mathbf{x}), \mathbf{b_2}(\mathbf{x}), c_2(\mathbf{x})$ együtthatókkal kell számolunk. Ekkor az alábbi közelítéseket téve:
+\[\mathbf{A}(\mathbf{x}) = \frac{\mathbf{A}_1(\mathbf{x}) + \mathbf{A}_2(\mathbf{x})}{2}\]
 \[\Delta \mathbf{b}(\mathbf{x}) = -\frac{1}{2}\left(\mathbf{b}_2(\mathbf{x})-\mathbf{b}_1(\mathbf{x})\right)\]
 Kapjuk az előbbi egyenletekkel összevetve a következőt:
 \[\mathbf{A}(\mathbf{x})\mathbf{d}(\mathbf{x}) = \Delta \mathbf{b}(\mathbf{x})\]
@@ -521,7 +522,7 @@ Az előbbi módszer jól használható nagy felbontású képeknél, ahol az obj
 
 Legyen adott két kamera a belső és külső paramétereivel együtt, tehát ismerjük a kamerák $\mathbf{P}$ és $\mathbf{Q}$ projekciós mátrixát. Amennyiben vesszük egy $P$ pont vetületeit a kamerák képein, akkor háromszögeléssel meghatározhatjuk ezen pont valóvilágbeli koordinátáit.
 
-Legyen a két egymásnak megfeleltetett képpont $\mathbf{u}$ és $\mathbf{u}'$. A megfeleltetés zajos jellege miatt, ezek általánosságban nem elégítik ki az epipoláris $\mathbf{u}'^T \mathbf{F} \mathbf{u} = 0$ kényszert, ahol $\mathbf{F}$ a két kamera fundamentális mátrixa. Ilyenkor ezek helyett olyan $\mathbf{\hat{u}} \leftrightarrow \mathbf{\hat{u}}'$ megfeleltetést keresünk, mely minimalizálja az alábbi
+Legyen a két egymásnak megfeleltetett képpont $\mathbf{u}$ és $\mathbf{u}'$. A megfeleltetés zajos jellege miatt, ezek általánosságban nem elégítik ki az epipoláris $\mathbf{u}'^T \mathbf{F} \mathbf{u} = 0$ kényszert, ahol $\mathbf{F}$ a két kamera fundamentális mátrixa. Ilyenkor ezek helyett olyan $\mathbf{\hat{u}} \leftrightarrow \mathbf{\hat{u}}'$ megfeleltetést keresünk, mely minimalizálja a
 
 \[d(\mathbf{u}, \mathbf{\hat{u}})^2 + d(\mathbf{u}', \mathbf{\hat{u}}')^2\]
 
@@ -531,9 +532,9 @@ költségfüggvényt, ahol $d(., .)$ két pont euklideszi távolsága, és kiel�
 
 epipoláris kényszert \cite{hartley-triangulation}. Amikor megvan $\mathbf{\hat{u}}$ és $\mathbf{\hat{u}}'$, már meghatározhatjuk a kameraközéppontokból induló ezen pontokon átmenő sugarak metszéspontjait, hiszen biztosan létezni fog. Hartley és Sturm \cite{hartley-triangulation} megad egy optimális polinomiális megoldást, mely a fenti költségfüggvényt minimalizálja Gauss-eloszlású zaj feltételezése esetén.
 
-Ennek ellenére a gyakorlatban inkább lineáris háromszögelést szoktak alkalmazni \cite[5.1 szekció]{hartley-triangulation}. Legyen $\mathbf{x}$ egy pont és ennek vetülete az első kamera képén $\mathbf{u}$, vagyis $\mathbf{u} = \mathbf{P}\mathbf{x}$. Legyen $\mathbf{u}$ homogén koordinátákkal $\mathbf{u} = w_u[x_u, y_u, 1]^T$, tehát:
+Ennek ellenére a gyakorlatban inkább lineáris háromszögelést szoktak alkalmazni \cite[5.1 szekció]{hartley-triangulation}. Legyen $\mathbf{x}$ egy pont és ennek vetülete az első kamera képén $\mathbf{u}$, vagyis $\mathbf{u} = \mathbf{P}\mathbf{x}$. Legyen $\mathbf{u}$ homogén koordinátákkal $\mathbf{u} = w_u[x_u, y_u, 1]^T$, tehát
 
-\[w_u\left[ \begin{array}{c} x_u \\ y_u \\ 1 \end{array} \right] = \left[ \begin{array}{c} \mathbf{p}_1^T \\ \mathbf{p}_2^T \\ \mathbf{p}_3^T \end{array} \right] \mathbf{x}\]
+\[w_u\left[ \begin{array}{c} x_u \\ y_u \\ 1 \end{array} \right] = \left[ \begin{array}{c} \mathbf{p}_1^T \\ \mathbf{p}_2^T \\ \mathbf{p}_3^T \end{array} \right] \mathbf{x},\]
 
 ahol $\mathbf{p}_i^T$ jelöli a $\mathbf{P}$ mátrix $i$. sorvektorát. Így összesen 3 egyenletet kapunk:
 
@@ -551,26 +552,26 @@ Ugyanezt levezetve $\mathbf{v} = w_v[x_v, y_v, 1]^T = \mathbf{Q}\mathbf{x}$ kép
 
 A fenti négy egyenletet rendezve:
 
-\[\left( \begin{array}{c} x_u\mathbf{p}_3^T - \mathbf{p}_1^T \\ y_u\mathbf{p}_3^T - \mathbf{p}_2^T \\ x_v\mathbf{q}_3^T - \mathbf{q}_1^T \\ y_v\mathbf{q}_3^T - \mathbf{q}_2^T \end{array} \right) \mathbf{x} = 0\]
+\[\left( \begin{array}{c} x_u\mathbf{p}_3^T - \mathbf{p}_1^T \\ y_u\mathbf{p}_3^T - \mathbf{p}_2^T \\ x_v\mathbf{q}_3^T - \mathbf{q}_1^T \\ y_v\mathbf{q}_3^T - \mathbf{q}_2^T \end{array} \right) \mathbf{x} = 0.\]
 
-Ez meghatározza $\mathbf{x}$-et egy faktor erejéig, és ennek nem-zérus megoldását keressük. Zajos adatokat feltételezve ennek nem feltétlen találunk pontos megoldást, így közelítenünk kell. Egy lehetséges megközelítés a \textit{Linear-LS} (lineáris, legkisebb négyzetek) módszer, mely $\mathbf{x} = [x, y, z, 1]^T$ alakú megoldások között keresi az egyenletrendszer legkisebb négyzetek megoldását (pl. szinguláris érték szerinti felbontással (SVD) \cite{cs-svd}). 
+Ez meghatározza $\mathbf{x}$-et egy faktor erejéig, és ennek nem-zérus megoldását keressük. Zajos adatokat feltételezve nem feltétlen találunk pontos megoldást, így közelítenünk kell. Egy lehetséges megközelítés a \textit{Linear-LS} (lineáris, legkisebb négyzetek) módszer, mely $\mathbf{x} = [x, y, z, 1]^T$ alakú megoldások között keresi az egyenletrendszer legkisebb négyzetek megoldását (pl. szinguláris érték szerinti felbontással (SVD) \cite{cs-svd}). 
 
-Általános esetben a talált $\mathbf{x}$ nem pontos megoldása a fenti egyenleteknek, azaz egy $\varepsilon = x_u\mathbf{p}_3^T\mathbf{x} - \mathbf{p}_1^T\mathbf{x}$ hibával számolhatunk az egyenletrendszer első egyenleténél. Mi nem ezt, hanem $x_u$ és $\mathbf{x}$ vetületének első koordinátája közötti eltérését szeretnénk minimalizálni, azaz $\varepsilon' = \frac{\varepsilon}{\mathbf{p}_3^T\mathbf{x}} = x_u - \frac{\mathbf{p}_1^T\mathbf{x}}{\mathbf{p}_3^T\mathbf{x}}$. Tehát, ha az egyenletet $1 / \mathbf{p}_3^T\mathbf{x}$-szel súlyoztuk volna, akkor az úgy kapott hiba pont az általunk minimalizálandó hiba lett volna. Természetesen ezt nem tudjuk megtenni, hiszen $\mathbf{x}$ még nem ismert, csak miután megoldottuk az egyenletrendszert, de egy iteratív megközelítést tudunk alkalmazni. Minden iteráció végén újrasúlyozzuk a megfelelő sorokat $1 / \mathbf{p}_3^T\mathbf{x}_i$, valamint $1 / \mathbf{q}_3^T\mathbf{x}_i$-vel, ahol $\mathbf{x}_i$ az $i$. iteráció végén kapott megoldás. Ha a lépéseknél az aktuális megoldást az előbbi \textit{Linear-LS}-sel keressük, akkor az így kapott eljárást \textit{Iterative-LS}-nek hívjuk. Hartley és Sturm \cite[5.2 szekció]{hartley-triangulation} munkája alapján az esetek 95\%-ban a megoldás konvergens (epipólus melletti pontokra volt divergens), és amikor az új súly már csak kis mértékben változik az előzőhöz képest, megszakíthatjuk az iterációt.
+Általános esetben a talált $\mathbf{x}$ nem pontos megoldása a fenti egyenleteknek, azaz egy $\varepsilon = x_u\mathbf{p}_3^T\mathbf{x} - \mathbf{p}_1^T\mathbf{x}$ hibával számolhatunk az egyenletrendszer első egyenleténél. Mi nem ezt, hanem $x_u$ és $\mathbf{x}$ vetületének első koordinátája közötti eltérését szeretnénk minimalizálni, azaz $\varepsilon' = \frac{\varepsilon}{\mathbf{p}_3^T\mathbf{x}} = x_u - \frac{\mathbf{p}_1^T\mathbf{x}}{\mathbf{p}_3^T\mathbf{x}}$. Tehát, ha az egyenletet $1 / \mathbf{p}_3^T\mathbf{x}$-szel súlyoztuk volna, akkor az úgy kapott hiba pont az általunk minimalizálandó hiba lett volna. Természetesen ezt nem tudjuk megtenni, hiszen $\mathbf{x}$ még nem ismert, csak miután megoldottuk az egyenletrendszert, de egy iteratív megközelítést tudunk alkalmazni. Minden iteráció végén újrasúlyozzuk a megfelelő sorokat $1 / \mathbf{p}_3^T\mathbf{x}_i$-vel, valamint $1 / \mathbf{q}_3^T\mathbf{x}_i$-vel, ahol $\mathbf{x}_i$ az $i$. iteráció végén kapott megoldás. Ha a lépéseknél az aktuális megoldást az előbbi \textit{Linear-LS}-sel keressük, akkor az így kapott eljárást \textit{Iterative-LS}-nek hívjuk. Hartley és Sturm \cite[5.2 szekció]{hartley-triangulation} munkája alapján az esetek 95\%-ban a megoldás konvergens (epipólus melletti pontokra volt divergens), és amikor az új súly már csak kis mértékben változik az előzőhöz képest, megszakíthatjuk az iterációt.
 
 %----------------------------------------------------------------------------
 \section{Objektum-detektálás \label{sec:obj_detection}}
 %----------------------------------------------------------------------------
 
-Objektumok detektálására a szakirodalomban több eltérő módszert is találhatunk. Az egyik legegyszerűbb ezek közül a minta alapú illesztés (\textit{feature matching}) \cite{brunelli1997template}. Ekkor lényegében egy minta képet illesztünk egy forrás képre csúszóablakos módszerrel, és valamely metrika mentén minden pozícióban egy illeszkedési értéket számolunk. Ezt az egész képre meghatározva, majd ennek ennek a maximumát véve kapjuk az illeszkedési pontot, ahol a keresett objektumot megtaláltuk.
+Objektumok detektálására a szakirodalomban több eltérő módszert is találhatunk. Az egyik legegyszerűbb ezek közül a minta alapú illesztés (\textit{template matching}) \cite{brunelli1997template}. Ekkor lényegében egy minta képet illesztünk egy forrás képre csúszóablakos módszerrel, és valamely metrika mentén minden pozícióban egy illeszkedési értéket számolunk. Ezt az egész képre meghatározva, majd ennek ennek a maximumát véve kapjuk az illeszkedési pontot, ahol a keresett objektumot megtaláltuk.
 
 Egy másik nagyon elterjedt módszer a kaszkád osztályozó (\textit{cascade classifier}), ami gépi tanuláson alapszik \cite{viola2001rapid}. Ennek segítségével egy előzetes tanulási szakasz után viszonylag komplex objektumok felismerése is nagyon gyorsan lehetővé válik.
 
-A harmadik módszer, amit kiemelnék a jellegzetes pontok megfeleltetésén (\textit{feature matching}) alapszik. A keresendő objektumon és a forrás képen különböző algoritmusok segítségével jellegzetes pontokat emelünk ki, majd ezek tulajdonságait egy leíróban tároljuk, végül ezeket egymásnak a két képen megfeleltetjük, párosítjuk és a legnagyobb egyezőség
+A harmadik módszer, amit kiemelnék a jellegzetes pontok megfeleltetésén (\textit{feature matching}) alapszik. A keresendő objektum képén és a forrás képen különböző algoritmusok segítségével jellegzetes pontokat emelünk ki, majd ezek tulajdonságait (pixel színe, annak környezete stb.) vektorokkal írjuk le. Ezeket a vektorokat úgy párosítjuk, hogy valamely -- a vektorok típusától függő -- értelemben vett távolságuk a lehető legkisebb legyen. Az így adódó megfeleltetésekből kapjuk a keresett objektum helyét a forrás képen.
 
-\subsection{Mozgó objektumok kiválasztása}
+\subsection{Mozgó objektumok kiválasztása \label{sec:moving_obj_detection}}
 %----------------------------------------------------------------------------
 
-Mivel a feladat megoldása során mozgó objektumokat kell követnem, azokat modelleznem, így szükség van a mozgó objektumok statikus háttértől való elkülönítésére.
+Mivel a feladat megoldása során mozgó objektumokat kell követnem, azokat modelleznem, így szükséges a mozgó objektumok statikus háttértől való elkülönítése.
 
 Egy lehetőségünk például az előző részben leírt Farnebäck-módszer használata. Egy kamera egymás utáni képkockáira alkalmazva, becslést kaphatunk arra vonatkozóan, hogy hol lehetnek a mozgó tárgyak. A kamerák statikus helyzete révén, a háttér képpontjaihoz tartozóan közel zéró elmozdulást várunk, míg a mozgó részeken ettől eltérőt.
 
@@ -587,7 +588,7 @@ Másik megoldás lehet például egy háttér-előtér szegmentálási algoritmu
 
 Miután meghatároztam a mozgó objektumokhoz tartozó maszkokat, az ezek által kijelölt képrészleteket kell úgy párosítanom a kamerák képein, hogy azok egy valódi objektumhoz tartozzanak.
 
-Erre a feladatra a kaszkád osztályozót a szükséges előzetes tanítás miatt elvetettem. A minta alapú illesztést alkalmazhattam volna úgy, hogy az egyik képen meghatározott képrészleteket egyenként használom a másik kép számára mintaként. Ahogy majd később látni fogjuk az optikai folyam alapú sűrű pont-pont megfeleltetés robosztus meghatározásához szükségünk lesz előzetes megfeleltetésre, ezért az előző fejezetben leírt objektumok detektálásához használható eljárások közül a jellegzetes pont alapú megfeleltetését választottam. Ennek segítségével az előtérhez tartozó képrészleteket párosítottam a kamerák képein, így sikeresen detektáltam a mozgó objektumokat a kamerák képein.
+Erre a feladatra a kaszkád osztályozót a szükséges előzetes tanítás miatt elvetettem. A minta alapú illesztést alkalmazhattam volna úgy, hogy az egyik képen meghatározott képrészleteket egyenként használom a másik kép számára mintaként. Ahogy majd később látni fogjuk az optikai folyam alapú sűrű pont-pont megfeleltetés robosztus meghatározásához szükségünk lesz már egy előzetes megfeleltetésre, ezért az előző fejezetben leírt objektumok detektálásához használható eljárások közül a jellegzetes pont alapú megfeleltetést választottam. Ennek segítségével párosítottam az előtérhez tartozó képrészleteket a kamerák képein, így sikeresen detektáltam a mozgó objektumokat a kamerák képein.
 
 %----------------------------------------------------------------------------
 \section{Összefoglaló}

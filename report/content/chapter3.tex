@@ -6,9 +6,9 @@ Az elméleti megfontolások, alapelvek bemutatását követően ebben a fejezetb
 
 \section{Specifikáció kidolgozása}
 
-A diplomamunka során elkészített rendszernek képesnek kellett lennie egy zárt térrész tetszőlegesen választott pontjában és irányában látható, a mozgó objektumokat tartalmazó kép helyreállítására fix telepítésű kamerák valós idejű videofolyamai alapján. A kamerák fix helyzete egyszerűsíti a problémát, mert ezzel a kamera koordinátarendszerét kalibráció segítségével előre össze lehet hangolni a világ-koordinátarendszerrel. A helyreállítást akkor tekintettem sikeresnek, ha a mozgó objektumokat detektáltam és választott nézőpontból azok megközelítő kontúrjait sikeresen meghatároztam. A tényleges objektum struktúrájának illetve textúrájának meghatározása nem esett a dolgozat hatáskörébe. A választott nézőpontra is voltak korlátaink, érdemi rekonstrukciót csak a kamerákat összekötő képzeletbeli szakaszon és annak környezetében várhatunk, így a tesztelést is így végeztem.
+A diplomamunka során elkészített rendszernek képesnek kellett lennie egy zárt térrész tetszőlegesen választott pontjában és irányában látható, a mozgó objektumokat tartalmazó kép helyreállítására fix telepítésű kamerák valós idejű videofolyamai alapján. A kamerák fix helyzete egyszerűsíti a problémát, mert ezzel a kamera koordinátarendszerét kalibráció segítségével előre össze lehetett hangolni a világ-koordinátarendszerrel. A helyreállítást akkor tekintettem sikeresnek, ha a mozgó objektumokat detektáltam és választott nézőpontból azok megközelítő kontúrjait sikeresen meghatároztam. A tényleges objektum struktúrájának illetve textúrájának meghatározása nem esett a dolgozat hatáskörébe. A választott nézőpontra is voltak korlátaink, érdemi rekonstrukciót csak a kamerákat összekötő képzeletbeli szakaszon és annak környezetében várhatunk, így a tesztelést is így végeztem el.
 
-A rendszer tervezése során figyelembe vettem, hogy lényegében tetszőleges számú kamerát is felhasználhattam a probléma megoldásához, ennek megfelelően a megvalósított rendszer architektúráját így készítettem el, de az elérhető eszközök korlátozott száma miatt csak két kamerával teszteltem.
+A rendszer tervezése során figyelembe vettem, hogy lényegében tetszőleges számú kamerát is felhasználhattam a probléma megoldásához, de az elérhető eszközök korlátozott száma miatt csak két kamerát felhasználva készült el a konkrét implementáció.
 
 Egyre több kamera bevonásával a rekonstrukció minősége, valamint a helyesen rekonstruálható nézőpontok száma növekszik, de ezzel együtt a rendszer teljesítménye a megnövekedő számítási szükséglet miatt csökken. Fontos megemlíteni, hogy a feladat és a megoldás jellegéből adódóan a független kamerákból meghatározott rekonstrukciók párhuzamosíthatóak, így ezek megfelelő feldolgozó egységet feltételezve egy időben elvégezhetőek. Ez azt jelenti, hogy a kamerák számának növelése valóban megoldás lehet a robusztusabb eredmény eléréséhez.
 
@@ -20,7 +20,7 @@ A diplomamunka készítése során az OpenCV \cite{opencv} keretrendszert haszn�
 
 A feladat megoldásához \aref{methods:optic}. részben leírt optikai folyam alapú eljárást használtam fel. A rendszer tervét, átfogó képét a következőkben mutatom be.
 
-A kamerákat két lépésben kalibráltam; először, hogy a torzításukat minimalizáljam, majd azért, hogy meghatározhassam az elhelyezkedésüket egy rögzített koordinátarendszerben, melyet egy sakktábla segítségével definiálok. Ezt a lépést részletesen \aref{fig:plan-calibration}. ábra szemlélteti.
+A kamerákat két lépésben kalibráltam; először, hogy a torzításukat minimalizáljam, majd azért, hogy meghatározhassam az elhelyezkedésüket egy rögzített koordinátarendszerben, melyet egy sakktábla segítségével definiáltam. Ezt \aref{fig:plan-calibration}. ábra szemlélteti.
 
 \begin{figure}[tbh]
 \centering
@@ -106,9 +106,13 @@ graybox/.style = {box, gray}
 \end{figure}
 
 
-Miután a vélt előtér objektumok maszkjait meghatároztam, ezek által kijelölt képrészleteket (\textit{blob}ok) a kamerák képein fel kellett ismernem és egymással párosítanom. Az első egy egyszerű ,,legnagyobb-területű'' kiválasztás, amely mindkét képen a legnagyobb területű \textit{blob}ot keresi, és ezeket párosítja egymással. Természetesen ezzel csak egy objektumot rekonstruálhatunk, de a további lépéseket jól lehet rajta tesztelni. A másik eljárás pedig, hogy a képrészleteken jellegzetes pontokat kerestem, ezeket egymással párosítottam, majd többségi döntést alkalmazva határoztam meg, hogy az egyik kép blobja melyik másik blobnak felel meg. Így alakítottam ki az objektumokat a kamerák képein megadó blob-blob párok alapján. Ezt a két folyamatot \aref{fig:plan-objects}. ábra mutatja be.
+Miután a vélt előtér objektumok maszkjait meghatároztam, ezek által kijelölt képrészleteket (\textit{blob}ok) a kamerák képein fel kellett ismernem és egymással párosítanom. Az első egy egyszerű ,,legnagyobb-területű'' kiválasztás, amely mindkét képen a legnagyobb területű \textit{blob}ot keresi, és ezeket párosítja egymással. Természetesen ezzel csak egy objektumot rekonstruálhatunk, de a további lépéseket jól lehet rajta tesztelni. A másik eljárás pedig, hogy a képrészleteken jellegzetes pontokat kerestem, ezeket egymással párosítottam, majd többségi döntést alkalmazva meghatároztam, hogy az egyik kép blobja melyik másik blobnak felel meg. Így megkaptam az ugyanazon objektumokhoz tartozó képrészleteket a kamerák képein. Ezt a két folyamatot \aref{fig:plan-objects}. ábra mutatja be.
 
-\begin{figure}[tbh]
+
+Minden objektumhoz külön-külön optikai folyamokkal sűrű pont-pont megfeleltetést számoltam a két képen. Felhasználva, hogy a kamerák helyzetét ismertem, háromszögeléssel megkaptam az adott objektum mindkét képen látható pontjainak világbeli koordinátáit.
+
+
+\begin{figure}[b]
 \centering
 
 \begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto]
@@ -122,9 +126,9 @@ graybox/.style = {box, gray}
 
 \node[box,text width=7em] (Largest) {Legnagyobb\\ blobok\\ kijelölése\\ és párosítása};
 
-\node[plain,text width=6em] (input1_1) [left of=Largest,xshift=-8em,yshift=2em] {bal kép előtér blobjai};
+\node[plain,text width=6.5em] (input1_1) [left of=Largest,xshift=-8em,yshift=2em] {bal kép\\ előtér maszkja};
 
-\node[plain,text width=6em] (input1_2) [left of=Largest,xshift=-8em,yshift=-2em] {jobb kép előtér blobjai};
+\node[plain,text width=6.5em] (input1_2) [left of=Largest,xshift=-8em,yshift=-2em] {jobb kép\\ előtér maszkja};
 
 \node[plain,text width=4em] (output1) [right of=Largest,xshift=6em] {egyetlen\\ objektum};
 
@@ -134,11 +138,11 @@ graybox/.style = {box, gray}
 
 % ---------------------
 
-\node[plain,text width=4em] (input2_1) [below of=input1_1,yshift=-8em] {bal kép előtér\\ blobjai};
+\node[plain,text width=4em] (input2_1) [below of=input1_1,yshift=-8em] {bal kép előtér\\ maszkja};
 
 \node[box,text width=6em] (Feature1) [right of=input2_1,xshift=5em] {Jellegzetes\\ pontok\\ detektálása\\ és leírása};
 
-\node[plain,text width=4em] (input2_2) [below of=input2_1,yshift=-4em] {jobb kép előtér\\ blobjai};
+\node[plain,text width=4em] (input2_2) [below of=input2_1,yshift=-4em] {jobb kép előtér\\ maszkja};
 
 \node[box,text width=6em] (Feature2) [right of=input2_2,xshift=5em] {Jellegzetes\\ pontok\\ detektálása\\ és leírása};
 
@@ -170,11 +174,10 @@ graybox/.style = {box, gray}
 \end{figure}
 
 
-Az objektumok (blob-párosítások) alapján, külön-külön optikai folyamokkal sűrű pont-pont megfeleltetést számoltam a két képen. Felhasználva, hogy a kamerák helyzetét ismertem, háromszögeléssel megkaptam a pontok világbeli koordinátáit.
 
 Végül a választott nézőpontból projekció segítségével meghatároztam az onnan látható becsült képet (felhasználva az eredeti képből kinyerhető színinformációkat), valamint az objektumokhoz tartozó kontúrokat.
 
-A fenti eljárás tetszőleges számú kamera-párra (amelyek nem feltétlen diszjunktak) általánosítható, és az így kapott pontfelhőket, felhasználva, hogy az adatokat az előzetes kalibrációnak köszönhetően egy közös világ-koordinátarendszerben kapjuk meg, ezeket könnyen egyesíthetjük. A diplomaterv keretében \aref{fig:of-method}. ábrán látható színezett hátterű lépések készültek el, a több kamerára vonatkozó együttes kezelés nem.
+A fenti eljárás tetszőleges számú kamera-párra (amelyek nem feltétlen diszjunktak) általánosítható, és az így kapott pontfelhőket -- felhasználva, hogy az adatokat az előzetes kalibrációnak köszönhetően egy közös világ-koordinátarendszerben kapjuk meg -- könnyen egyesíthetjük. A diplomaterv keretében \aref{fig:of-method}. ábrán (\pageref{fig:of-method}. oldal) látható színezett hátterű lépések készültek el, a több kamerára vonatkozó együttes kezelés nem.
 
 \begin{sidewaysfigure}
 \centering
@@ -294,7 +297,7 @@ graybox/.style = {box, gray}
 \draw (Others) |- (Merge);
 
 
-\node[box,fill=green!10] (Contour) [below of=Merge,yshift=-1.5em] {Nézőpontból projekció + kontúr};
+\node[box,fill=green!10] (Contour) [below of=Merge,yshift=-1.5em] {Nézőpontból\\ projekció + kontúr};
 
 \draw (Merge) -- (Contour);
 

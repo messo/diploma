@@ -16,7 +16,7 @@ Az OpenCV igen hasznos keretrendszer, rengeteg gyakran használt algoritmus impl
 
 OpenCV-ben a legtöbb adatot egy mátrix (\texttt{cv::Mat}) adattípus reprezentál, ide értve a matematikai értelemben vett mátrixokat és a képeket is. Egy ilyen mátrix lényegében egy kétdimenziós tömb, melynek elemei lehetnek skalárok, de több-dimenziós vektorok is (több csatornás).
 
-Elsőnek a \texttt{Camera} osztály, és annak konkrét implementációi készültek el, elfedve azt, hogy éppen a valódi kamerából kérünk le képkockákat, vagy fájlból olvassuk ki azokat. Ebből adódóan a \texttt{RealCamera} lényegében becsomagolja az OpenCV-s \texttt{VideoCapture} osztályt, és a \texttt{Camera} absztakt osztály közös interfészt nyújt a fájlból történő olvasáshoz is a \texttt{FakeCamera} számára. Ez főleg a tesztelés során volt hasznos, hogy egy adott jelenetet elég volt egyszer felvenni, és utána azt tudtam bemenetként használni. Az osztálydiagram \aref{fig:cd:camera}. ábrán látható.
+Elsőnek a \texttt{Camera} osztály, és annak konkrét implementációi készültek el, elfedve azt, hogy éppen a valódi kamerából kérünk le képkockákat, vagy -- a tesztelés megkönnyítése céljából -- fájlból olvassuk ki azokat. Ebből adódóan a \texttt{RealCamera} lényegében becsomagolja az OpenCV-s \texttt{VideoCapture} osztályt, és a \texttt{Camera} absztakt osztály közös interfészt nyújt a fájlból történő olvasáshoz is a \texttt{DummyCamera} számára. Utóbbi használata révén egy adott jelenetet elég volt egyszer felvenni, majd utána ezt többször használhattam bemenetként. Az osztálydiagram \aref{fig:cd:camera}. ábrán látható.
 
 A \texttt{cameraMatrix} attribútum jelöli a \textit{kamera-mátrix}ot és a \texttt{distCoeffs} attribútum a torzítási együtthatókat (lásd \aref{sec:pinhole}. szekció). Mivel ezek egy kamerára nézve időben állandók, ezért csak egyszer kell őket meghatározni. A \texttt{readCalibration()} metódus szolgál ezek beolvasására egy külső fájlból. \begin{comment} Miután rendelkezésre állnak ezek a paraméterek, akkor a \texttt{readUndistorted()} metódus segítségével olvashatok be rektifikált képet. \end{comment} A másik három metódus megfelel az azonos nevű metódusoknak a \texttt{cv::VideoCapture} osztályban \cite{cv_video}, ahol a \texttt{grab()} egy képkockát szerez az eszköztől, de nem olvassa (dekódolja) ki, míg a \texttt{retrieve()} ezt teszi. Ezt a kombinációt több kamerás rendszernél célszerű használni, úgy, hogy először mindegyik kamerán meghívjuk a \texttt{grab()}-et, majd utána lekérjük a képeket (amely művelet időigényes). Ezzel a módszerrel érhető el, hogy időben a lehető legközelebb legyenek a különböző kamerákból lekért képkockák egymáshoz. A \texttt{read()} a kettőt kombinálja kényelmi szempontból.
 
@@ -58,7 +58,7 @@ A \texttt{cameraMatrix} attribútum jelöli a \textit{kamera-mátrix}ot és a \t
 
 \section{Kalibráció}
 
-Elsőként a kamerák belső paramétereit határoztam meg. A módszert \aref{sec:pinhole}. szekcióban mutattam be, a következőkben ennek megvalósítását tárgyalom. Ehhez készült egy segédosztály \texttt{Calibration} névvel, melynek feladata, hogy a szükséges információk alapján meghatározza a kamera-mátrixot és a torzítási együtthatókat és kiírja ezeket egy fájlba, hogy azt vissza lehessen olvasni.
+Elsőként a kamerák belső paramétereit határoztam meg. A módszert \aref{sec:pinhole}. szekcióban mutattam be, a következőkben ennek megvalósítását tárgyalom. Ehhez készült egy segédosztály \texttt{Calibration} névvel, melynek feladata, hogy a szükséges információk alapján meghatározza a kamera-mátrixot és a torzítási együtthatókat, valamint kiírja ezeket egy fájlba, hogy azt vissza lehessen olvasni.
 
 \begin{figure}[tbh]
 \centering
@@ -82,15 +82,14 @@ Elsőként a kamerák belső paramétereit határoztam meg. A módszert \aref{se
 \caption{\texttt{Calibration} osztály \label{fig:cd:calibration}}
 \end{figure}
 
-Konstruktorban át kell neki adni a kamerára vonatkozó pointert, amitől a képeket kell majd lekérnie. Az \texttt{acquireFrame()} metódus szerepe, hogy a kamera aktuális képkockáját megszerezze, megkeresse a képen a sakktáblát, és a sakktábla sarokpontjaihoz tartozó koordinátákat a \texttt{corners} listához fűzze. Visszatérési értékben jelzi, hogy az adott képen sikeres volt-e a detekció. Belsőleg a \texttt{cv::findChessboardCorners()} OpenCV-s függvényt hívja, amelynek átadva egy fekete-fehér képet, megkapható a képen látható sakktábla sarokpontjainak képpontjai. Kellő számú (10-15) képkocka után a \texttt{calibrate()} metódus segítségével a kérdéses két mátrix (\texttt{cameraMatrix}, \texttt{distCoeffs}) kiszámolható. Itt a \texttt{cv::calibrateCamera()} függvényt hívtam segítségül, melynek két fontos bemeneti paraméterét emelem ki: a sarokpontok valóvilágbeli koordinátái, és a képeken detektált képpontjai sorfolytonosan (\texttt{corners}). A valóvilágbeli $(x, y, z)$ koordinátákat az egyszerűség kedvéért úgy választottam, hogy $z \equiv 0$, és $x$ valamint $y$ egész számok úgy, hogy a sakktábla bal felső sarka $(0, 0, 0)$, jobb alsó sarka pedig -- $9\times 6$-os sakktáblát használva -- $(9, 6, 0)$. A \texttt{save()} metódus a kiszámolt paramétereket menti el a megadott fájlnévvel olyan formátumban, amit a \texttt{Camera::readCalibration()} vissza tud olvasni.
+Konstruktorban át kell neki adni a kamerára vonatkozó pointert, amitől a képeket kell majd lekérnie. Az \texttt{acquireFrame()} metódus szerepe, hogy a kamera aktuális képkockáját megszerezze, megkeresse a képen a sakktáblát, és a sakktábla sarokpontjaihoz tartozó koordinátákat a \texttt{corners} listához fűzze. Visszatérési értékben jelzi, hogy az adott képen sikeres volt-e a detekció. Belsőleg a \texttt{cv::findChessboardCorners()} OpenCV-s függvényt hívja, amelynek átadva egy fekete-fehér képet, megkapható a képen látható sakktábla sarokpontjainak képpontjai. Kellő számú (10-15) képkocka után a \texttt{calibrate()} metódus segítségével a kérdéses két mátrix (\texttt{cameraMatrix}, \texttt{distCoeffs}) kiszámolható. Itt a \texttt{cv::calibrateCamera()} függvényt hívtam segítségül, melynek két fontos bemeneti paraméterét emelem ki: a sarokpontok valóvilágbeli koordinátái, és a képeken detektált képpontjai sorfolytonosan (\texttt{corners}). A valóvilágbeli $(x, y, z)$ koordinátákat az egyszerűség kedvéért úgy választottam, hogy $z \equiv 0$, és $x$ valamint $y$ egész számok úgy, hogy a sakktábla bal felső sarka $(0, 0, 0)$, jobb alsó sarka pedig -- $9\times 6$-os sakktáblát használva -- $(9, 6, 0)$ koordinátákat kapta. A \texttt{save()} metódus a kiszámolt paramétereket menti el a megadott fájlnévvel olyan formátumban, amit a \texttt{Camera::readCalibration()} vissza tud olvasni.
 
 
 \subsection{Kamerák pozíciójának meghatározása világkoordinátákban}
 
+Rögzített kamerák révén lehetőségem adódott, hogy előre meghatározzam a kamerák pozícióját és nézőpontjuk irányát. Ehhez szintén egy sakktáblát használtam kalibrációs objektumként. A sakktábla sarokpontjainak az előbbiekkel egyező módon vett koordinátázásával a világ koordinátarendszerét is rögzítettem.
 
-Rögzített kamerák révén lehetőségem adódik, hogy előre meghatározzam a kamerák pozícióját és nézőpontjuk irányát. Erre egy kalibrációs objektumot használok, szintén egy sakktáblát. Amennyiben megadom a sakktábla sarokpontjainak koordinátáit az előbbiekkel egyező módon, akkor a sakktábla rögzítésével a térben, a koordinátarendszert is rögzítem. 
-
-Az OpenCV-ben erre a célra van a \texttt{solvePnP} függvény, mely 3D-2D pont-összerendelésekből kiszámolja a forgatási és eltolási vektort, amik együttesen megadják a transzformációt a model-koordinátarendszerből a kamera koordinátarendszerébe. Ezen funkciót a \texttt{CameraPoseCalculator} osztályba ágyaztam, a két vektort pedig a \texttt{CameraPose} perzisztálható osztályba csomagoltam, lásd \aref{fig:cd:pose}. ábra.
+Az OpenCV-ben a \texttt{solvePnP} függvény segítségével 3D-2D pont-összerendelésekből kiszámolhatjuk a forgatási és eltolási vektort, amik együttesen megadják a transzformációt a világ-koordinátarendszerből a kamera koordinátarendszerébe. Ezen funkciót a \texttt{CameraPoseCalculator} osztályba ágyaztam, a két vektort pedig a \texttt{CameraPose} perzisztálható osztályba csomagoltam, lásd \aref{fig:cd:pose}. ábra.
 
 \begin{figure}[tbh]
 \centering
@@ -120,7 +119,7 @@ Az OpenCV-ben erre a célra van a \texttt{solvePnP} függvény, mely 3D-2D pont-
 \caption{\texttt{CameraPoseCalculator} és \texttt{CameraPose} osztály \label{fig:cd:pose}}
 \end{figure}
 
-A \texttt{CameraPoseCalculator} osztály megkapja konstruktor argumentumaként annak a kamerára mutató pointerét, amelynek a külső paramétereit (forgatási és eltolási vektor, lásd \ref{sec:pinhole}. szekció vége) ki kell számolnia. A konkrét művelet végrehajtásáért a \texttt{calculator()} metódus felelős, amely a kamerától lekér egy képkockát, megkeresi rajta a sakktáblát, majd meghívja a \texttt{cv::solvePnP()} függvényt. Visszatérési értékben jelzi, hogy sikeres volt-e a detekció, ha igen, akkor lekérhető tőle a \texttt{CameraPose} példány. Ez utóbbi a \texttt{save()} és \texttt{load()} metódusokkal elmenthető és visszatölthető, így ameddig a kamerát nem mozgatjuk el, ez újra felhasználható. A \texttt{getRT()} metódus a forgatási vektort forgatási mátrix-szá alakítja (Rodrigues-féle forgatási formulával \cite{camera-calib-3d}) és összefűzi azt az eltolási vektorral egy $3\times 4$-es $\Big(\,\mathbf{R}\,|\,\mathbf{t}\,\Big)$ forgatás-eltolás mátrixba.
+A \texttt{CameraPoseCalculator} osztály megkapja konstruktor argumentumaként annak a kamerára mutató pointerét, amelynek a külső paramétereit (forgatási és eltolási vektor, lásd \ref{sec:pinhole}. szekció vége) ki kell számolnia. A konkrét művelet végrehajtásáért a \texttt{calculator()} metódus felelős, amely a kamerától lekér egy képkockát, megkeresi rajta a sakktáblát, majd meghívja a \texttt{cv::solvePnP()} függvényt. Visszatérési értékben jelzi, hogy sikeres volt-e a detekció, ha igen, akkor lekérhető tőle a \texttt{CameraPose} példány. Ez utóbbi a \texttt{save()} és \texttt{load()} metódusokkal elmenthető és visszatölthető, így ameddig a kamerát nem mozgatjuk el, ez újra felhasználható. A \texttt{getRT()} metódus a forgatási vektort a Rodrigues-féle forgatási formulával \cite{camera-calib-3d} forgatási mátrix-szá alakítja és összefűzi azt az eltolási vektorral egy $3\times 4$-es $\Big(\,\mathbf{R}\,|\,\mathbf{t}\,\Big)$ forgatás-eltolás mátrixba.
 
 A kamera külső paramétereinek meghatározása után már minden információ adott, hogy 3D-s pontok 2D-s vetületeit meg tudjam határozni a \texttt{cv::projectPoints()} függvény felhasználásával. \Aref{fig:pose}. ábrán látható egy, a sakktábla síkjába rajzolt négyzetrács, melynek egyik jelölt pontja a világ-koordinátarendszer origója.
 
@@ -129,12 +128,12 @@ A kamera külső paramétereinek meghatározása után már minden információ 
 \begin{subfigure}[b]{.49\linewidth}
 	\centering
 	\includegraphics[width=205pt]{figures/pose0_180.png}
-	\caption{Bal oldali kamera}
+	\caption{Bal oldali kamera képe}
   \end{subfigure}
 \begin{subfigure}[b]{.49\linewidth}
 	\centering
 	\includegraphics[width=205pt]{figures/pose1_180.png}
-	\caption{Jobb oldali kamera}
+	\caption{Jobb oldali kamera képe}
   \end{subfigure}
 \caption{Világ-koordinátarendszer jelölése a képeken \label{fig:pose}}
 \end{figure}
@@ -143,7 +142,7 @@ A kamera külső paramétereinek meghatározása után már minden információ 
 \section{Objektum detektálás}
 %----------------------------------------------------------------------------
 
-A következőkben az objektumok detektálásáról lesz szó. Először bemutatok két megközelítést az előtér maszk meghatározásához, ami lényegében kijelöli a két képen látható mozgó részeket. Ezt követően a maszkokat szegmentálom különálló \textit{blob}okra (egy objektumhoz tartozó egybefüggő rész a képen), és ezeket a két képen egymásnak megfeleltetem, hogy azonosítsam az egy objektumhoz tartozó képrészleteket.
+A következőkben az objektumok detektálásához kapcsolódó implementációs részleteket tárgyalom. Először bemutatok két megközelítést az előtér maszk meghatározásához, ami lényegében kijelöli a két képen látható mozgó részeket. Ezt követően a maszkokat szegmentálom különálló \textit{blob}okra (egy objektumhoz tartozó egybefüggő rész a képen), és ezeket a két képen egymásnak megfeleltetem, hogy azonosítsam az egy objektumhoz tartozó képrészleteket.
 
     %----------------------------------------------------------------------------
     \subsection{Előtér maszk meghatározása}
@@ -152,7 +151,7 @@ A következőkben az objektumok detektálásáról lesz szó. Először bemutato
 
 \subsubsection{Előtér-háttér szegmentálás}
 
-\Aref{sec:obj_detection}. szekcióban leírtam a mozgó objektumok detektálásának egy lehetséges megközelítését. A lényege, hogy egy háttér modellt építünk, ami alapján mindig aktuálisan lekérhető az előtérhez tartozó maszk, ami kijelöli a mozgó objektumokat. OpenCV-ben ezt valósítja meg a \texttt{BackgroundSubtractorMOG2} osztály \cite{opencv-mog}. Példányosítás után a modell építése, és az aktuális maszk kinyerése az \texttt{apply} metódussal történik. \Aref{fig:my_mog2}. ábrán látható a kinyerhető maszkra egy példa.
+\Aref{sec:moving_obj_detection}. szekcióban leírtam a mozgó objektumok detektálásának háttér modell építésével történő módszerét. A lényege, hogy a kamerák videofolyamai alapján háttér modellt építünk, ami alapján mindig aktuálisan lekérhető az előtérhez tartozó maszk, ami kijelöli a mozgó objektumokat. OpenCV-ben ezt valósítja meg a \texttt{BackgroundSubtractorMOG2} osztály \cite{opencv-mog}. Példányosítás után a modell építése, és az aktuális maszk kinyerése az \texttt{apply} metódussal történik. \Aref{fig:my_mog2}. ábrán látható a kinyerhető maszkra egy példa.
 
 \begin{figure}[tbh]
 \centering
@@ -164,7 +163,7 @@ A következőkben az objektumok detektálásáról lesz szó. Először bemutato
 \begin{subfigure}[b]{.32\linewidth}
 	\centering
 	\includegraphics[width=137pt]{figures/image343.png}
-	\caption{Mozgó képsor egy képe}
+	\caption{Videofolyam egyik képkockája}
   \end{subfigure}
 \begin{subfigure}[b]{.32\linewidth}
 	\centering
@@ -174,7 +173,7 @@ A következőkben az objektumok detektálásáról lesz szó. Először bemutato
 \caption{Példa az előtér maszkra \label{fig:my_mog2}}
 \end{figure}
 
-Megfigyelhető, hogy a maszk nem bináris, hanem háromértékű: azt is tartalmazza, amit az algoritmus árnyékként detektál. A zajt a maszkon az erózió-dilatáció morfológiai módszerek segítségével tudjuk csökkenteni. Előbbi a kisméretű zajokat tünteti el, utóbbi pedig a lyukakat szünteti meg. OpenCV-ben ezek implementációi a \texttt{dilate} és \texttt{erode} függvények. Előbbi az adott pixelt a környezetében (amit egy kernel ír le) lévő maximális, míg utóbbi a minimális értékkel helyettesít. Én egy erózió-dilatáció-erózió lépéssorozatot használtam, amely egy morfológiai nyitás és zárás egymásutánja \cite{kepfeldolg-modszerek}. Ennek az eredményét \aref{fig:erosion_dilation}. ábra mutatja be.
+Megfigyelhető, hogy a maszk nem bináris, hanem háromértékű: azt is tartalmazza, amit az algoritmus árnyékként detektál (ezt az ábra szürke színnel jelöli). A zajt a maszkon az erózió-dilatáció morfológiai módszerek segítségével tudjuk csökkenteni. Előbbi a kisméretű zajokat tünteti el, utóbbi pedig a lyukakat szünteti meg. OpenCV-ben ezek implementációi a \texttt{dilate} és \texttt{erode} függvények. Előbbi az adott pixelt a környezetében (amit egy kernel ír le) lévő maximális, míg utóbbi a minimális értékkel helyettesít. Én egy erózió-dilatáció-erózió lépéssorozatot használtam, amely egy morfológiai nyitás és zárás egymásutánja \cite{kepfeldolg-modszerek}. Ennek az eredményét \aref{fig:erosion_dilation}. ábra mutatja be.
 
 \begin{figure}[tbh]
 \centering
@@ -214,18 +213,18 @@ Megfigyelhető, hogy a bal oldali dobozhoz tartozó maszk annyira zajos volt, ho
     
 Másik megközelítésem során már az előtér meghatározásához is az optikai folyamokat hívtam segítségül. 
 
-\Aref{chapter2}. fejezetben bemutattam a sűrű optikai folyamok meghatározására Gunner Farnebäck módszerét. OpenCV-ben ezt a \texttt{cv::calcOpticalFlowFarneback()} \cite{opencv-mog} függvény valósítja meg. Az algoritmus szempontjából fontos paraméterei közül kiemelném a következőket:
+\Aref{methods:optic}. részben bemutattam a sűrű optikai folyamok meghatározására Gunner Farnebäck módszerét. OpenCV-ben ezt a \texttt{cv::calcOpticalFlowFarneback()} \cite{opencv-mog} függvény valósítja meg. Az algoritmus szempontjából fontos paraméterei közül kiemelném a következőket:
 
 \begin{enumerate}
 \item \texttt{pyr\_scale} -- a már említett piramis-módszerhez kapcsolódó paraméter: azt definiálja, hogy rétegenként a következő réteg hányszorosa az előzőnek (ennek segítségével a nagy elmozdulások kisebbek lesznek a kisebb rétegeken)
-\item \texttt{levels} -- piramis rétegeinek a száma, 1-nél csak az eredeti képet használja, továbbiak nélkül
+\item \texttt{levels} -- piramis rétegeinek a száma: amennyiben ez 1, akkor az optikai folyam meghatározásához csak az eredeti képet használja
 \item \texttt{winsize} -- az ablak méret, amit a mintavételezéshez használ
 \item \texttt{iterations} -- iterációk száma minden piramis rétegen
 \end{enumerate}
 
 Tekintve, hogy nekünk csak az a fontos, hogy a lehető leggyorsabban számoljunk elmozdulásvektorokat, a paramétereket a következőknek megfelelően állítottam be: ne építsünk piramist (\texttt{levels = 1}, így \texttt{pyr\_scale} beállítása lényegtelen), kicsi ablakmérettel dolgozzunk ($3\times 3$, tehát \texttt{winsize = 3}), valamint rétegenként csak egy iteráció legyen (\texttt{iterations = 1}).
 
-A kiszámolt vektormezőből a maszkokat úgy kaptam, hogy minden, egységnél hosszabb (tehát legalább 1 pixelnyi a becsült mozgása) vektor végpontját megjelöltem. Ezáltal lényegében azon részeket határoztam meg, ahova éppen a pontok mozdultak, ez pedig pontosan azon részei a képnek, ahol az adott képkockán az előtérben mozgó objektumokat várjuk. Az előzőekhez hasonlóan a maszkon itt is végeztem apró utófeldolgozást a dilatáció és erózió morfológiai műveletek segítségével. Az eredményt \aref{fig:of_mask}. ábra mutatja be. Megfigyelhető, hogy a jól textúrázott részeken a maszk nagyon pontos, a textúrázatlanokon viszont a pontok statikus pontoknak tűnnek.
+A kiszámolt vektormezőből a maszkokat úgy kaptam, hogy minden, egységnél hosszabb (tehát legalább 1 pixelnyi mozgást jelentő) vektor végpontját megjelöltem. Ezáltal lényegében azon részeket határoztam meg, ahova éppen a pontok mozdultak, ez pedig pontosan azon részei a képnek, ahol az adott képkockán az előtérben mozgó objektumokat várjuk. Az előzőekhez hasonlóan a maszkon itt is végeztem apró utófeldolgozást a dilatáció és erózió morfológiai műveletek segítségével. Az eredményt \aref{fig:of_mask}. ábra mutatja be. Megfigyelhető, hogy a jól textúrázott részeken a maszk nagyon pontos, a textúrázatlanokon viszont a pontok statikus pontoknak tűnnek.
 
 \begin{figure}[tbh]
 \centering
@@ -280,7 +279,7 @@ A bemutatott két eljáráshoz tartozó osztálydiagramot \aref{fig:cd:fg-mask-c
 \begin{class}[text width=6.3 cm]{MOG2ForegroundMaskCalculator}{-3.8, -3.5}
 \inherit{ForegroundMaskCalculator}
 \attribute{- sub : BackgroundSubtractorMOG2}
-\operation{- removeShadows(mask): void}
+\operation{- removeShadows(mask) : void}
 
 \operation{+ calculate(nextFrame) : Mat}
 \end{class}
@@ -417,9 +416,9 @@ A következő lépések könnyebb tesztelése végett aktívan használtam a csa
 \section{Optikai folyam meghatározása}
 %----------------------------------------------------------------------------
 
-\Aref{sec:of-mask}. szekcióban bemutattam, hogyan lehet felhasználni a sűrű optika folyamokat előtér maszk meghatározására, a következőkben pedig azt írom le, hogyan lehet segítségükkel a két kamera egy objektumhoz tartozó két képén sűrű pontmegfeleltetést meghatározni.
+\Aref{sec:of-mask}. szekcióban bemutattam, hogyan lehet felhasználni a sűrű optika folyamokat előtér maszk meghatározására, a következőkben pedig azt írom le, hogyan lehet segítségükkel a két kamera egy objektumhoz tartozó két képén sűrű pontmegfeleltetést számolni.
 
-Az előzőekben már ismertettem a \texttt{cv::calcOpticalFlowFarneback()} függvényt, és annak néhány paraméterét, amelyeket úgy állítottam be, hogy a lehető leggyorsabban kapjak még használható becslést a mozgásról. Most viszont fontos, hogy a kapott eredmény pontosabb legyen, tehát ezeken kissé változtatnom kellett. Ezért 6 szintes piramist (\texttt{levels = 6}), és köztük 0,75-ös skálázást (\texttt{pyr\_scale = 0.75}) állítottam be, hogy a nagyobb elmozdulásokat is detektálni tudjam. A Gauss-zaj feltételezése miatt bekapcsoltam, hogy egyszerű dobozszűrő helyett Gauss-szűrőt használjon az algoritmus, és az ehhez kapcsolódó paramétereket a dokumentációban adott javaslatok alapján állítottam be, valamint emiatt az ablakméretet is növeltem (\texttt{winsize = 21}). A futási idő természetesen jelentősen függ a kép méretétől, így fontos, hogy kihasználjam az objektum maszkjából nyerhető információt.
+Az előzőekben már ismertettem a \texttt{cv::calcOpticalFlowFarneback()} függvényt, és annak néhány paraméterét, amelyeket úgy állítottam be, hogy a lehető leggyorsabban kapjak még használható becslést a mozgásról. Most viszont fontos, hogy a kapott eredmény pontosabb legyen, tehát ezeken kissé változtatnom kellett. Ezért 6 szintes piramist (\texttt{levels = 6}), és köztük 0,75-ös skálázást (\texttt{pyr\_scale = 0.75}) állítottam be, hogy a nagyobb elmozdulásokat is detektálni tudjam. A Gauss-zaj feltételezése miatt bekapcsoltam, hogy egyszerű dobozszűrő helyett Gauss-szűrőt használjon az algoritmus, és az ehhez kapcsolódó paramétereket a dokumentációban adott javaslatok alapján állítottam be, valamint emiatt az ablakméretet is növeltem (\texttt{winsize = 21}). A futási idő természetesen jelentősen függ a képek méretétől, melyekre az algoritmust futtatjuk, így fontos, hogy a már meghatározott objektum-maszkok segítségével a lehető legkisebbre vágjuk azokat.
 
 A következőkben \aref{fig:of_original}. ábrán látható két képkocka lesz a kiinduló állapot, már az előbbiekben bemutatott objektum detektálás után, az előtér maszk által kijelölve. A képkockák két olyan kamera beállításal készültek, ahol a két kamera képsíkja nagyjából egybe estek (egy irányba néztek), és csak víszintes irányban voltak egymáshoz képest eltolva.
 
@@ -464,12 +463,12 @@ A következőkben \aref{fig:of_original}. ábrán látható két képkocka lesz 
 \caption{Bal és jobb kamera által látott objektum kijelölve; a sárga keretek jelölik az objektumok befoglaló téglalapjait, a piros szaggatott pedig ezen téglalapokat tartalmazó legkisebb területű téglalapot \label{fig:of_original}}
 \end{figure}
 
-Első megközelítésem, hogy a két objektum befoglaló téglalapját tekintettem, és vettem azt a téglalapot, mely a legkisebb területű azok közül, amely mindkettőt tartalmazza. Kivágva ezt a téglalapot a két képből, két egyforma méretű képrészletet kaptam, melyek külön-külön tartalmazzák a teljes objektumot. Ez látható \aref{fig:of_original}. ábrán pirossal jelölve. Erre a két részletre számolva optikai folyamot, 7 646 darab vektort kaptam, melyek közül néhányat vizualizáltam \aref{fig:bad0}. ábrán. A vektorok kezdő és végpontjaiból alkottam pontpárokat, ezeket tekintettem egymásnak megfelelő pontoknak a két képen. Jól látható, hogy a kevés kirajzolt pontpárból egyik sem jó, mert a doboz különböző lapjaihoz tartoznak. Ez a nagy elmozdulás miatt van, hiába a piramis módszer, használhatatlan a végeredmény.
+Első megközelítésem, hogy a két objektum befoglaló téglalapját tekintettem, és vettem azt a téglalapot, mely a legkisebb területű azok közül, amely mindkettőt tartalmazza. Kivágva ezt a téglalapot a két képből, két egyforma méretű képrészletet kaptam, melyek külön-külön tartalmazták a teljes objektumot. Ez látható \aref{fig:of_original}. ábrán pirossal jelölve. Erre a két részletre számolva optikai folyamot, 7 646 darab vektort kaptam, melyek közül néhányat vizualizáltam \aref{fig:bad0}. ábrán. A vektorok kezdő és végpontjaiból alkottam pontpárokat, ezeket tekintettem egymásnak megfelelő pontoknak a két képen. Jól látható, hogy a kevés kirajzolt pontpárból egyik sem jó, mert a doboz különböző lapjaihoz tartoznak. Ez a nagy elmozdulás miatt van, hiába a piramis módszer, használhatatlan a végeredmény.
 
 \begin{figure}[tbh]
 \centering
 \includegraphics[width=300pt]{figures/vis_bad_0.png}
-\caption{Első megközelítés (36 958 vektor) \label{fig:bad0}}
+\caption{Első megközelítés (7 646 vektor) \label{fig:bad0}}
 \end{figure}
 
 A következő lépésem, hogy meghatároztam azt a vektort, amivel eltolva az egyik képet, az egymásnak megfelelő képpontok elmozdulásai a lehető legkisebbek lettek. Ehhez először szükségem volt néhány egymásnak megfelelő pontpárra.
@@ -478,7 +477,7 @@ Az objektumok meghatározásánál (legyen az egy vagy több), már meghatározt
 
 \[\argmin_{\mathbf{v}(x, y)} \sum_{i=1}^{n} |\mathbf{v} - \mathbf{d_i}|\]
 
-ahol $\mathbf{d_1}(x_1, y_1), \mathbf{d_2}(x_2, y_2), \ldots \mathbf{d_n}(x_n, y_n)$ a párosításban szereplő pontok közti távolságvektorok. A problémát úgy is megfogalmazhatjuk, hogy a $\mathbf{d_i}$ vektorokat pontoknak tekintjük és $\mathbf{v}$-t, a pontok geometriai mediánját keressük. Bizonyították \cite{Bajaj198699}, hogy ennek megoldásához nem létezik konkrét formula, vagy algoritmus csak aritmetikai műveletek és k. gyök felhasználásával. Ellenben konvex függvényről lévén szó, iteratíve közelíthetünk a megoldáshoz. Ezt elkerülendő, a távolságok összege helyett közelítő megoldásként a távolság-négyzetösszegét minimalizáltam, tehát:
+ahol $\mathbf{d_1}(x_1, y_1), \mathbf{d_2}(x_2, y_2), \ldots \mathbf{d_n}(x_n, y_n)$ a párosításban szereplő pontok közti távolságvektorok. A problémát úgy is megfogalmazhatjuk, hogy a $\mathbf{d_i}$ vektorokat pontoknak tekintjük és $\mathbf{v}$-t, a pontok geometriai mediánját keressük. Bizonyították \cite{Bajaj198699}, hogy ennek megoldásához nem létezik konkrét formula, vagy algoritmus csak aritmetikai műveletek és k. gyök felhasználásával. Ellenben konvex függvényről lévén szó, iteratíve közelíthetünk a megoldáshoz. Ezt elkerülendő, a távolság különbségek összege helyett közelítő megoldásként a távolság különbségek négyzetösszegét minimalizáltam, tehát:
 
 \[\argmin_{(x, y)} \sum_{i=1}^{n} \Big((x-x_i)^2 + (y-y_i)^2\Big)\]
 
@@ -490,16 +489,18 @@ Ismeretes viszont, hogy a fenti a minimumhelyét az $(x_i, y_i)$ pontok súlypon
 	\centering
 	\includegraphics[height=102pt]{figures/before_shift_top.png}\\\vspace{3pt}
 	\includegraphics[height=102pt]{figures/before_shift_bottom.png}
+	\caption{}
   \end{subfigure}
 \begin{subfigure}[b]{.49\linewidth}
 	\centering
 	\includegraphics[height=102pt]{figures/after_shift_top.png}\\\vspace{3pt}
 	\includegraphics[height=102pt]{figures/after_shift_bottom.png}
+	\caption{}
   \end{subfigure}
-\caption{Az objektum elhelyezkedése a kamerák képein (egymás alatt a két kamera képe) eredetileg és a kiszámolt vektorral való eltolás után. \label{fig:shifted}}
+\caption{Az objektum elhelyezkedése a kamerák képein (a) eredetileg és (b) a kiszámolt vektorral való eltolás után. \label{fig:shifted}}
 \end{figure}
 
-Optikai folyamok számítása esetén két jelenséget nem szabad figyelmen kívül hagynunk: egyik a textúrázatlanság, a másik pedig a kitakart pontok problémája. Ezeken az optikai folyam rektifikációja segíthet. \cite{optical-flow-rectification}-ban You Yang és társai egy bináris függvényt javasolnak a textúrázatlanság eldöntésére:
+Optikai folyamok számítása esetén két jelenséget nem szabad figyelmen kívül hagynunk: egyik a textúrázatlanság, a másik pedig a kitakart pontok problémája. Ezeken az optikai folyam rektifikációja segíthet. You Yang és társai \cite{optical-flow-rectification} egy bináris függvényt javasolnak a textúrázatlanság eldöntésére:
 
 \[
     \zeta(\Omega_\mathbf{X})= 
@@ -517,7 +518,7 @@ ahol $\Omega_\mathbf{X}$ jelöli $\mathbf{X}$ képpont egy környezetét, $I_\ma
 \caption{$\zeta$ függvény alkalmazva az objektum összes pontjára \label{fig:textures}}
 \end{figure}
 
-A kitakart pontok kiszűrésére én Yang-ék megoldásától \cite{optical-flow-rectification} eltérő megközelítést alkalmaztam. Legyen két képkocka $K_1$ és $K_2$, valamint $F_{1, 2} = \mathcal{F}(K_1, K_2)$ és $F_{2, 1} = \mathcal{F}(K_2, K_1)$, ahol $\mathcal{F}$ jelöli két képkocka közti optikai folyam operátort, melynek eredménye egy vektormező ($F_{1, 2}, F_{2, 1} : \mathbb{R}^2 \rightarrow \mathbb{R}^2$). Gondoljuk meg, hogy ha $x\in K_1$ és $x + F_{1,2}(x) = x' \in K_2$, akkor $x' + F_{1,2}(x') \approx x \in K_1$, vagyis ha egy $x$ pont $K_1$-ről $K_2$-re az $x'$ pontba mozog, akkor visszafelé nézve $x'$ pontnak ideális esetben $x$ pontba kell mozognia. Tehát oda-vissza számolva 1-1 optikai folyamot a kitakart pontokat kiszűrhetjük, hiszen a másik irányban nem fogjuk megtalálni a párosítást.
+A kitakart pontok kiszűrésére én Yang-ék megoldásától \cite{optical-flow-rectification} eltérő megközelítést alkalmaztam. Legyen két képkocka $K_1$ és $K_2$, valamint $F_{1, 2} = \mathcal{F}(K_1, K_2)$ és $F_{2, 1} = \mathcal{F}(K_2, K_1)$, ahol $\mathcal{F}$ jelöli két képkocka közti optikai folyam operátort, melynek eredménye egy vektormező ($F_{1, 2}, F_{2, 1} : \mathbb{R}^2 \rightarrow \mathbb{R}^2$). Gondoljuk meg, hogy ha $x\in K_1$ és $x + F_{1,2}(x) = x' \in K_2$, akkor $x' + F_{2,1}(x') \approx x \in K_1$, vagyis ha egy $x$ pont $K_1$-ről $K_2$-re az $x'$ pontba mozog, akkor visszafelé nézve $x'$ pontnak ideális esetben $x$ pontba kell mozognia. Tehát oda-vissza számolva 1-1 optikai folyamot a kitakart pontokat kiszűrhetjük, hiszen a másik irányban nem fogjuk megtalálni a párosítást.
 
 A fent leírtakat az \texttt{OpticalFlowCalculator} osztályban implementáltam (rövid áttekintő látható \aref{fig:cd:ofcalc}. ábrán). Egy publikus metódusa van \texttt{calcDenseMatches()} néven, mely megkapja a két képkockát és egy objektumot, amelyre a sűrű pontmegfeleltetést szeretnénk számolni. Ez lényegében három dolgot csinál: meghatározza a textúrázott régiókat (\texttt{calcTexturedRegion}) a két képen, kiszámolja oda és vissza az optikai folyamokat (\texttt{calcOpticalFlows}), majd ezek alapján párosítja a pontokat (\texttt{collectMatchingPoints}).
 
@@ -545,7 +546,7 @@ A fent leírtakat az \texttt{OpticalFlowCalculator} osztályban implementáltam 
 \caption{Sűrű pontmegfeleltetések optikai folyamok segítségével meghatározó \texttt{OpticalFlowCalculator} osztály \label{fig:cd:ofcalc}}
 \end{figure}
 
-Az algoritmust lefuttatva egész pontos párosításokat kaptam, \aref{fig:vis_full}. ábra mutat be ezek közül néhányat. Összesen 16 841 pár jött létre, tehát ennyit tudtam felhasználni a háromszögeléshez. %Vessük össze ezt a SURF leírókka történő párosításnál nyert 100, majd abból meghagyott 25 párral, számottevő a különbség.
+Az algoritmust lefuttatva egész pontos párosításokat kaptam, \aref{fig:vis_full}. ábrán mutatok be ezek közül néhányat. Összesen 16 841 párt kaptam, tehát ennyit tudtam felhasználni a háromszögeléshez. %Vessük össze ezt a SURF leírókka történő párosításnál nyert 100, majd abból meghagyott 25 párral, számottevő a különbség.
 
 \begin{figure}[tbh]
 \centering
@@ -561,7 +562,7 @@ Ahogy \aref{sec:triangulation}. alfejezetben bemutattam az elméleti hátteret, 
 
 \subsection{OpenCV-s függvényekkel}
 
-OpenCV \texttt{cv::triangulatePoints} függvényben a \textit{Linear-LS} (lineáris legkisebb négyzetek) módszer van implementálva. A dokumentáció \cite{camera-calib-3d} alapján sztereó-kalibráció során nyert projekciós mátrixokat vár a pontpárok mellett paraméterül. Az én esetemben a kamerák nincsenek sztereó-kalibrálva, de a két projekciós mátrix megvan. Ennek ellenére a kimeneti 3D-s koordináták használhatatlanok voltak. Kis kutatás után az \texttt{cv::undistortPoints()} függvény meghívása jelentette a megoldást. Ez először normalizálta őket, vagyis:
+Az OpenCV \texttt{triangulatePoints} függvényében a \textit{Linear-LS} (lineáris legkisebb négyzetek) módszer van implementálva. A dokumentáció \cite{camera-calib-3d} alapján sztereó-kalibráció során nyert projekciós mátrixokat vár a pontpárok mellett paraméterül. Az én esetemben a kamerák nem voltak sztereó-kalibrálva, de a két projekciós mátrixszal rendelkeztem. Ennek ellenére a kimeneti 3D-s koordináták használhatatlanok voltak. Kis kutatás után a \texttt{cv::undistortPoints()} függvény meghívása jelentette a megoldást. Ez először normalizálta őket, vagyis:
 
 \[\left[\begin{array}{c} u' \\ v' \\ 1 \end{array}\right] = {\underbrace{\left[\begin{array}{ccc}
 f_x & 0 & o_x \\ 
@@ -569,9 +570,9 @@ f_x & 0 & o_x \\
 0 & 0 & 1
 \end{array}\right]}_{\hbox{kamera-mátrix}}}^{-1} \left[\begin{array}{c} u \\ v \\ 1 \end{array}\right]\]
 
-ahol $(u', v')$ az $(u, v)$ pont normalizáltja (kamera-mátrixtól független koordináták), majd a torzítási együtthatóakat felhasználva az $(u', v')$ pontoknak meghatározta a javított koordinátájukat. Ezután a \texttt{cv::triangulatePoints} függvénynek a projekciós mátrixok helyett csak az $\Big(\,\mathbf{R}\,|\,\mathbf{t}\,\Big)$ mátrixokat kellett átadnom. Fontos, hogy az előbbiekben kialakított pontpárosítás azon osztályához tartozó pontokat, melyek az eltolt képhez tartoznak, az eltoláshoz használt vektor ellentettjével vissza kellett tolni, hogy valós koordinátákat kapjak.
+ahol $(u', v')$ az $(u, v)$ pont normalizáltja (kamera-mátrixtól független koordináták), majd a torzítási együtthatóakat felhasználva az $(u', v')$ pontoknak meghatározta a javított koordinátájukat. Ezután a \texttt{cv::triangulatePoints} függvénynek a projekciós mátrixok helyett csak az $\Big(\,\mathbf{R}\,|\,\mathbf{t}\,\Big)$ mátrixokat kellett átadnom. Fontos, hogy az előbbiekben kialakított pontpárosítás azon osztályához tartozó pontokat, melyek az eltolt képhez tartoztak, az eltoláshoz használt vektor ellentettjével vissza kellett tolni, hogy valós koordinátákat kapjak.
 
-Miután meghatároztam a pontok valóvilágbeli koordinátáikat, ezek pontosságát a képsíkokra történő visszavetítéssel vizsgáltam meg. A pontokat a \texttt{cv::projectPoints} függvénnyel vetítettem a bal és jobb oldali kamera képére, majd ezek és az eredeti pontok távolságainak átlagát -- átlagos visszavetítési hiba -- vizsgáltam. Ez az előzőekben mutatott bemenetre 8,68716 pixel lett, amit elfogadható hibának vettem, hiszen azt jelenti, hogy minden pont átlagosan egy 3 pixel sugarú körön belül csúszott el. \Aref{fig:cv-triangulation}. ábrán látható az eredményeket bemutató két vizualizáció, melyeken a szín a pontok $z$ koordinátáját jelzi. 
+Miután meghatároztam a pontok valóvilágbeli koordinátáikat, ezek pontosságát a képsíkokra történő visszavetítéssel vizsgáltam meg. A pontokat a \texttt{cv::projectPoints} függvénnyel vetítettem a bal és jobb oldali kamera képére, majd ezek és az eredeti pontok távolságainak átlagát -- átlagos visszavetítési hiba (\textit{average reprojection error}) -- vizsgáltam képenként, majd vettem ezek maximumát. Ez az előzőekben mutatott bemenetre 8,687 pixel lett, amit elfogadható hibának vettem, hiszen azt jelenti, hogy minden pont átlagosan egy 3 pixel sugarú körön belül csúszott el. \Aref{fig:cv-triangulation}. ábrán látható az eredményeket bemutató két vizualizáció, melyeken a szín a pontok $z$ koordinátáját jelzi. 
 
 \begin{figure}[tbh]
 \centering
@@ -585,7 +586,7 @@ Miután meghatároztam a pontok valóvilágbeli koordinátáikat, ezek pontossá
 	\includegraphics[width=205pt]{figures/visu_pcl.png}
 	\caption{PCL vizualizációs szoftverrel ráközelítve}
   \end{subfigure}
-\caption{Háromszögelés \textit{Linear-LS}-sel. Jól látható a közeli nézőpontból, hogy egy kissé hullámos lett a felület \label{fig:cv-triangulation}}
+\caption{Háromszögelés \textit{Linear-LS}-sel. Jól látható a közeli nézőpontból, hogy egy kissé hullámos lett a felület. \label{fig:cv-triangulation}}
 \end{figure}
 
 Az OpenCV keretrendszerben megtalálhatjuk a \cite{hartley-triangulation}-ben leírt optimális, de polinomiális algoritmust is implementálva \texttt{cv::correctMatches()} néven, amely a fundamentális mátrix segítségével \aref{sec:triangulation}. szakaszban említett módon javítja a pontpárokat, azaz $\mathbf{u} \leftrightarrow \mathbf{u}'$ összerendelések helyett olyan $\mathbf{\hat{u}} \leftrightarrow \mathbf{\hat{u}}'$ párokat ad, melyekre $d(\mathbf{u}, \mathbf{\hat{u}})^2 + d(\mathbf{u}', \mathbf{\hat{u}}')^2$ minimális, és teljesül, hogy $\mathbf{\hat{u}}'^T \mathbf{F} \mathbf{\hat{u}} = 0$. Ez az előbbi átlagos visszavetítési hibát 8,054 pixelre javította, de rohamos teljesítménycsökkenés mellett (0,06 másodperces futási idő helyett 0,64 másodperc lett a háromszögelés), mely az eredményeket szabad szemmel megnézve nem volt meggyőző.
@@ -595,9 +596,9 @@ Az OpenCV keretrendszerben megtalálhatjuk a \cite{hartley-triangulation}-ben le
 
 \Aref{sec:triangulation}. szakaszban leírt iteratív módszert nem tudjuk alkalmazni a fenti \texttt{cv::triangulatePoints} függvénnyel, mert nem lehet az egyenleteket pontonként külön-külön súlyozni. Ennek megfelelően először a ,,szimpla'' \textit{Linear-LS} megközelítést kellett implementálnom, majd ezt már meghívhattam iteratívan különböző súlyokkal.
 
-Ehhez én Roy Shilkrot online elérhető alkalmazás-könyvtárából \cite{sfm-toy-library} merítettem a kiindulási alapot, és azt alakítottam az általam használt adatszerkezetekhez. Ehhez is előtte minden pontot normalizálni, valamint a torzítási együtthatóknak megfelelően javítani kellett. Ezzel a megközelítéssel 8,21 pixelnyi átlagos visszavetítési hibát kaptam, de a sebesség harmadára csökkent (0,06 másodperc helyett 0,18 másodperc lett a futási idő). % melyet szintén nem tekinthetünk kifizetődő kompromisszumnak.
+Ehhez én Roy Shilkrot online elérhető alkalmazás-könyvtárából \cite{sfm-toy-library} merítettem a kiindulási alapot, és azt alakítottam az általam használt adatszerkezetekhez. Ehhez is előtte minden pontot normalizálni, valamint a torzítási együtthatóknak megfelelően korrigálni kellett. Ezzel a megközelítéssel 8,21 pixelnyi átlagos visszavetítési hibát kaptam, de a sebesség harmadára csökkent (0,06 másodperc helyett 0,18 másodperc lett a futási idő). % melyet szintén nem tekinthetünk kifizetődő kompromisszumnak.
 
-A fentieket összegyűjtve a \texttt{Triangulator} osztályban (lásd \ref{fig:cd:triangulator}. ábra) implementáltam, melynek két metódusa a fent említett két módszert (OpenCV-s \texttt{triangulatePoints}, valamint az Iterative-LS) valósítja meg. Mindkettő az egymásnak megfelelő pontpárokat várja bemenetként, és harmadik paraméterében visszaadja a pontfelhőt, mely \texttt{CloudPoint}-ok listájaként áll elő. Egy \texttt{CloudPoint} az aktuális koordinátákon kívül azt is tudja magáról, hogy mekkora a hozzá tartozó visszavetítési hiba, így a megjelenítésnél ezt is figyelembe tudtam venni.
+A fentieket összegyűjtve a \texttt{Triangulator} osztályban (lásd \ref{fig:cd:triangulator}. ábra) implementáltam, melynek két metódusa a fent említett két módszert (OpenCV-s \texttt{triangulatePoints}, valamint az Iterative-LS) valósítja meg. Mindkettő az egymásnak megfelelő pontpárokat várja bemenetként, és harmadik paraméterében visszaadja \texttt{CloudPoint}-ok listájaként a pontfelhőt, valamint visszatérési értékként az átlagos visszavetítési hibát. Egy \texttt{CloudPoint} az aktuális koordinátákon kívül azt is tudja magáról, hogy mekkora a hozzá tartozó visszavetítési hiba, így később a megjelenítésnél ezt is figyelembe tudtam venni.
 
 \begin{figure}[tbh]
 \centering
@@ -665,7 +666,7 @@ Ezen három vizualizáció eredménye a bal oldali kamera nézpontjából látha
 \caption{Különböző vizualizációk, ráközelítve a hasznos területre \label{fig:different-vis}}
 \end{figure}
 
-Ahogy \aref{chapter3}. fejezetben említettem, a választott nézőpont, ahonnan érdemes lehet rekonstruálni az objektumot, a két kamera nézőpont között helyezkedhet el. Tehát a két kamera között kellett interpolálni a virtuális kamera helyzetét és irányát, és innen elvégezni a vetítést. Fontos, hogy nem csak a kamera helyzetét ($\mathbf{t_v}$), a forgatási mátrixát ($\mathbf{R_v}$) is meg kellett határoznom. Jelölje $r \in [0; 1]$ a virtuális kamera pozícióját a pályáján, ahol $r = 0$, ha a bal oldali kamera, és $r = 1$, ha a jobb oldali kamera helyzetében van. Ekkor a virtuális kamera eltolási vektora $\mathbf{t_v} = (1-r)\mathbf{t_b} + r\mathbf{t_j}$, ahol $\mathbf{t_b}$ jelöli a bal oldali, $\mathbf{t_j}$ a jobb oldali kamera eltolási vektorát. Ken Shoemake cikke \cite{quaternion} alapján célszerű a forgatási mátrixok (vagy akár az ebből nyerhető Euler-szögek) helyett kvanterniókra áttérni, és ezek között úgynevezett gömbi lineáris interpolációval (\textit{slerp}) kiszámolni a kívánt köztes lépést. Ennek implementációját az Eigen \cite{eigenweb} alkalmazáskönyvtárral valósítottam meg. Először az OpenCV-s \texttt{cv::Mat} mátrix objektumokat Eigen-es \texttt{Eigen::Matrix} objektumokká konvertáltam, majd ezeket már az API-t használva kvaterniókká alakítva a \texttt{slerp()} metódus segítségével egy köztes kvaterniót interpoláltam. Végül ezt visszaalakítottam $\mathbf{R_v}$ OpenCV-s mátrixszá.
+\Aref{chapter3}. fejezetben leírtam, hogy a választott nézőpont, ahonnan érdemes lehet rekonstruálni az objektumot, a két kamera nézőpont között helyezkedhet el. Tehát a két kamera között kellett interpolálni a virtuális kamera helyzetét és irányát, és innen elvégezni a vetítést. Fontos, hogy nem csak a kamera helyzetét ($\mathbf{t_v}$), a forgatási mátrixát ($\mathbf{R_v}$) is meg kellett határoznom. Jelölje $r \in [0; 1]$ a virtuális kamera pozícióját a pályáján, ahol $r = 0$, ha a bal oldali kamera, és $r = 1$, ha a jobb oldali kamera helyzetében van. Ekkor a virtuális kamera eltolási vektora $\mathbf{t_v} = (1-r)\mathbf{t_b} + r\mathbf{t_j}$, ahol $\mathbf{t_b}$ jelöli a bal oldali, $\mathbf{t_j}$ a jobb oldali kamera eltolási vektorát. Ken Shoemake cikke \cite{quaternion} alapján célszerű a forgatási mátrixok (vagy akár az ebből nyerhető Euler-szögek) helyett kvanterniókra áttérni, és ezek között úgynevezett gömbi lineáris interpolációval (\textit{slerp}) kiszámolni a kívánt köztes lépést. Ennek implementációját az Eigen \cite{eigenweb} alkalmazáskönyvtárral valósítottam meg. Először az OpenCV-s \texttt{cv::Mat} mátrix objektumokat Eigen-es \texttt{Eigen::Matrix} objektumokká konvertáltam, majd ezeket már az API-t használva kvaterniókká alakítva a \texttt{slerp()} metódus segítségével egy köztes kvaterniót interpoláltam. Végül ezt visszaalakítottam az $\mathbf{R_v}$ OpenCV-s mátrixszá.
 
 Ezt a logikát a \texttt{Visualization} osztályban implementáltam, mely konstruktorában egy \texttt{CameraPose} példányt (eltolási és forgatási vektor -- lásd Rodrigues-formula), valamint egy kamera-mátrixot vár. Négy további metódusa van, ebből három a fenti megjelenítési típusokat valósítja meg, az utolsó pedig visszaadja magát az elkészült képet. Az áttekintő osztálydiagramot \aref{fig:cd:visualization}. ábra mutatja be. Az $r$ arányszámot a felületről egy csúszka segítségével tudjuk változtatni, \aref{fig:visu_slider}. ábra (lásd \pageref{fig:visu_slider}. oldal) mutatja a két szélső és a középső helyzetben a vizualizáció eredményét.
 
@@ -794,7 +795,7 @@ Egy képkockapár feldolgozásának a folyamata szekvencia-diagramként láthat�
     \begin{call}{m}{triangulateCv(pts1, pts2, pcloud)}{triang}{pcloud}
     \end{call}
 
-    \begin{call}{m}{pontfelhők összevonása}{m}{}
+    \begin{call}{m}{pontfelhők összefűzése}{m}{}
     \end{call}
 
 \end{sdblock}
@@ -815,4 +816,4 @@ Egy képkockapár feldolgozásának a folyamata szekvencia-diagramként láthat�
 \section{Összefoglaló}
 %----------------------------------------------------------------------------
 
-Ebben a fejezetben az elkészült alkalmazás implementációjának fejlesztését mutattam be. Az egyes fázisokat, részproblémák megoldásait példákon keresztül szemléltettem. Amennyiben egy problémára több megoldást is elkészítettem, indokoltam a választásom valamelyik megközelítés mellett. Végezetül a konkrét alkalmazás futását szekvencia diagramon ábrázoltam.
+Ebben a fejezetben az elkészült alkalmazás implementációjának fejlesztését mutattam be. Az egyes fázisokat, részproblémák megoldásait példákon keresztül szemléltettem. Amennyiben egy problémára több megoldást is elkészítettem, indokoltam a választásom valamelyik megközelítés mellett. Végezetül a videofolyamok képkockáinak feldolgozását szekvencia diagramokon ábrázoltam.
