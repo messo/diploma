@@ -10,7 +10,7 @@ A teszteléshez két darab Logitech QuickCam Pro 9000 típusú webkamerát haszn
 \section{Első jelenet}
 % -------------------------------------------------------
 
-Elsőként egy olyan jeleneten próbáltam ki az elkészült alkalmazást, amely esetén a két kamera egymás mellett van (lásd \ref{fig:scene1_camerapose}. ábra), egy irányba néznek, és két teás dobozt mozgatok előttük. A jelenet 178 képkockából állt (\textasciitilde 6 másodperc), melyből mindegyik $640\times 480$-as felbontású, színes kép. \Aref{fig:scene1_frames}. ábrán látható a bal oldali kamerák által rögzített három képkocka és az ezekhez tartozó, -- a könnyebb összehasonlíthatóság végett -- ugyanezen nézőpontból vett helyreállítások. Megfigyelhető, hogy a bal oldali teás doboz rekonstrukciója a textúrázatlan területeken várakozásainknak megfelelően hiányos, hiszen itt nem hagyatkozhattunk az optikai folyam által adódó elmozdulásokra. Ugyanezen okok miatt a szereplő kezeiből is csak néhány pontot lehetett helyreállítani.
+Elsőként egy olyan jeleneten próbáltam ki az elkészült alkalmazást, amely esetén a két kamera egymás mellett van (lásd \ref{fig:scene1_camerapose}. ábra), egy irányba néznek, és két teásdobozt mozgatok előttük. A jelenet 178 képkockából állt (\textasciitilde 6 másodperc), melyből mindegyik $640\times 480$-as felbontású, színes kép. \Aref{fig:scene1_frames}. ábrán látható a bal oldali kamerák által rögzített három képkocka és az ezekhez tartozó, -- a könnyebb összehasonlíthatóság végett -- ugyanezen nézőpontból vett helyreállítások. Megfigyelhető, hogy a bal oldali teásdoboz rekonstrukciója a textúrázatlan területeken várakozásainknak megfelelően hiányos, hiszen itt nem hagyatkozhattunk az optikai folyam által adódó elmozdulásokra. Ugyanezen okok miatt a szereplő kezeiből is csak néhány pontot lehetett helyreállítani.
 
 A 178 képkockából 157-szer kaptam \aref{fig:scene1_frames}. ábrához hasonló rekonstrukciókat, 13-szor csak 1 objektumot sikerült helyreállítani, illetve 8-szor volt értékelhetetlen a végeredmény (nagyon kicsi pontfelhő, néhány ponttal). A hibák akkor történtek, amikor a jelenetben a két doboz nem mozgott jelentősen, csak helyben forgott, minek következtében az előtér maszkok hiányosak lettek. A rekonstrukciók során az összes képkockára nézve az átlagos visszavetítési hiba 0,8 pixel lett, ami elhanyagolhatónak számít. A már bemutatott pillanatokhoz rajzolt kontúrok \aref{fig:scene1_contours}. ábrán látható. Figyeljük meg, hogy a jobb oldali dobozt jól meghatározza annak kontúrja, viszont a bal oldali doboz textúrázottságának hiánya jelentősen befolyásolja a kontúrjainak értelmezhetőségét.
 
@@ -46,7 +46,7 @@ A 178 képkockából 157-szer kaptam \aref{fig:scene1_frames}. ábrához hasonl�
 	\centering
 	\includegraphics[width=135pt]{figures/vis_223.png}
   \end{subfigure}
-\caption{A bal oldali kamera 3 képkockája (40., 100. és 170. képkocka) az első jelenetből, valamint a helyreállított képek a baloldali kamera nézőpontjából \label{fig:scene1_frames}}
+\caption{A bal oldali kamera 3 képkockája (40., 100. és 170. képkocka) az első jelenetből, valamint a helyreállított képek a bal oldali kamera nézőpontjából \label{fig:scene1_frames}}
 
 \vspace{10pt}
 
@@ -62,7 +62,7 @@ A 178 képkockából 157-szer kaptam \aref{fig:scene1_frames}. ábrához hasonl�
 	\centering
 	\includegraphics[width=135pt]{figures/contour_223.png}
   \end{subfigure}
-\caption{A 40., 100. és 170. képkockák alapján számolt kontúrok a baloldali kamera nézőpontjából \label{fig:scene1_contours}}
+\caption{A 40., 100. és 170. képkockák alapján számolt kontúrok a bal oldali kamera nézőpontjából \label{fig:scene1_contours}}
 
 \end{figure}
 
@@ -70,7 +70,7 @@ A 178 képkockából 157-szer kaptam \aref{fig:scene1_frames}. ábrához hasonl�
 \section{Második jelenet}
 % -------------------------------------------------------
 
-Második jelenet két olyan kamera által került rögzítésre, amelyek optikai tengelyei egy hegyes szöveg zárnak be (lásd \ref{fig:scene2_camerapose}. ábra). Ebben az esetben is két teás dobozt mozgattam. A jelenet 360 képkockából állt (\textasciitilde 12 másodperc), melyből mindegyik $640\times 480$-as felbontású, színes kép. \Aref{fig:scene2_frames}. ábrán látható a bal oldali kamerák által rögzített 4 képkocka és ugyanezen nézőpontból vett helyreállítások vizualizációi.
+Második jelenet két olyan kamera által került rögzítésre, amelyek optikai tengelyei egy hegyes szöveg zártak be (lásd \ref{fig:scene2_camerapose}. ábra). Ebben az esetben is két teásdobozt mozgattam. A jelenet 360 képkockából állt (\textasciitilde 12 másodperc), melyből mindegyik $640\times 480$-as felbontású, színes kép. \Aref{fig:scene2_frames}. ábrán látható a bal oldali kamerák által rögzített 4 képkocka és ugyanezen nézőpontból vett helyreállítások vizualizációi.
 
 \begin{figure}
 \centering

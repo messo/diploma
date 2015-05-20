@@ -2,14 +2,14 @@
 \chapter{Eredmények}
 %----------------------------------------------------------------------------
 
-Ebben a fejezetben az elért eredményeket összesítem és értékelem a megoldásom.
+Ebben a fejezetben az elért eredményeket összesítem, és értékelem a megoldásom.
 
 \Aref{chapter:full-test}. fejezet elején bemutattam az első jelenetet, amit később a gyorsítási lehetőségek vizsgálatánál is felhasználtam. Ez 178 darab $640\times 480$-as felbontású képből állt, melyeken két teásdobozt mozgattam, ezek mérete összesen kb. a képek területének 15\%-át tették ki. A bemutatott képeken jól látszódott, hogy a helyreállítás minősége a mélységet bemutató színábrázolással szemléltetve nagyon jónak értékelhető, melyet az átlagos visszavetítési hibák (melyek átlaga 0,806 pixel lett) is jól alátámasztottak.
 
 Ahogy a korábbi fejezetekben említésre került, a választott megoldáshoz szükséges, hogy az objektumok jól textúrázottak legyenek, valamint azért, hogy a különböző objektumokat elkülöníthessem, egymáshoz képest is eltérő leírókkal (alak, szín, textúra jellege) kell rendelkezniük. Ezek az én esetemben nagyjából teljesültek, egyedül az egyik teásdoboz volt néhol túl homogén, de ez jól bemutatta a megoldás ezen korlátját.
 
 A kezdeti 1 FPS-es sebességből párhuzamosítás és GPU-n történő gyorsítás után egészen 
-3,86 FPS-re sikerült gyorsítani ugyanazon jeleneten a feldolgozás sebességét, amely jelentős növekedést jelentett. Megvizsgáltam azt is, hogy kisebb képek esetén, mennyire közelíthető meg a kívánt valós idejű feldolgozás. A tesztek alapján úgy találtam, hogy az általam rendelkezésre álló hardveren a készített megoldás még az értékelhető $160\times 140$-es felbontás körüli képrészletekből jó minőségűnek mondható helyreállítást készített (ámbátor már jelentősebb, 5 pixeles átlagos visszavetítési hibával), és elérte a 12 FPS-es sebességet. Az elérni kívánt másodpercenkénti \textasciitilde 24 képkocka feldolgozását viszont nem sikerült megközelíteni, ennél kisebb képeken pedig már nem volt gyakorlati haszna kísérletezni. Ezen eredményeket összefoglalóan \aref{table:results}. táblázat mutatja be, melyen \aref{chapter:full-test}. fejezet többi jelenetének sebessége is látható a végső koncepcióval (többszálon futtatva, GPU-n is számolva).
+3,86 FPS-re sikerült gyorsítani ugyanazon jeleneten a feldolgozás sebességét, amely jelentős sebességnövekedést jelentett. Megvizsgáltam azt is, hogy kisebb képek esetén, mennyire közelíthető meg a kívánt valós idejű feldolgozás. A tesztek alapján úgy találtam, hogy az általam rendelkezésre álló hardveren a készített megoldás még az értékelhető $160\times 140$-es felbontás körüli képrészletekből jó minőségűnek mondható helyreállítást készített (ámbátor már jelentősebb, 5 pixeles átlagos visszavetítési hibával), és elérte a 12 FPS-es sebességet. Az elérni kívánt másodpercenkénti \textasciitilde 24 képkocka feldolgozását viszont nem sikerült megközelíteni, ennél kisebb képeken pedig már nem volt gyakorlati haszna kísérletezni. Ezen eredményeket összefoglalóan \aref{table:results}. táblázat mutatja be, melyen \aref{chapter:full-test}. fejezet többi jelenetének sebessége is látható a végső koncepcióval (többszálon futtatva, GPU-n is számolva).
 
 \begin{table}[tbh]
 \centering
