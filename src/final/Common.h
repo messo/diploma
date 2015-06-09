@@ -18,6 +18,11 @@ struct CloudPoint {
     double reprojection_error;
 };
 
+extern cv::Point2f LEFT_SHIFT;
+extern cv::Point2f RIGHT_SHIFT;
+extern cv::Size SIZE;
+extern float RATIO;
+
 std::pair<int, int> makePair(const cv::Point &pt);
 
 struct Cloud {

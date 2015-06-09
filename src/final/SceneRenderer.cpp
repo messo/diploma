@@ -25,23 +25,23 @@ int main(int argc, char **argv) {
     omp_set_nested(1);
 
     vector<Ptr<Camera>> camera(2);
-    DummyCamera *cam1 = new DummyCamera(Camera::LEFT, "/media/balint/Data/Linux/diploma/scene_1", 228);
+    DummyCamera *cam1 = new DummyCamera(Camera::LEFT, "/media/balint/Data/Linux/diploma/scene_3/scene", 620);
     cam1->readCalibration("/media/balint/Data/Linux/diploma/src/final/intrinsics_left.yml");
     camera[Camera::LEFT] = Ptr<Camera>(cam1);
-    DummyCamera *cam2 = new DummyCamera(Camera::RIGHT, "/media/balint/Data/Linux/diploma/scene_1", 228);
+    DummyCamera *cam2 = new DummyCamera(Camera::RIGHT, "/media/balint/Data/Linux/diploma/scene_3/scene", 620);
     cam2->readCalibration("/media/balint/Data/Linux/diploma/src/final/intrinsics_right.yml");
     camera[Camera::RIGHT] = Ptr<Camera>(cam2);
 
     vector<CameraPose> cameraPose(2);
-    cameraPose[Camera::LEFT].load("/media/balint/Data/Linux/diploma/src/final/pose_left.yml");
-    cameraPose[Camera::RIGHT].load("/media/balint/Data/Linux/diploma/src/final/pose_right.yml");
+    cameraPose[Camera::LEFT].load("/media/balint/Data/Linux/diploma/scene_3/polc_pose_left.yml");
+    cameraPose[Camera::RIGHT].load("/media/balint/Data/Linux/diploma/scene_3/polc_pose_right.yml");
 
     std::vector<Ptr<ForegroundMaskCalculator>> maskCalculators(2);
     maskCalculators[Camera::LEFT] = Ptr<ForegroundMaskCalculator>(new OFForegroundMaskCalculator());
     maskCalculators[Camera::RIGHT] = Ptr<ForegroundMaskCalculator>(new OFForegroundMaskCalculator());
 
     FileStorage fs;
-    fs.open("/media/balint/Data/Linux/diploma/F.yml", FileStorage::READ);
+    fs.open("/media/balint/Data/Linux/diploma/scene_3/F.yml", FileStorage::READ);
     Mat F;
     fs["myF"] >> F;
 
@@ -49,6 +49,12 @@ int main(int argc, char **argv) {
     MultiObjectSelector objSelector(matcher);
 
     int count = 0;
+
+//    double ratio = 0.5;
+//    CameraPose virtualPose;
+//    virtualPose.tvec = (1 - ratio) * cameraPose[Camera::LEFT].tvec + ratio * cameraPose[Camera::RIGHT].tvec;
+//    virtualPose.rvec = slerp(cameraPose[Camera::LEFT].rvec, cameraPose[Camera::RIGHT].rvec, ratio);
+//    Mat virtualCameraMatrix = (Mat_<double>(3, 3) << 540, 0, 320, 0, 540, 240, 0, 0, 1);
 
     while (cam1->frame != cam1->lastFrame) {
 
@@ -73,9 +79,6 @@ int main(int argc, char **argv) {
         std::vector<CloudPoint> finalResult;
         std::vector<Point2f> totalPoints;
 
-        //imshow("frame1", frames[0]);
-        //imshow("frame2", frames[1]);
-
         PerformanceMonitor::get()->objFound(objects.size());
 
         std::vector<std::vector<CloudPoint>> clouds(objects.size());
@@ -91,7 +94,8 @@ int main(int argc, char **argv) {
             Triangulator triangulator(camera[Camera::LEFT], camera[Camera::RIGHT],
                                       cameraPose[Camera::LEFT], cameraPose[Camera::RIGHT]);
 
-            triangulator.triangulateCv(matches.first, matches.second, clouds[i]);
+            double reproj = triangulator.triangulateCv(matches.first, matches.second, clouds[i]);
+            PerformanceMonitor::get()->reprojError(reproj);
             points[i] = matches.first;
 
             PerformanceMonitor::get()->triangulationFinished();
@@ -108,20 +112,34 @@ int main(int argc, char **argv) {
         }
 
         PerformanceMonitor::get()->visualizationStarted();
-        Visualization matVis(cameraPose[Camera::LEFT], camera[Camera::LEFT]->cameraMatrix);
+//        Visualization matVis(virtualPose, virtualCameraMatrix);
+        Visualization matVis(cameraPose[0], camera[0]->cameraMatrix);
         matVis.renderWithDepth(finalResult);
+
+//        matVis.renderWithContours(clouds);
+
         PerformanceMonitor::get()->visualizationFinished();
 
-//        imshow("result", matVis.getResult());
-//        waitKey(10);
 
-        imwrite("/media/balint/Data/Linux/diploma/scene_1_vis/vis_" + to_string(cam1->frame - 1) + ".png", matVis.getResult());
+//            imshow("frame1", frames[0]);
+//            imshow("frame2", frames[1]);
+//
+//        imshow("result", matVis.getResult());
+//        waitKey();
+
+        imwrite("/media/balint/Data/Linux/diploma/__out/vis_" + to_string(cam1->frame - 1) + ".png", matVis.getResult());
+//
+//        imwrite("/media/balint/Data/Linux/diploma/scene_1_tiny_vis/vis_" + to_string(cam1->frame - 1) + "_left.png", frames[0]);
+//        imwrite("/media/balint/Data/Linux/diploma/scene_1_tiny_vis/vis_" + to_string(cam1->frame - 1) + "_right.png", frames[1]);
 
         std::cout << "FRAME FINISHED IN: " << (getTickCount() - t0) / getTickFrequency() << " s" << endl;
-        PerformanceMonitor::get()->frameFinished();
+        if (objects.size() > 0) {
+            PerformanceMonitor::get()->frameFinished();
+        }
     }
 
     std::cout << "################" << std::endl;
+    PerformanceMonitor::get()->reproj.print("AVG");
     PerformanceMonitor::get()->frameTotal.print("Frame");
     PerformanceMonitor::get()->maskCalculation.print("MaskCalculation");
     PerformanceMonitor::get()->extracting.print("Matching/Features");

@@ -2,6 +2,7 @@
 #include <opencv2/highgui.hpp>
 #include <iostream>
 #include "SingleObjectSelector.hpp"
+#include "../PerformanceMonitor.h"
 
 using namespace std;
 using namespace cv;
@@ -10,6 +11,7 @@ using namespace cv;
 std::vector<Object> SingleObjectSelector::selectObjects(const std::vector<cv::Mat> &frames,
                                                         const std::vector<cv::Mat> &masks) {
 
+    PerformanceMonitor::get()->objSelectionStarted();
     std::vector<Mat> newMasks(2);
 
 //    for (int i = 0; i < 2; i++) {
@@ -38,6 +40,8 @@ std::vector<Object> SingleObjectSelector::selectObjects(const std::vector<cv::Ma
 //        }
 //    }
 
+
+
     for (int i = 0; i < 2; i++) {
         std::vector<std::vector<Point>> allContours;
 
@@ -45,7 +49,7 @@ std::vector<Object> SingleObjectSelector::selectObjects(const std::vector<cv::Ma
         masks[i].copyTo(img);
         findContours(img, allContours, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
 
-        double maxArea = 0;
+        double maxArea = 380.0;
         int selectedContour = -1;
         for (int idx = 0; idx < allContours.size(); idx++) {
             const std::vector<Point> &c = allContours[idx];
@@ -56,12 +60,18 @@ std::vector<Object> SingleObjectSelector::selectObjects(const std::vector<cv::Ma
             }
         }
 
-        newMasks[i] = Mat::zeros(frames[i].rows, frames[i].cols, CV_8U);
-        cv::drawContours(newMasks[i], allContours, selectedContour, Scalar(255), -1, LINE_8);
+        if(selectedContour != -1) {
+            newMasks[i] = Mat::zeros(frames[i].rows, frames[i].cols, CV_8U);
+            cv::drawContours(newMasks[i], allContours, selectedContour, Scalar(255), -1, LINE_8);
+        }
 
 //        for(int j=0; j<allContours.size(); j++) {
 //            cv::drawContours(newMasks[i], allContours, j, j==selectedContour ? Scalar(255) : Scalar(100), -1, LINE_AA);
 //        }
+    }
+
+    if(newMasks[0].empty() || newMasks[1].empty()) {
+        return std::vector<Object>();
     }
 
     vector<pair<Point2f, Point2f>> matches = matcher.match(frames, newMasks);
@@ -69,6 +79,8 @@ std::vector<Object> SingleObjectSelector::selectObjects(const std::vector<cv::Ma
     std::vector<Object> result;
     result.push_back(Object(newMasks[0], newMasks[1]));
     result.back().matches = matches;
+
+    PerformanceMonitor::get()->objSelectionFinished();
 
     return result;
 }

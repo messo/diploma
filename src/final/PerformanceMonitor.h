@@ -96,5 +96,9 @@ public:
     double triangulationPerFrameDuration = 0.0;
 
     void reset();
+
+    void reprojError(double d);
+
+    PerformanceIndicator reproj;
 };
 

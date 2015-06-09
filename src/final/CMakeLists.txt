@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.0)
 
 project(Final)
 
+#set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+
 find_package(OpenCV 3.0.0 REQUIRED)
 find_package(OpenMP)
 
@@ -35,7 +37,7 @@ add_executable(Diploma diploma.cpp ${CLASSES} locking.h FPSCounter.cpp)
 target_compile_features(Diploma PRIVATE cxx_range_for)
 target_link_libraries(Diploma ${OpenCV_LIBS} v4l2)
 
-add_executable(ForReport for_report.cpp ${CLASSES} optical_flow/ReportOpticalFlowCalculator.cpp)
+add_executable(ForReport for_report.cpp camera/Camera.cpp camera/RealCamera.cpp camera/DummyCamera.cpp calibration/Calibration.cpp calibration/CameraPoseCalculator.cpp camera/CameraPose.cpp)
 target_compile_features(ForReport PRIVATE cxx_range_for)
 target_link_libraries(ForReport ${OpenCV_LIBS} v4l2)
 
@@ -52,7 +54,7 @@ target_link_libraries(MultiObj ${OpenCV_LIBS} v4l2)
 #target_compile_features(StereoCalibration PRIVATE cxx_range_for)
 #target_link_libraries(StereoCalibration ${OPENGL_LIBRARIES} ${OpenCV_LIBS} ${GLUT_LIBRARIES} v4l2)
 
-add_executable(VideoMaker video.cpp ${CLASSES})
+add_executable(VideoMaker video.cpp camera/Camera.cpp camera/RealCamera.cpp camera/DummyCamera.cpp)
 target_compile_features(VideoMaker PRIVATE cxx_range_for)
 target_link_libraries(VideoMaker ${OpenCV_LIBS} v4l2)
 

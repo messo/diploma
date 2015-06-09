@@ -5,6 +5,8 @@
 #include <opencv2/features2d.hpp>
 #include <opencv2/xfeatures2d.hpp>
 #include <opencv2/xfeatures2d/nonfree.hpp>
+#include <opencv2/cudafeatures2d.hpp>
+#include <opencv2/cudaimgproc.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/highgui.hpp>
 #include <iomanip>
@@ -111,6 +113,17 @@ void Matcher::detectKeypointsAndExtractDescriptors(const std::vector<cv::Mat> &i
         extractor->compute(images[i], keypoints[i], descriptors[i]);
     }
 
+//    for (int i = 0; i < images.size(); i++) {
+//        cv::cuda::GpuMat coloredImage(images[i]), mask(masks[i]), image;
+//        cv::cuda::cvtColor(coloredImage, image, cv::COLOR_BGR2GRAY);
+//
+//        cv::cuda::GpuMat descriptor;
+//        cv::cuda::Stream;
+//        detector->detectAndCompute(image, mask, keypoints[i], descriptor);
+//
+//        descriptor.download(descriptors[i]);
+//    }
+
     t0 = ((double) cv::getTickCount() - t0) / cv::getTickFrequency();
     std::cout << "[" << std::setw(20) << "Matcher" << "] " << "Detection and extraction done in " << t0 << "s" << std::endl;
     std::cout.flush();
@@ -173,11 +186,11 @@ std::vector<std::pair<cv::Point2f, cv::Point2f>> Matcher::buildMatches(const std
         // Get the position of left keypoints
         float x = keypoints[0][match.queryIdx].pt.x;
         float y = keypoints[0][match.queryIdx].pt.y;
-        points1[i] = cv::Point2f(x, y);
+        points1[i] = (RATIO == 1.0f) ? (cv::Point2f(x, y) + LEFT_SHIFT) : (cv::Point2f(x, y) * RATIO);
         // Get the position of right keypoints
         x = keypoints[1][match.trainIdx].pt.x;
         y = keypoints[1][match.trainIdx].pt.y;
-        points2[i] = cv::Point2f(x, y);
+        points2[i] = (RATIO == 1.0f) ? (cv::Point2f(x, y) + RIGHT_SHIFT) : (cv::Point2f(x, y) * RATIO);
     }
 
     std::vector<std::pair<cv::Point2f, cv::Point2f>> matchingPoints;
@@ -199,7 +212,8 @@ std::vector<std::pair<cv::Point2f, cv::Point2f>> Matcher::buildMatches(const std
 
         if (fabs(res.at<double>(0)) < THRESHOLD) {
             keptMatches.push_back(matches[i]);
-            matchingPoints.push_back(std::make_pair(points1[i], points2[i]));
+            matchingPoints.push_back(std::make_pair((RATIO == 1.0f) ? (points1[i] - LEFT_SHIFT) : (points1[i] / RATIO),
+                                                    (RATIO == 1.0f) ? (points2[i] - RIGHT_SHIFT) : (points2[i] / RATIO)));
         }
     }
 

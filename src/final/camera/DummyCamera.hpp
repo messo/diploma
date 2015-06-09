@@ -7,7 +7,7 @@ class DummyCamera : public Camera {
     std::string path;
 
 public:
-    long frame = 50;
+    long frame = 100; // 50
     int lastFrame = -1;
     int firstFrame = 0;
 

@@ -131,3 +131,8 @@ void PerformanceMonitor::reset() {
     ofMatchingPerFrame.reset();
     triangulationPerFrame.reset();
 }
+
+void PerformanceMonitor::reprojError(double d) {
+#pragma omp critical
+    reproj.addNew(d);
+}

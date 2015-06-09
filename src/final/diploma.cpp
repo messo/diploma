@@ -100,15 +100,15 @@ int main(int argc, char **argv) {
     camera[Camera::RIGHT] = Ptr<Camera>(new RealCamera(Camera::RIGHT, "/media/balint/Data/Linux/diploma/src/final/intrinsics_right.yml"));
 
     std::vector<CameraPose> cameraPose(2);
-    cameraPose[Camera::LEFT].load("/media/balint/Data/Linux/diploma/src/final/pose_left.yml");
-    cameraPose[Camera::RIGHT].load("/media/balint/Data/Linux/diploma/src/final/pose_right.yml");
+    cameraPose[Camera::LEFT].load("/media/balint/Data/Linux/diploma/src/final/polc_pose_left.yml");
+    cameraPose[Camera::RIGHT].load("/media/balint/Data/Linux/diploma/src/final/polc_pose_right.yml");
 
     std::vector<Ptr<ForegroundMaskCalculator>> maskCalculators(2);
     maskCalculators[Camera::LEFT] = Ptr<ForegroundMaskCalculator>(new OFForegroundMaskCalculator()); //new MOG2ForegroundMaskCalculator());
     maskCalculators[Camera::RIGHT] = Ptr<ForegroundMaskCalculator>(new OFForegroundMaskCalculator()); //new MOG2ForegroundMaskCalculator());
 
     FileStorage fs;
-    fs.open("/media/balint/Data/Linux/diploma/F.yml", FileStorage::READ);
+    fs.open("/media/balint/Data/Linux/diploma/scene_2/F.yml", FileStorage::READ);
     Mat F;
     fs["myF"] >> F;
     OpticalFlowCalculator ofCalculator;
@@ -118,7 +118,7 @@ int main(int argc, char **argv) {
     static_cast<RealCamera *>(camera[Camera::RIGHT].get())->focus(focus);
 
     Matcher matcher(camera[Camera::LEFT], camera[Camera::RIGHT], F);
-    Ptr<ObjectSelector> objSelector(new SingleObjectSelector(matcher));
+    Ptr<ObjectSelector> objSelector(new MultiObjectSelector(matcher));
 
     Triangulator triangulator(camera[Camera::LEFT], camera[Camera::RIGHT],
                               cameraPose[Camera::LEFT], cameraPose[Camera::RIGHT]);

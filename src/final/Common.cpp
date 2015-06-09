@@ -13,6 +13,27 @@
 using namespace cv;
 using namespace std;
 
+//Point2f LEFT_SHIFT(240, 120);
+//Point2f RIGHT_SHIFT(330, 120);
+//Size SIZE(160, 240);
+
+// 320x240 középső
+//Point2f LEFT_SHIFT(160, 120);
+//Point2f RIGHT_SHIFT(250, 120);
+//Size SIZE(320, 240);
+float RATIO = 1.0f;
+
+// 160x120 középső
+//Point2f LEFT_SHIFT(260, 120);
+//Point2f RIGHT_SHIFT(186, 120);
+//Size SIZE(160, 140);
+
+Point2f LEFT_SHIFT(0, 0);
+Point2f RIGHT_SHIFT(0, 0);
+Size SIZE(640, 480);
+//
+//float RATIO = 2.0f;
+
 std::pair<int, int> makePair(const cv::Point &pt) {
     return std::make_pair(pt.x, pt.y);
 }
@@ -316,7 +337,7 @@ Point moveToTheCenter(Mat image, Mat mask) {
 }
 
 std::vector<std::vector<Mat>> getFramesFromCameras(std::vector<Ptr<Camera>> &cameras,
-                                      std::vector<Ptr<ForegroundMaskCalculator>> &maskCalculators) {
+                                                   std::vector<Ptr<ForegroundMaskCalculator>> &maskCalculators) {
 
     PerformanceMonitor::get()->maskCalculationStarted();
 
@@ -329,13 +350,25 @@ std::vector<std::vector<Mat>> getFramesFromCameras(std::vector<Ptr<Camera>> &cam
         // std::cout << "CAP THREAD: " << omp_get_thread_num() << std::endl;
         Mat image;
         cameras[i]->read(image); // readUndistorted
-        result[1][i] = maskCalculators[i]->calculate(image);
+
+        Mat smaller_image;
+        if (RATIO == 1.0f) {
+            if (i == 0) {
+                image(Rect(LEFT_SHIFT, SIZE)).copyTo(smaller_image);
+            } else {
+                image(Rect(RIGHT_SHIFT, SIZE)).copyTo(smaller_image);
+            }
+        } else {
+            resize(image, smaller_image, Size(), 1 / RATIO, 1 / RATIO, INTER_AREA);
+        }
+
+        result[1][i] = maskCalculators[i]->calculate(smaller_image);
 
 //        Mat gray;
 //        cvtColor(image, gray, COLOR_BGR2GRAY);
 //        equalizeHist(gray, result[0][i]);
 
-        image.copyTo(result[0][i]);
+        smaller_image.copyTo(result[0][i]);
 
 //        if (i == 0) {
 //            imshow("image", image);

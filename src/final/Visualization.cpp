@@ -21,7 +21,11 @@ void Visualization::renderWithDepth(const std::vector<CloudPoint> &points) {
         }
     }
 
-    Mat img(480, 640, CV_8UC3, Scalar(0, 0, 0));
+    Mat img(SIZE, CV_8UC3, Scalar(0, 0, 0));
+
+    if (RATIO != 1.0f) {
+        img = Mat(Size(SIZE.width / RATIO, SIZE.height / RATIO), CV_8UC3, Scalar(0, 0, 0));
+    }
 
 //    const double maxZ = -74.0;
 //    const double minZ = -88.0;
@@ -37,7 +41,8 @@ void Visualization::renderWithDepth(const std::vector<CloudPoint> &points) {
 //            std::cout << objectPoints[i].z << std::endl;
             double _d = MAX(MIN((objectPoints[i].z - minZ) / (maxZ - minZ), 1.0), 0.0);
 //            std::cout << _d << " " << ((int) (_d * 180)) << std::endl;
-            circle(img, imagePoints[i], 1, Scalar((int) (_d * 160), 255, 255), 1);
+            circle(img, (RATIO == 1.0f) ? (imagePoints[i] - (LEFT_SHIFT + RIGHT_SHIFT) / 2) : (imagePoints[i] / RATIO), 1, Scalar((int) (_d * 160), 255, 255),
+                   1);
         }
     }
 
@@ -128,7 +133,7 @@ void Visualization::renderWithContours(const std::vector<CloudPoint> &points) {
         projectPoints(objectPoints, cameraPose.rvec, cameraPose.tvec, cameraMatrix, cv::noArray(), imagePoints);
 
         for (int i = 0; i < imagePoints.size(); i++) {
-            img.at<uchar>(Point2i(imagePoints[i])) = 255;
+            circle(img, imagePoints[i], 2, Scalar(255), 1, LINE_AA);
         }
     }
 
@@ -141,8 +146,53 @@ void Visualization::renderWithContours(const std::vector<CloudPoint> &points) {
     Mat contourImg(480, 640, CV_8U, Scalar(0));
     for (int i = 0; i < contours.size(); i++) {
         double area = contourArea(contours[i]);
-        if (area > 100.0) {
+        if (area > 70.0) {
             drawContours(contourImg, contours, i, Scalar(255), 2, LINE_AA);
+        }
+    }
+
+    ScopedLock lock(mutexType);
+    contourImg.copyTo(result);
+}
+
+void Visualization::renderWithContours(const std::vector<std::vector<CloudPoint>> &pppoints) {
+
+    Mat contourImg(480, 640, CV_8U, Scalar(0));
+
+    for (int j = 0; j < pppoints.size(); j++) {
+
+        const std::vector<CloudPoint> &points = pppoints[j];
+
+        std::vector<cv::Point3f> objectPoints;
+        std::vector<cv::Point2f> imagePoints;
+
+        for (int i = 0; i < points.size(); i++) {
+            if (points[i].reprojection_error < REPROJ_ERROR_THRESHOLD) {
+                objectPoints.push_back(points[i].pt);
+            }
+        }
+
+        Mat img(480, 640, CV_8U, Scalar(0));
+
+        if (objectPoints.size() > 0) {
+            projectPoints(objectPoints, cameraPose.rvec, cameraPose.tvec, cameraMatrix, cv::noArray(), imagePoints);
+
+            for (int i = 0; i < imagePoints.size(); i++) {
+                circle(img, imagePoints[i], 2, Scalar(255), 1, LINE_AA);
+            }
+        }
+
+        dilate(img, img, Mat(), Point(-1, -1), 2);
+        erode(img, img, Mat(), Point(-1, -1), 2);
+
+        std::vector<std::vector<Point>> contours;
+        findContours(img, contours, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
+
+        for (int i = 0; i < contours.size(); i++) {
+            double area = contourArea(contours[i]);
+            if (area > 70.0) {
+                drawContours(contourImg, contours, i, Scalar(255), 2, LINE_AA);
+            }
         }
     }
 

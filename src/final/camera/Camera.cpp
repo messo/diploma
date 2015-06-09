@@ -8,10 +8,10 @@ void Camera::readCalibration(const std::string &calibrationFile) {
         throw "File cannot be opened!";
     }
 
-    if (id == LEFT) {
+    if (id == 0) {
         fs["M1"] >> cameraMatrix;
         fs["D1"] >> distCoeffs;
-    } else {
+    } else if(id == 1) {
         fs["M2"] >> cameraMatrix;
         fs["D2"] >> distCoeffs;
     }

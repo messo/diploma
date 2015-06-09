@@ -19,11 +19,14 @@ class Visualization {
 public:
 
     Visualization(const CameraPose &pose, const cv::Mat &cameraMatrix) :
-            result(480, 640, CV_8UC3, cv::Scalar(0, 0, 0)), cameraPose(pose), cameraMatrix(cameraMatrix) { }
+            result(480, 640, CV_8UC3, cv::Scalar(0, 0, 0)), cameraPose(pose), cameraMatrix(cameraMatrix) {
+    }
 
     void renderWithDepth(const std::vector<CloudPoint> &points);
 
     void renderWithContours(const std::vector<CloudPoint> &points);
+
+    void renderWithContours(const std::vector<std::vector<CloudPoint>> &points);
 
     void renderWithColors(const std::vector<CloudPoint> &points,
                           const std::vector<cv::Point2f> &originalPoints,

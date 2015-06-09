@@ -291,7 +291,7 @@ double Triangulator::triangulateIteratively(const std::vector<cv::Point2f> &poin
     return mse[0];
 }
 
-double Triangulator::triangulateCv(const std::vector<cv::Point2f> &points1, const std::vector<cv::Point2f> &points2,
+double Triangulator::triangulateCv(std::vector<cv::Point2f> &points1, std::vector<cv::Point2f> &points2,
                                    std::vector<CloudPoint> &pointcloud) {
 
     double t = getTickCount();
@@ -301,6 +301,16 @@ double Triangulator::triangulateCv(const std::vector<cv::Point2f> &points1, cons
     if (count == 0) {
         cout << "[" << std::setw(20) << "Triangulator" << "] " << "no points." << endl;
         return -1.0;
+    }
+
+    for(int i=0; i<points1.size(); i++) {
+        if(RATIO == 1.0f) {
+            points1[i] += LEFT_SHIFT;
+            points2[i] += RIGHT_SHIFT;
+        } else {
+            points1[i] *= RATIO;
+            points2[i] *= RATIO;
+        }
     }
 
     Mat normalized1, normalized2;

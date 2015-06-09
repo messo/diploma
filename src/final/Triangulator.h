@@ -55,7 +55,7 @@ public:
     double triangulateIteratively(const std::vector<cv::Point2f> &points1, const std::vector<cv::Point2f> &points2,
                                   std::vector<CloudPoint> &pointcloud);
 
-    double triangulateCv(const std::vector<cv::Point2f> &points1, const std::vector<cv::Point2f> &points2,
+    double triangulateCv(std::vector<cv::Point2f> &points1, std::vector<cv::Point2f> &points2,
                          std::vector<CloudPoint> &pointcloud);
 
 };
