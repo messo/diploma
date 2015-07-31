@@ -1,0 +1,151 @@
+\documentclass
+[
+compress,
+%mathserif,
+%handout,
+t
+]
+ {beamer}
+
+\usepackage[T1]{fontenc}
+
+\usepackage{mathpazo}
+\usepackage{eulervm}
+
+\usepackage[utf8]{inputenc}
+\usepackage[magyar]{babel}
+\usepackage[noend]{algpseudocode}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{algorithm}
+\usepackage{tikz, tikz-3dplot}
+
+\usepackage{pgfplots}
+\usetikzlibrary{arrows, decorations.markings, shapes.misc, chains, decorations.pathreplacing, spy, shadows,calc,positioning}
+
+
+\pgfplotsset{compat=newest}
+\usepackage{subcaption}
+\usepackage{multirow}
+\usepackage{graphicx}
+\usepackage{ragged2e}
+
+
+\uselanguage{hungarian}
+\languagepath{hungarian}
+\deftranslation[to=hungarian]{Theorem}{Tétel}
+\deftranslation[to=hungarian]{Definition}{Definíció}
+\deftranslation[to=hungarian]{Corollary}{Megjegyzés}
+
+\usetheme{Darmstadt}
+% AnnArbor, Antibes, Bergen, Berkeley, Berlin, Boadilla, CambridgeUS,
+% Copenhagen, Darmstadt, default, Dresden, Frankfurt, Goettingen,
+% Hannover, Ilmenau, JuanLesPins, Luebeck, Madrid, Malmoe, Marburg,
+% Montpellier, PaloAlto, Pittsburgh, Rochester, Singapore, Szeged,
+% Warsaw
+
+\usecolortheme{beaver}
+% albatross, beaver, beetle, crane, default, dolphin, dove, fly, lily,
+% orchid, rose, seagull, seahorse, whale, wolverine
+
+%\usefonttheme{professionalfonts}
+% default, professionalfonts, serif, structurebold,
+% structureitalicserif, structuresmallcapsserif
+
+\makeatother
+\setbeamertemplate{footline}
+{
+  \leavevmode%
+  \hbox{%
+  \begin{beamercolorbox}[wd=.2\paperwidth,ht=2.25ex,dp=1ex,center]{author in head/foot}%
+    \usebeamerfont{author in head/foot}\insertshortauthor
+  \end{beamercolorbox}%
+  \begin{beamercolorbox}[wd=.7\paperwidth,ht=2.25ex,dp=1ex,center]{title in head/foot}%
+    \usebeamerfont{title in head/foot}\insertshorttitle\hspace*{3em}
+  \end{beamercolorbox}
+    \begin{beamercolorbox}[wd=.1\paperwidth,ht=2.25ex,dp=1ex,center]{title in head/foot}%
+    \insertframenumber{} / \inserttotalframenumber\hspace*{1ex}
+  \end{beamercolorbox}}%
+  \vskip0pt%
+}
+\makeatletter
+\setbeamertemplate{navigation symbols}{}
+
+\newcommand\TODO[1]{\textcolor{red}{ TODO #1}}
+\newcommand\todo[0]{\textcolor{red}{ TODO \newline}}
+
+\makeatletter
+\def\BState{\State\hskip-\ALG@thistlm}
+\makeatother
+
+\makeatletter
+\renewcommand*{\ALG@name}{Algoritmus}
+\makeatother
+
+\pgfplotsset{
+  /pgfplots/colormap={coldredux}{
+    [1cm]
+    rgb255(0cm)=(255,255,255)
+    rgb255(2cm)=(0,192,255)
+    rgb255(4cm)=(0,0,255)
+    rgb255(6cm)=(0,0,0)
+  }
+}
+
+\titlegraphic{\includegraphics[width=60mm,keepaspectratio]{figures/bme_logo.pdf}}
+\title{Nézőponthelyreállítás több kameraképből}
+%\subtitle{Diploma védés}
+\author[Kriván Bálint]{\large Kriván Bálint (CBVOEN)\\ \footnotesize konzulens: dr. Kovács Gábor}
+\institute[Budapesti Műszaki és Gazdaságtudományi Egyetem]{Budapesti Műszaki és Gazdaságtudományi Egyetem\\Távközlési és Médiainformatikai Tanszék\\MSc, Hálózatok és szolgáltatások szakirány}
+\date{2015. június 11.}
+
+\tikzset{cross/.style={cross out, draw=black, minimum size=2*(#1-\pgflinewidth), inner sep=0pt, outer sep=0pt},
+%default radius will be 1pt. 
+cross/.default={2pt}}
+
+\begin{document}
+
+\begin{frame}[plain]
+  \maketitle
+\end{frame}
+
+%----------------------------------------------------------------------------
+\section*{A feladat}
+%----------------------------------------------------------------------------
+\begin{frame}{A feladatkiírás}
+  \begin{itemize}
+    \justifying
+    \item \textbf{Tekintse át} a 3 dimenziós tér alapvető transzformációit! Tekintse át a többkamerás rendszerek kalibrációjának, szinkronizációjának és az objektumdetekció \textbf{elméleti hátterét}!
+    \item \textbf{Tervezzen és valósítson meg egy rendszert}, ami képes egy zárt térrész tetszőlegesen választott pontjában és irányában látható, a \textbf{mozgó objektumokat tartalmazó kép helyreállítására} fix telepítésű kamerák valós idejű videofolyamai alapján!
+    \item Vizsgálja meg, hogy \textbf{milyen korlátok mellett} valósítható meg \textbf{valós idő}ben a nézőponthelyreállítás! Értékelje az eredményeket!
+  \end{itemize}
+\end{frame}
+
+%----------------------------------------------------------------------------
+% ToC
+%----------------------------------------------------------------------------
+\begin{frame}{Tartalom}
+  \tableofcontents%[pausesections]
+\end{frame}
+
+%----------------------------------------------------------------------------
+% Slides
+%----------------------------------------------------------------------------
+\include{slides}
+
+%----------------------------------------------------------------------------
+% Referee's Report
+%----------------------------------------------------------------------------
+\include{referee_report}
+
+%----------------------------------------------------------------------------
+% Thank You
+%----------------------------------------------------------------------------
+%\begin{frame}[c]
+%  \center
+%  \only<1>{\Huge Köszönöm a figyelmet!}
+%\end{frame}
+
+
+\end{document}

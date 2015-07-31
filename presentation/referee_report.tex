@@ -1,0 +1,48 @@
+%----------------------------------------------------------------------------
+\section*{Bírálói kérdések}
+%----------------------------------------------------------------------------
+\begin{frame}{Bírálói kérdések}
+  \begin{enumerate}
+    \item \textit{Mi volt a rendszerben a szűk keresztmetszet?}
+  \end{enumerate}
+  
+\begin{table}[tbh]
+\centering
+
+\color{gray}
+
+\scalebox{0.8}{%
+\begin{tabular}{|l|l|l|l|l|}
+\hline
+\multirow{2}{*}{Tevékenység képkockánként} & \multicolumn{4}{ |c| }{Eltöltött idő (s)} \\\cline{2-5}
+ & min & max & átlag & szórás \\ \hline\hline
+
+Előtér maszk (2 kamerára) & 0,0304 & 0,0384 & 0,0337 & 0,00148 \\\hline
+Pontpárosítások ORB-bal & 0,0176 & 0,0351 & 0,0262 & 0,00321 \\\hline
+Objektumok párosítása & 0,0298 & 0,0477 & 0,0395 & 0,00328 \\\hline
+
+\color{black}
+\textbf{Textúrázottság meghatározása} & 0,0252 & 0,131 & \color{black}\textbf{0,0886} & 0,0188 \\\hline
+\color{black}\textbf{Optikai folyam oda-vissza} & 0,0404 & 0,226 & \color{black}\textbf{0,124} & 0,0405 \\\hline
+Sűrű pontmegfeleltetések & 0,00101 & 0,0166 & 0,00773 & 0,00256 \\\hline
+
+Háromszögelés & 0,000221 & 0,0561 & 0,0348 & 0,012 \\\hline
+Vizualizáció & 0,00252 & 0,0106 & 0,00665 & 0,0016 \\
+\hline \hline
+\color{black}Teljes folyamat & 0,137 & 0,338 & \color{black}\textbf{0,259} & 0,0406 \\ \hline
+
+\end{tabular}
+}
+
+\caption{Az egyes lépések statisztikái az első jelenet esetén}
+\end{table}
+  
+\end{frame}
+
+\begin{frame}{Bírálói kérdések}
+  \begin{enumerate}
+    \item \textit{Mi volt a rendszerben a szűk keresztmetszet?}
+    \item \textit{Előreláthatóan hogyan változna az elért eredmény nagyobb felbontás esetében? Mi történne, ha a helyreállítás mátrixát transzformálva eleve nagyobb képen alkalmazná? És fordítva?}
+  \end{enumerate}
+  
+\end{frame}
